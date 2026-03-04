@@ -21,7 +21,7 @@ export default function Dashboard() {
     if (query === '') return [];
 
     return [
-      ...GUIDES_DB.filter(g => fuzzyMatch(query, g.title) || fuzzyMatch(query, g.service)),
+      ...GUIDES_DB.filter(g => fuzzyMatch(query, g.service) || g.aliases.some(a => fuzzyMatch(query, a))),
     ].slice(0, 5);
   }, [searchQuery]);
 
@@ -70,7 +70,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <div className="font-bold text-white">{result.service}</div>
-                          <div className="text-xs text-slate-500">{result.title}</div>
+                          <div className="text-xs text-slate-500">{result.type === 'course' ? 'Онлайн-курс' : 'Подписка'}</div>
                         </div>
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
