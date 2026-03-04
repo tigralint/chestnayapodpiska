@@ -6,6 +6,8 @@ import { fuzzyMatch } from '../utils/fuzzyMatch';
 import { SearchInput } from '../components/ui/SearchInput';
 import { SEO } from '../components/ui/SEO';
 import { preloadRoute } from '../utils/preload';
+import { cn } from '../utils/cn';
+import { APP_CONTENT } from '../constants/text';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -39,11 +41,11 @@ export default function Dashboard() {
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent-cyan to-accent-blue shadow-[0_0_15px_rgba(0,242,254,0.6)] animate-pulse-slow"></div>
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-[1.1]">
-            Отменяйте подписки и возвращайте деньги<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-purple animate-gradient-x">без лишней головной боли</span>
+            {APP_CONTENT.hero.titlePrefix}<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-purple animate-gradient-x">{APP_CONTENT.hero.titleHighlight}</span>
           </h1>
           <p className="text-xl md:text-2xl text-slate-400 mb-10 max-w-2xl leading-relaxed">
-            Помогаем составить юридически грамотную претензию за 2 минуты. Бесплатно. Навсегда.
+            {APP_CONTENT.hero.subtitle}
           </p>
 
           {/* Search Bar */}
@@ -51,7 +53,7 @@ export default function Dashboard() {
             <SearchInput
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Введите название сервиса (например, VK Музыка, Skypro...)"
+              placeholder={APP_CONTENT.hero.searchPlaceholder}
             />
 
             {/* Quick Search Results */}
@@ -61,7 +63,7 @@ export default function Dashboard() {
                   searchResults.map((result, idx) => (
                     <div
                       key={result.id}
-                      className="flex items-center justify-between p-4 hover:bg-white/5 rounded-2xl transition-colors group/item"
+                      className={cn("flex items-center justify-between p-4 rounded-2xl transition-colors group/item", idx % 2 === 0 ? "bg-white/5" : "hover:bg-white/5")}
                       style={{ animationDelay: `${idx * 50}ms` }}
                     >
                       <div className="flex items-center gap-4">
@@ -70,7 +72,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <div className="font-bold text-white">{result.service}</div>
-                          <div className="text-xs text-slate-500">{result.type === 'course' ? 'Онлайн-курс' : 'Подписка'}</div>
+                          <div className="text-xs text-slate-500">{result.type === 'course' ? APP_CONTENT.search.courseBadge : APP_CONTENT.search.subscriptionBadge}</div>
                         </div>
                       </div>
                       <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover/item:opacity-100 transition-opacity">
@@ -78,25 +80,28 @@ export default function Dashboard() {
                           onClick={() => navigateTo(`/guides/${result.id}`)}
                           className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors"
                         >
-                          Инструкция
+                          {APP_CONTENT.search.guideBtn}
                         </button>
                         <button
                           onClick={() => navigateTo(result.type === 'course' ? `/course/${encodeURIComponent(result.service)}` : `/claim/${encodeURIComponent(result.service)}`)}
-                          className="px-5 py-3 bg-button-glow text-app-bg rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(0,242,254,0.3)] hover:shadow-[0_0_30px_rgba(0,242,254,0.5)] transition-all active:scale-95"
+                          className={cn(
+                            "px-5 py-3 rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(0,242,254,0.3)] transition-all active:scale-95",
+                            result.type === 'course' ? "bg-accent-purple text-white hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]" : "bg-button-glow text-app-bg hover:shadow-[0_0_30px_rgba(0,242,254,0.5)]"
+                          )}
                         >
-                          Претензия
+                          {APP_CONTENT.search.claimBtn}
                         </button>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="p-8 text-center animate-fade-in">
-                    <p className="text-slate-300 text-lg mb-6">Мы пока не добавили инструкцию для этого сервиса, но можем составить универсальную претензию.</p>
+                    <p className="text-slate-300 text-lg mb-6">{APP_CONTENT.search.emptyTitle}</p>
                     <button
                       onClick={() => navigateTo(`/claim/${encodeURIComponent(searchQuery)}`)}
                       className="px-8 py-4 bg-button-glow text-app-bg rounded-2xl font-bold shadow-[0_0_20px_rgba(0,242,254,0.3)] hover:shadow-[0_0_30px_rgba(0,242,254,0.5)] transition-all inline-flex items-center gap-2 active:scale-95 hover:scale-[1.02]"
                     >
-                      Создать документ для «{searchQuery}»
+                      {APP_CONTENT.search.createUniversalBtn} «{searchQuery}»
                       <ArrowRight className="w-5 h-5" />
                     </button>
                   </div>
@@ -125,8 +130,8 @@ export default function Dashboard() {
                 <ArrowRight className="w-5 h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">Возврат подписок</h3>
-            <p className="text-slate-400 leading-relaxed">Вернем деньги за музыку, кинотеатры и любые сервисы, которые списали лишнее.</p>
+            <h3 className="text-2xl font-bold text-white mb-3">{APP_CONTENT.features.subscriptions.title}</h3>
+            <p className="text-slate-400 leading-relaxed">{APP_CONTENT.features.subscriptions.desc}</p>
           </div>
         </button>
 
@@ -146,8 +151,8 @@ export default function Dashboard() {
                 <ArrowRight className="w-5 h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">Обучающие курсы</h3>
-            <p className="text-slate-400 leading-relaxed">Помогаем расторгнуть договор с онлайн-школами и вернуть деньги за не пройденные уроки.</p>
+            <h3 className="text-2xl font-bold text-white mb-3">{APP_CONTENT.features.courses.title}</h3>
+            <p className="text-slate-400 leading-relaxed">{APP_CONTENT.features.courses.desc}</p>
           </div>
         </button>
 
@@ -167,8 +172,8 @@ export default function Dashboard() {
                 <ArrowRight className="w-5 h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">База знаний</h3>
-            <p className="text-slate-400 leading-relaxed">Пошаговые инструкции по возврату средств для популярных сервисов и юридические советы.</p>
+            <h3 className="text-2xl font-bold text-white mb-3">{APP_CONTENT.features.guides.title}</h3>
+            <p className="text-slate-400 leading-relaxed">{APP_CONTENT.features.guides.desc}</p>
           </div>
         </button>
       </div>
@@ -185,8 +190,8 @@ export default function Dashboard() {
             <Gamepad className="w-8 h-8 text-accent-pink" />
           </div>
           <div>
-            <h4 className="text-xl font-bold text-white mb-1">Тренажер отписки</h4>
-            <p className="text-sm text-slate-400">Попробуйте найти кнопку отмены в самых хитрых интерфейсах.</p>
+            <h4 className="text-xl font-bold text-white mb-1">{APP_CONTENT.tools.simulator.title}</h4>
+            <p className="text-sm text-slate-400">{APP_CONTENT.tools.simulator.desc}</p>
           </div>
           <ArrowRight className="w-5 h-5 text-slate-600 ml-auto mr-4 group-hover:text-white transition-colors" />
         </div>
@@ -201,8 +206,8 @@ export default function Dashboard() {
             <Radio className="w-8 h-8 text-accent-purple" />
           </div>
           <div>
-            <h4 className="text-xl font-bold text-white mb-1">Народный радар</h4>
-            <p className="text-sm text-slate-400">Узнайте, на какие сервисы сейчас жалуются чаще всего.</p>
+            <h4 className="text-xl font-bold text-white mb-1">{APP_CONTENT.tools.radar.title}</h4>
+            <p className="text-sm text-slate-400">{APP_CONTENT.tools.radar.desc}</p>
           </div>
           <ArrowRight className="w-5 h-5 text-slate-600 ml-auto mr-4 group-hover:text-white transition-colors" />
         </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { copyToClipboard } from '../utils/clipboard';
 
 export function useClaimForm<T extends { turnstileToken?: string }, A extends unknown[] = []>(
@@ -61,13 +61,13 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
         }
     };
 
-    const handleCopy = async () => {
+    const handleCopy = useCallback(async () => {
         const success = await copyToClipboard(result);
         if (success) {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         }
-    };
+    }, [result]);
 
     return {
         data,

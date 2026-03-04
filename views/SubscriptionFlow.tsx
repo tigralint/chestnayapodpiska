@@ -1,70 +1,22 @@
-import { useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { ClaimData } from '../types';
 import { FileText, AlertCircle, ChevronDown } from '../components/icons';
-import { generateSubscriptionClaim } from '../services/geminiService';
-import { downloadWordDoc } from '../utils/downloadWord';
 import { formatNumberSpace } from '../utils/format';
-import { useClaimForm } from '../hooks/useClaimForm';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ToneToggle } from '../components/ui/ToneToggle';
 import { ClaimResultPanel } from '../components/ui/ClaimResultPanel';
-import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { SEO } from '../components/ui/SEO';
-
-const REASONS = [
-  'Забыл отменить подписку после пробного периода',
-  'Не планировал продлевать, случайно нажал',
-  'Сервисом не пользовался, услуга не нужна',
-  'Списание произошло без предупреждения'
-];
+import { useClaimFlow, REASONS } from '../hooks/useClaimFlow';
 
 export default function SubscriptionFlow() {
-  const { service } = useParams<{ service?: string }>();
-  const prefilledService = service ? decodeURIComponent(service) : '';
-
   const {
     data, setData,
     isGenerating, result, copied,
     fieldErrors, apiError,
-    handleGenerate, clearFieldError, handleCopy
-  } = useClaimForm<ClaimData>(
-    {
-      serviceName: prefilledService,
-      amount: '',
-      date: new Date().toISOString().split('T')[0]!,
-      reason: REASONS[0]!,
-      tone: 'soft'
-    },
-    generateSubscriptionClaim,
-    (d) => {
-      const errors: Record<string, string> = {};
-      if (!d.serviceName.trim()) errors.serviceName = 'Укажите название сервиса';
-      if (!d.amount) errors.amount = 'Укажите сумму списания';
-      else if (Number(d.amount) <= 0) errors.amount = 'Сумма должна быть больше 0';
-      return errors;
-    }
-  );
-
-  const [isReasonOpen, setIsReasonOpen] = useState(false);
-  const turnstileRef = useRef<TurnstileInstance>(null);
-
-  const handleSubmit = () => {
-    handleGenerate(() => turnstileRef.current?.reset());
-  };
-
-  const handleDownloadWord = () => {
-    const safeName = data.serviceName.replace(/[^a-zа-я0-9]/gi, '_');
-    downloadWordDoc(
-      `Претензия_${safeName}`,
-      "В службу поддержки / Руководству",
-      data.serviceName,
-      "_________________________ (Email / Телефон: _________________)",
-      "ДОСУДЕБНАЯ ПРЕТЕНЗИЯ",
-      "",
-      result
-    );
-  };
+    clearFieldError, handleCopy,
+    handleSubmit, handleDownloadWord,
+    isReasonOpen, setIsReasonOpen,
+    turnstileRef
+  } = useClaimFlow();
 
   return (
     <div className="flex flex-col h-full px-4 sm:px-6 pb-12">

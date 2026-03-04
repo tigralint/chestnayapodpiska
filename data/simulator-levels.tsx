@@ -53,8 +53,8 @@ export const LEVELS: Level[] = [
                     <p className="text-blue-200 text-sm mt-1">Активен до 12.10.2026</p>
                 </div>
                 <div className="flex-1 p-4 space-y-3 relative z-10 mt-2">
-                    <div className="p-4 rounded-xl bg-white shadow-sm flex flex-col gap-2 transition-transform active:scale-[0.98]" onClick={onMiss}>
-                        <div className="flex justify-between items-center cursor-pointer">
+                    <div role="button" tabIndex={0} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onMiss()} className="p-4 rounded-xl bg-white shadow-sm flex flex-col gap-2 transition-transform active:scale-[0.98] cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500" onClick={onMiss}>
+                        <div className="flex justify-between items-center">
                             <span className="text-slate-800 font-medium">Автопродление</span>
                             <div className="w-12 h-6 bg-blue-600 rounded-full relative">
                                 <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
@@ -62,7 +62,7 @@ export const LEVELS: Level[] = [
                         </div>
                         <p className="text-xs text-slate-400">Гарантирует бесперебойный доступ. Отключение не отменяет подписку.</p>
                     </div>
-                    <div className="p-4 rounded-xl bg-white shadow-sm flex justify-between items-center cursor-pointer transition-transform active:scale-[0.98]" onClick={onMiss}>
+                    <div role="button" tabIndex={0} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onMiss()} className="p-4 rounded-xl bg-white shadow-sm flex justify-between items-center cursor-pointer transition-transform active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500" onClick={onMiss}>
                         <span className="text-slate-800 font-medium">Сменить тариф</span>
                         <span className="text-slate-400">&gt;</span>
                     </div>
@@ -117,7 +117,7 @@ export const LEVELS: Level[] = [
                     </div>
 
                     <div className="mt-auto mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-start gap-3">
-                        <div className="mt-0.5 cursor-pointer relative z-20 hover:scale-110 transition-transform" onClick={(e) => { e.stopPropagation(); onHit(); }}>
+                        <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onHit(); } }} className="mt-0.5 cursor-pointer relative z-20 hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-blue-500 rounded" onClick={(e) => { e.stopPropagation(); onHit(); }}>
                             <div className="w-5 h-5 bg-blue-500 rounded border border-blue-500 flex items-center justify-center">
                                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                             </div>
@@ -241,7 +241,7 @@ export const LEVELS: Level[] = [
                 </div>
                 <div className="flex-1 p-6 relative z-10 bg-slate-50 flex flex-col justify-center">
 
-                    <div className="bg-white p-6 rounded-2xl border-2 border-green-500 shadow-xl relative cursor-pointer active:scale-[0.98] transition-transform" onClick={onMiss}>
+                    <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onMiss(); } }} className="bg-white p-6 rounded-2xl border-2 border-green-500 shadow-xl relative cursor-pointer active:scale-[0.98] transition-transform focus:outline-none focus:ring-4 focus:ring-green-500/30" onClick={onMiss}>
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">Хит продаж</div>
                         <h3 className="text-xl font-bold text-slate-800 mb-1">Безлимит PRO</h3>
                         <div className="text-3xl font-black text-slate-900 mb-1">990₽ <span className="text-sm font-normal text-slate-500">/ мес</span></div>
@@ -268,7 +268,7 @@ export const LEVELS: Level[] = [
                 <div className="absolute inset-0 z-0" onClick={onMiss}></div>
                 <div className="w-full bg-gradient-to-b from-blue-500 to-blue-700 rounded-2xl relative z-10 overflow-hidden shadow-[0_0_40px_rgba(59,130,246,0.6)]">
                     {/* Fake X */}
-                    <div className="absolute top-2 right-2 w-8 h-8 bg-black/20 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:bg-black/40 transition-colors" onClick={onMiss}>
+                    <div role="button" aria-label="Закрыть" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onMiss(); } }} className="absolute top-2 right-2 w-8 h-8 bg-black/20 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:bg-black/40 transition-colors focus:outline-none focus:bg-black/60 focus:ring-2 focus:ring-white" onClick={onMiss}>
                         ✕
                     </div>
 

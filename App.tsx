@@ -16,6 +16,7 @@ const FaqView = React.lazy(() => import('./views/FaqView'));
 const NotFound = React.lazy(() => import('./views/NotFound'));
 
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import { PwaPrompt } from './components/ui/PwaPrompt';
 
 export default function App() {
   const location = useLocation();
@@ -42,6 +43,9 @@ export default function App() {
 
       {/* Mobile Tab Bar */}
       <MobileTabBar />
+
+      {/* PWA Update Prompt */}
+      <PwaPrompt />
 
       <ErrorBoundary>
         <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">

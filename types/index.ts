@@ -20,6 +20,16 @@ export interface CourseData {
     turnstileToken?: string;
 }
 
+export type ClaimPayload =
+    | { type: 'subscription'; data: ClaimData }
+    | { type: 'course'; data: CourseData; calculatedRefund: number };
+
+export interface GenerateClaimResponse {
+    text?: string;
+    error?: string;
+    details?: string;
+}
+
 export interface Guide {
     id: string;
     service: string;

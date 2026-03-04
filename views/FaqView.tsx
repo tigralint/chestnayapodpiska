@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, HelpCircle, ChevronDown } from '../components/icons';
 import { FAQ_ITEMS } from '../data/faq';
 import { SEO } from '../components/ui/SEO';
+import { cn } from '../utils/cn';
 
 export default function FaqView() {
   const navigate = useNavigate();
@@ -55,23 +56,35 @@ export default function FaqView() {
             return (
               <div
                 key={item.id}
-                className={`real-glass-panel rounded-[2rem] overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] border opacity-0 animate-slide-up ${isOpen ? 'border-accent-cyan/30 shadow-[0_0_30px_rgba(0,242,254,0.1)] bg-white/10' : 'border-white/10 hover:bg-white/5'}`}
+                className={cn(
+                  "real-glass-panel rounded-[2rem] overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] border opacity-0 animate-slide-up",
+                  isOpen ? "border-accent-cyan/30 shadow-[0_0_30px_rgba(0,242,254,0.1)] bg-white/10" : "border-white/10 hover:bg-white/5"
+                )}
                 style={{ animationDelay: `${100 + idx * 50}ms` }}
               >
                 <button
                   onClick={() => toggleItem(item.id)}
                   className="w-full flex justify-between items-center p-6 sm:p-8 text-left active:scale-[0.99] transition-transform"
                 >
-                  <h3 className={`font-bold text-lg sm:text-xl pr-6 transition-colors duration-300 ${isOpen ? 'text-white' : 'text-slate-200 group-hover:text-white'}`}>
+                  <h3 className={cn(
+                    "font-bold text-lg sm:text-xl pr-6 transition-colors duration-300",
+                    isOpen ? "text-white" : "text-slate-200 group-hover:text-white"
+                  )}>
                     {item.question}
                   </h3>
-                  <div className={`shrink-0 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] border border-white/10 ${isOpen ? 'rotate-180 bg-accent-cyan/20 text-accent-cyan border-accent-cyan/30' : 'text-slate-400'}`}>
+                  <div className={cn(
+                    "shrink-0 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] border border-white/10",
+                    isOpen ? "rotate-180 bg-accent-cyan/20 text-accent-cyan border-accent-cyan/30" : "text-slate-400"
+                  )}>
                     <ChevronDown className="w-5 h-5" />
                   </div>
                 </button>
 
                 <div
-                  className={`transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+                  className={cn(
+                    "transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden",
+                    isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                  )}
                 >
                   <div className="px-6 pb-8 sm:px-8 sm:pb-8 pt-0">
                     <p className="text-[16px] text-slate-300 leading-relaxed">
