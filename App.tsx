@@ -55,6 +55,7 @@ export default function App() {
                 <Route path="/course" element={<CourseFlow />} />
                 <Route path="/course/:service" element={<CourseFlow />} />
                 <Route path="/guides" element={<GuidesView />} />
+                <Route path="/guides/:id" element={<GuidesView />} />
                 <Route path="/simulator" element={<SimulatorView />} />
                 <Route path="/radar" element={<RadarView />} />
                 <Route path="/faq" element={<FaqView />} />

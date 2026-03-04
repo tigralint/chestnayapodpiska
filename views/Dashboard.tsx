@@ -56,7 +56,7 @@ export default function Dashboard() {
 
             {/* Quick Search Results */}
             {searchQuery.trim() !== '' && (
-              <div className="absolute top-full left-0 right-0 mt-4 real-glass rounded-3xl p-2 border border-white/10 shadow-2xl z-50 animate-fade-in overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-4 bg-[#0a0f1c]/95 backdrop-blur-2xl rounded-3xl p-2 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 animate-fade-in overflow-hidden">
                 {searchResults.length > 0 ? (
                   searchResults.map((result, idx) => (
                     <div
