@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { copyToClipboard } from '../utils/clipboard';
 
-export function useClaimForm<T>(
+export function useClaimForm<T extends { turnstileToken?: string }, A extends unknown[] = []>(
     initialData: T,
-    generateFn: (data: T, ...args: any[]) => Promise<string>,
+    generateFn: (data: T, ...args: A) => Promise<string>,
     validateFn: (data: T) => Record<string, string>
 ) {
     const [data, setData] = useState<T>(initialData);
@@ -13,7 +13,7 @@ export function useClaimForm<T>(
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [apiError, setApiError] = useState('');
 
-    const handleGenerate = async (onAfterGenerate?: () => void, ...args: any[]) => {
+    const handleGenerate = async (onAfterGenerate?: () => void, ...args: A) => {
         setApiError('');
         const errors = validateFn(data);
         setFieldErrors(errors);
@@ -26,16 +26,16 @@ export function useClaimForm<T>(
         setResult('');
 
         if (window.innerWidth < 1024) {
-            setTimeout(() => {
-                document.getElementById('result-area')?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+            // On mobile, scroll to top while generating
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         try {
             const text = await generateFn(data, ...args);
             setResult(text);
-        } catch (e: any) {
-            setApiError(e.message || 'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.');
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.';
+            setApiError(message);
 
             if (window.innerWidth < 1024) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -44,7 +44,7 @@ export function useClaimForm<T>(
             setIsGenerating(false);
 
             // Сбрасываем токен в состоянии, так как он одноразовый
-            if ((data as any).turnstileToken) {
+            if (data.turnstileToken) {
                 setData(prev => ({ ...prev, turnstileToken: undefined }));
             }
 

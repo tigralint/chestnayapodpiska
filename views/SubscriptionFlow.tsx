@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { ClaimData } from '../types';
 import { FileText, AlertCircle, ChevronDown } from '../components/icons';
@@ -32,8 +32,8 @@ export default function SubscriptionFlow() {
     {
       serviceName: prefilledService,
       amount: '',
-      date: new Date().toISOString().split('T')[0],
-      reason: REASONS[0],
+      date: new Date().toISOString().split('T')[0]!,
+      reason: REASONS[0]!,
       tone: 'soft'
     },
     generateSubscriptionClaim,
@@ -79,7 +79,7 @@ export default function SubscriptionFlow() {
           <PageHeader
             title="Возврат средств"
             subtitle="Юридически грамотная претензия с опорой на ст. 32 ЗоЗПП РФ. Сервисы часто возвращают деньги без споров, видя знание закона."
-            accentColor="accent-cyan"
+            theme="cyan"
           />
 
           {apiError && (
@@ -175,7 +175,7 @@ export default function SubscriptionFlow() {
             <ToneToggle
               tone={data.tone}
               onToneChange={(t) => setData({ ...data, tone: t })}
-              accentColor="accent-cyan"
+              theme="cyan"
               softPreview="«...являюсь лояльным пользователем и надеюсь на мирное решение вопроса с возвратом...»"
               hardPreview="«...в противном случае буду вынужден(а) обратиться в суд со взысканием потребительского штрафа 50%...»"
             />
@@ -223,7 +223,7 @@ export default function SubscriptionFlow() {
           onCopy={handleCopy}
           copied={copied}
           onDownload={handleDownloadWord}
-          accentColor="accent-cyan"
+          theme="cyan"
           loadingTitle="Синтез правовой позиции"
           loadingSubtitle="Формирование документа..."
         />

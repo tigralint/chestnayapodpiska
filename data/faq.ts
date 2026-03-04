@@ -1,4 +1,10 @@
-export const FAQ_ITEMS = [
+export interface FaqItem {
+    id: number;
+    question: string;
+    answer: string;
+}
+
+export const FAQ_ITEMS: FaqItem[] = [
     {
         id: 1,
         question: "Что такое «Честная Подписка»?",

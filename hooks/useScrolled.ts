@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
-export function useScrollDirection() {
+/** Returns true once the user has scrolled past 20px */
+export function useScrolled() {
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {

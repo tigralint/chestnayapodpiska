@@ -1,5 +1,38 @@
-import React from 'react';
 import { FileText, CheckCircle, Copy, Download } from '../icons';
+
+/**
+ * Pre-built Tailwind class sets for each color theme.
+ * Using literal strings ensures Tailwind JIT compiler can detect them.
+ */
+export interface ResultPanelTheme {
+    border: string;
+    bg: string;
+    text: string;
+    gradient: string;
+    spinnerBorder: string;
+    focusRing: string;
+}
+
+export const RESULT_THEMES = {
+    cyan: {
+        border: 'border-accent-cyan/20',
+        bg: 'bg-accent-cyan/20',
+        text: 'text-accent-cyan',
+        gradient: 'from-accent-cyan/10 via-transparent to-accent-cyan/5',
+        spinnerBorder: 'border-accent-cyan/40',
+        focusRing: 'focus:ring-accent-cyan/30',
+    },
+    purple: {
+        border: 'border-accent-purple/20',
+        bg: 'bg-accent-purple/20',
+        text: 'text-accent-purple',
+        gradient: 'from-accent-purple/10 via-transparent to-accent-blue/5',
+        spinnerBorder: 'border-accent-purple/40',
+        focusRing: 'focus:ring-accent-purple/30',
+    },
+} as const satisfies Record<string, ResultPanelTheme>;
+
+export type ResultThemeKey = keyof typeof RESULT_THEMES;
 
 interface ClaimResultPanelProps {
     isGenerating: boolean;
@@ -7,8 +40,7 @@ interface ClaimResultPanelProps {
     onCopy: () => void;
     copied: boolean;
     onDownload: () => void;
-    accentColor: string;
-    secondaryColor?: string;
+    theme: ResultThemeKey;
     loadingTitle: string;
     loadingSubtitle: string;
 }
@@ -19,31 +51,24 @@ export function ClaimResultPanel({
     onCopy,
     copied,
     onDownload,
-    accentColor,
-    secondaryColor = accentColor,
+    theme,
     loadingTitle,
     loadingSubtitle
 }: ClaimResultPanelProps) {
-
-    // Helpers format Tailwind strings logic correctly, allowing dynamically constructed classNames using the exact color tokens already mapped
-    const borderColor = `border-${accentColor}/20`;
-    const blurColor1 = `bg-${accentColor}/20`;
-    const bgGradient = `from-${accentColor}/10 via-transparent to-${secondaryColor}/5`;
-    const iconShadow1 = `shadow-[0_0_20px_rgba(var(--color-${accentColor}),0.2)]`; // Wait... tailwind arbitary classes might fail on string interpolation if not whitelisted. 
-    // Let's use generic styles or simple map to ensure Tailwind compiles it. Actually, `CouseFlow` uses fixed colors. I'll stick to a generic approach or explicit props string.
+    const t = RESULT_THEMES[theme];
 
     if (isGenerating) {
         return (
-            <div className={`flex-grow flex flex-col items-center justify-center real-glass-panel rounded-[2.5rem] p-8 border ${borderColor} relative overflow-hidden animate-fade-in min-h-[400px]`}>
-                <div className={`absolute inset-0 bg-gradient-to-tr ${bgGradient} animate-gradient-shift bg-[length:200%_200%]`}></div>
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 ${blurColor1} rounded-full blur-[80px] animate-magic-pulse`}></div>
+            <div className={`flex-grow flex flex-col items-center justify-center real-glass-panel rounded-[2.5rem] p-8 border ${t.border} relative overflow-hidden animate-fade-in min-h-[400px]`}>
+                <div className={`absolute inset-0 bg-gradient-to-tr ${t.gradient} animate-gradient-shift bg-[length:200%_200%]`}></div>
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 ${t.bg} rounded-full blur-[80px] animate-magic-pulse`}></div>
 
                 <div className="relative z-10 text-center flex flex-col items-center">
                     <div className="w-32 h-32 mx-auto mb-8 relative flex items-center justify-center perspective-[1000px]">
-                        <div className={`absolute inset-0 rounded-[40%] border border-${accentColor}/40 animate-spin-slow`}></div>
-                        <div className={`absolute inset-2 rounded-full border-y-2 border-${secondaryColor}/60 animate-[spin_4s_linear_infinite_reverse]`}></div>
-                        <div className={`absolute inset-5 rounded-[45%] border-x-2 border-white/60 animate-[spin_2s_linear_infinite]`}></div>
-                        <div className={`relative z-10 bg-app-bg/80 backdrop-blur-md w-16 h-16 rounded-full flex items-center justify-center border border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.2)] animate-float`}>
+                        <div className={`absolute inset-0 rounded-[40%] border ${t.spinnerBorder} animate-spin-slow`}></div>
+                        <div className="absolute inset-2 rounded-full border-y-2 border-white/40 animate-[spin_4s_linear_infinite_reverse]"></div>
+                        <div className="absolute inset-5 rounded-[45%] border-x-2 border-white/60 animate-[spin_2s_linear_infinite]"></div>
+                        <div className="relative z-10 bg-app-bg/80 backdrop-blur-md w-16 h-16 rounded-full flex items-center justify-center border border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.2)] animate-float">
                             <FileText className="w-8 h-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-magic-pulse" />
                         </div>
                     </div>
@@ -51,8 +76,8 @@ export function ClaimResultPanel({
                     <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 mb-3 animate-pulse">
                         {loadingTitle}
                     </h3>
-                    <div className={`flex items-center gap-3 justify-center text-${accentColor} font-mono text-sm uppercase tracking-widest bg-${accentColor}/10 px-4 py-2 rounded-full border border-${accentColor}/20`}>
-                        <span className={`w-2 h-2 rounded-full bg-${accentColor} animate-ping`}></span>
+                    <div className={`flex items-center gap-3 justify-center ${t.text} font-mono text-sm uppercase tracking-widest ${t.bg} bg-opacity-50 px-4 py-2 rounded-full border ${t.border}`}>
+                        <span className={`w-2 h-2 rounded-full ${t.bg} animate-ping`}></span>
                         {loadingSubtitle}
                     </div>
                 </div>
@@ -71,7 +96,7 @@ export function ClaimResultPanel({
                 <div className="relative group flex-grow flex flex-col min-h-[400px]">
                     <textarea
                         readOnly
-                        className={`flex-grow w-full real-glass-panel rounded-[2.5rem] p-6 md:p-8 text-[15px] leading-relaxed text-slate-200 focus:outline-none resize-none shadow-inner font-serif custom-scrollbar mb-4 focus:ring-2 focus:ring-${accentColor}/30`}
+                        className={`flex-grow w-full real-glass-panel rounded-[2.5rem] p-6 md:p-8 text-[15px] leading-relaxed text-slate-200 focus:outline-none resize-none shadow-inner font-serif custom-scrollbar mb-4 focus:ring-2 ${t.focusRing}`}
                         value={result}
                     />
                     <div className="flex gap-4">
@@ -124,8 +149,8 @@ export function ClaimResultPanel({
             </div>
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className={`bg-app-bg/80 backdrop-blur-sm py-3 px-6 rounded-full border border-${accentColor}/20 shadow-xl flex items-center gap-3 animate-float`}>
-                    <FileText className={`w-5 h-5 text-${accentColor}`} />
+                <div className={`bg-app-bg/80 backdrop-blur-sm py-3 px-6 rounded-full border ${t.border} shadow-xl flex items-center gap-3 animate-float`}>
+                    <FileText className={`w-5 h-5 ${t.text}`} />
                     <span className="font-bold text-white tracking-wide">Окно предпросмотра</span>
                 </div>
             </div>

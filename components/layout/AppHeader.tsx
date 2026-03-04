@@ -1,8 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { ShieldAlert } from '../icons';
 import { useAppContext } from '../../context/AppContext';
-import { usePrefetch } from '../../hooks/usePrefetch';
+import { preloadRoute } from '../../utils/preload';
 
 const NAV_ITEMS = [
     { path: '/claim', label: 'Претензии', activeColor: 'text-accent-cyan', barColor: 'bg-accent-cyan' },
@@ -17,7 +16,6 @@ export const AppHeader = React.memo(function AppHeader() {
     const location = useLocation();
     const navigate = useNavigate();
     const { scrolled } = useAppContext();
-    const prefetch = usePrefetch();
 
     return (
         <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hidden md:block pt-6 px-6 ${scrolled ? 'translate-y-[-120%]' : 'translate-y-0'}`}>
@@ -38,7 +36,7 @@ export const AppHeader = React.memo(function AppHeader() {
                             <NavLink
                                 key={item.path}
                                 to={item.path}
-                                onMouseEnter={() => prefetch(item.path)}
+                                onMouseEnter={() => preloadRoute(item.path)}
                                 className={`whitespace-nowrap relative px-3 py-1 rounded-xl transition-all duration-300 hover:text-white hover:bg-white/5 ${isActive ? `${item.activeColor} bg-white/5` : 'text-slate-400'
                                     }`}
                             >

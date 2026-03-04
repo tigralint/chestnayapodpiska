@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, AlertCircle } from '../components/icons';
 import { SEO } from '../components/ui/SEO';

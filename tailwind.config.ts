@@ -12,13 +12,8 @@ const config: Config = {
         './data/**/*.{ts,tsx}',
         './context/**/*.{ts,tsx}',
     ],
-    safelist: [
-        'bg-accent-cyan/10', 'bg-accent-cyan/20', 'bg-accent-purple/10', 'bg-accent-purple/20',
-        'border-accent-cyan/20', 'border-accent-purple/20', 'border-accent-cyan/40', 'border-accent-purple/40', 'border-accent-cyan/50', 'border-accent-purple/50',
-        'from-accent-cyan/10', 'from-accent-purple/10', 'to-accent-cyan/5', 'to-accent-blue/5', 'to-accent-purple/5',
-        'focus:ring-accent-cyan/30', 'focus:ring-accent-purple/30', 'focus:ring-accent-cyan/50', 'focus:ring-accent-purple/50',
-        'text-accent-cyan', 'text-accent-purple', 'border-y-2', 'border-x-2'
-    ],
+    // safelist removed — all accent classes are now defined as literal strings in theme objects
+    // (ClaimResultPanel, ToneToggle, PageHeader) so Tailwind JIT detects them automatically.
     theme: {
         extend: {
             fontFamily: {

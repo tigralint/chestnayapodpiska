@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Target, CheckCircle, Award } from '../components/icons';
 import { useSimulator } from '../hooks/useSimulator';

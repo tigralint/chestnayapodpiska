@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, GraduationCap, ShieldAlert, ArrowRight, BookOpen, Gamepad, Radio, HelpCircle } from '../components/icons';
+import { CreditCard, GraduationCap, ArrowRight, BookOpen, Gamepad, Radio } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
 import { fuzzyMatch } from '../utils/fuzzyMatch';
 import { SearchInput } from '../components/ui/SearchInput';
@@ -73,7 +73,7 @@ export default function Dashboard() {
                           <div className="text-xs text-slate-500">{result.type === 'course' ? 'Онлайн-курс' : 'Подписка'}</div>
                         </div>
                       </div>
-                      <div className="flex gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                      <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover/item:opacity-100 transition-opacity">
                         <button
                           onClick={() => navigateTo(`/guides/${result.id}`)}
                           className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors"

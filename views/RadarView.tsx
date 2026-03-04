@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, MapPin, Radio, AlertCircle } from '../components/icons';
 import { ALERTS } from '../data/radar-alerts';
@@ -110,7 +109,7 @@ export default function RadarView() {
               );
             })}
 
-            <div className="mt-8 text-center p-6 border border-dashed border-white/20 rounded-[2rem] opacity-70 opacity-0 animate-slide-up" style={{ animationDelay: '700ms' }}>
+            <div className="mt-8 text-center p-6 border border-dashed border-white/20 rounded-[2rem] opacity-0 animate-slide-up" style={{ animationDelay: '700ms' }}>
               <p className="text-slate-400 text-sm">Хотите добавить свой случай на радар? Модуль сбора анонимных данных находится в разработке.</p>
             </div>
           </div>

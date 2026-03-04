@@ -1,5 +1,5 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useScrollDirection } from '../hooks/useScrollDirection';
+import { createContext, useContext, ReactNode } from 'react';
+import { useScrolled } from '../hooks/useScrolled';
 
 interface AppContextType {
     scrolled: boolean;
@@ -12,7 +12,7 @@ export function useAppContext() {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-    const { scrolled } = useScrollDirection();
+    const { scrolled } = useScrolled();
 
     return (
         <AppContext.Provider value={{ scrolled }}>
