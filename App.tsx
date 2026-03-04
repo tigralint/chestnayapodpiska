@@ -15,6 +15,8 @@ const RadarView = React.lazy(() => import('./views/RadarView'));
 const FaqView = React.lazy(() => import('./views/FaqView'));
 const NotFound = React.lazy(() => import('./views/NotFound'));
 
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
+
 export default function App() {
   const location = useLocation();
 
@@ -30,10 +32,10 @@ export default function App() {
     <div className="min-h-screen relative text-slate-100 overflow-x-hidden">
       {/* VisionOS Animated Mesh Gradient Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-app-bg">
-        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-accent-purple/20 blur-[180px] mix-blend-screen animate-blob"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-accent-blue/20 blur-[180px] mix-blend-screen animate-blob" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-[70vw] h-[70vw] rounded-full bg-accent-cyan/10 blur-[200px] mix-blend-screen animate-blob" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute top-[40%] left-[50%] w-[40vw] h-[40vw] rounded-full bg-accent-pink/10 blur-[160px] mix-blend-screen animate-blob" style={{ animationDelay: '6s' }}></div>
+        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-accent-purple/15 blur-[120px] mix-blend-screen animate-blob transform-gpu"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-accent-blue/15 blur-[120px] mix-blend-screen animate-blob transform-gpu" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-[70vw] h-[70vw] rounded-full bg-accent-cyan/10 blur-[140px] mix-blend-screen animate-blob transform-gpu" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-[40%] left-[50%] w-[40vw] h-[40vw] rounded-full bg-accent-pink/10 blur-[100px] mix-blend-screen animate-blob transform-gpu" style={{ animationDelay: '6s' }}></div>
       </div>
 
       <AppHeader />
@@ -45,7 +47,7 @@ export default function App() {
         <div className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">
           {/* Key forces React to unmount and remount the view, ensuring entry animations play every time */}
           <div key={location.pathname} className="h-full w-full view-enter">
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/claim" element={<SubscriptionFlow />} />
@@ -53,6 +55,7 @@ export default function App() {
                 <Route path="/course" element={<CourseFlow />} />
                 <Route path="/course/:service" element={<CourseFlow />} />
                 <Route path="/guides" element={<GuidesView />} />
+                <Route path="/guides/:id" element={<GuidesView />} />
                 <Route path="/simulator" element={<SimulatorView />} />
                 <Route path="/radar" element={<RadarView />} />
                 <Route path="/faq" element={<FaqView />} />

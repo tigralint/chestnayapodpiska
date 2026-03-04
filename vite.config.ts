@@ -14,22 +14,26 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        includeAssets: ['logo.png'],
         manifest: {
           name: 'Честная Подписка',
-          short_name: 'Отписка',
+          short_name: 'Подписка',
           description: 'Верните свои деньги за навязанные услуги',
           theme_color: '#05050A',
+          background_color: '#05050A',
+          display: 'standalone',
           icons: [
             {
-              src: 'pwa-192x192.png',
+              src: '/logo.png',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
-              src: 'pwa-512x512.png',
+              src: '/logo.png',
               sizes: '512x512',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             }
           ]
         }

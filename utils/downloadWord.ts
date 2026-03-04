@@ -1,5 +1,3 @@
-import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } from 'docx';
-
 /**
  * Generates and downloads a professional .docx file using the 'docx' library.
  */
@@ -12,6 +10,9 @@ export const downloadWordDoc = async (
   subHeading: string,
   content: string
 ) => {
+  // Load docx dynamically to improve initial page load performance
+  const { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } = await import('docx');
+
   // 1. Create the Document
   const doc = new Document({
     styles: {

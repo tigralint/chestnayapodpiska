@@ -12,7 +12,7 @@ const cleanMarkdown = (text: string): string => {
 
 export const generateSubscriptionClaim = async (data: ClaimData): Promise<string> => {
   try {
-    const response = await fetch('/.netlify/functions/generateClaim', {
+    const response = await fetch('/api/generateClaim', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'subscription', data })
@@ -45,7 +45,7 @@ export const generateSubscriptionClaim = async (data: ClaimData): Promise<string
 
 export const generateCourseClaim = async (data: CourseData, calculatedRefund: number): Promise<string> => {
   try {
-    const response = await fetch('/.netlify/functions/generateClaim', {
+    const response = await fetch('/api/generateClaim', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'course', data, calculatedRefund })

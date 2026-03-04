@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Plus, X, CheckCircle, FileText, ExternalLink } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
 import { SEO } from '../components/ui/SEO';
 
 export default function GuidesView() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
+
+  // Sync state with URL parameter for deep linking
+  useEffect(() => {
+    if (id) {
+      setSelectedGuideId(id);
+    }
+  }, [id]);
   const [showModal, setShowModal] = useState(false);
   const [modalState, setModalState] = useState<'form' | 'success'>('form');
 
@@ -98,14 +106,14 @@ export default function GuidesView() {
               <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-accent-cyan/5 rounded-full blur-[80px] pointer-events-none"></div>
 
               {/* Header */}
-              <div className="p-6 md:p-8 flex items-center justify-between border-b border-white/5 shrink-0 bg-[#0a0f1c]/80 backdrop-blur-md z-10">
+              <div className="p-5 md:p-8 flex items-center justify-between border-b border-white/5 shrink-0 bg-[#0a0f1c]/80 backdrop-blur-md z-10">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black shrink-0 ${selectedGuide.iconColor} bg-opacity-20 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]`}>
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center text-lg md:text-xl font-black shrink-0 ${selectedGuide.iconColor} bg-opacity-20 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]`}>
                     <span className="drop-shadow-md text-white">{selectedGuide.service.charAt(0)}</span>
                   </div>
                   <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-white leading-tight">{selectedGuide.service}</h2>
-                    <p className="text-sm text-slate-400">Инструкция по отмене</p>
+                    <h2 className="text-lg md:text-2xl font-bold text-white leading-tight">{selectedGuide.service}</h2>
+                    <p className="text-xs md:text-sm text-slate-400">Инструкция по отмене</p>
                   </div>
                 </div>
                 <button
@@ -118,12 +126,11 @@ export default function GuidesView() {
 
               {/* Content (Scrollable) */}
               <div
-                className="flex-1 overflow-y-auto p-6 md:p-8 relative z-20 custom-scrollbar overscroll-contain"
+                className="flex-1 overflow-y-auto p-5 md:p-8 relative z-20 custom-scrollbar overscroll-contain"
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
-
-                <div className="mb-8">
-                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Пошаговый алгоритм</h3>
+                <div className="mb-6">
+                  <h3 className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Пошаговый алгоритм</h3>
                   <div className="relative border-l border-white/10 ml-4 space-y-8">
                     {selectedGuide.steps.map((step, stepIdx) => {
                       const isDarkPattern = step.includes('ДАРК-ПАТТЕРН') || step.includes('ВНИМАНИЕ');
