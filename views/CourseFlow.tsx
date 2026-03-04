@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { CourseData } from '../types';
 import { FileText, AlertCircle, Info } from '../components/icons';
@@ -22,7 +22,7 @@ export default function CourseFlow() {
     isGenerating, result, copied,
     fieldErrors, apiError,
     handleGenerate, clearFieldError, handleCopy
-  } = useClaimForm<CourseData>(
+  } = useClaimForm<CourseData, [number]>(
     {
       courseName: prefilledService,
       totalCost: 100000,
@@ -32,7 +32,7 @@ export default function CourseFlow() {
       hasConsultations: false,
       hasCertificate: false
     },
-    generateCourseClaim,
+    (data: CourseData, refund: number) => generateCourseClaim(data, refund),
     (d) => {
       const errors: Record<string, string> = {};
       if (!d.courseName.trim()) errors.courseName = 'Укажите название школы или курса';
@@ -78,7 +78,7 @@ export default function CourseFlow() {
           <PageHeader
             title="Отказ от онлайн-курса"
             subtitle="Штрафы в договорах онлайн-школ незаконны. Оплачиваются только Фактически Понесенные Расходы (ФПР) за пройденный материал."
-            accentColor="accent-purple"
+            theme="purple"
           />
 
           {apiError && (
@@ -87,6 +87,9 @@ export default function CourseFlow() {
               <div>
                 <h3 className="text-red-300 font-bold mb-1 text-sm uppercase tracking-wider">Ошибка</h3>
                 <p className="text-red-200 text-sm leading-relaxed">{apiError}</p>
+                <p className="text-red-300/60 text-xs mt-2">
+                  Проблема не уходит? <a href="https://vk.com/fairsubs" target="_blank" rel="noopener noreferrer" className="text-accent-cyan hover:underline">Напишите нам</a>
+                </p>
               </div>
             </div>
           )}
@@ -188,7 +191,7 @@ export default function CourseFlow() {
             <ToneToggle
               tone={data.tone}
               onToneChange={(t) => setData({ ...data, tone: t })}
-              accentColor="accent-purple"
+              theme="purple"
               softPreview="«...надеюсь на конструктивный диалог с отделом качества и урегулирование вопроса в досудебном порядке...»"
               hardPreview="«...иначе буду вынужден(а) подать жалобу в Роспотребнадзор и взыскать в суде дополнительный штраф 50%...»"
             />
@@ -236,8 +239,7 @@ export default function CourseFlow() {
           onCopy={handleCopy}
           copied={copied}
           onDownload={handleDownloadWord}
-          accentColor="accent-purple"
-          secondaryColor="accent-blue"
+          theme="purple"
           loadingTitle="Анализ договора-оферты"
           loadingSubtitle="Разбор на ст. 16 ЗоЗПП..."
         />

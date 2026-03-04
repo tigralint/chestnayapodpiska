@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertCircle } from '../icons';
 
 interface Props {
@@ -35,10 +35,16 @@ export class ErrorBoundary extends Component<Props, State> {
                         </p>
                         <button
                             onClick={() => window.location.reload()}
-                            className="px-6 py-3 bg-red-500 text-white rounded-xl font-bold shadow-lg hover:shadow-red-500/30 active:scale-95 transition-all"
+                            className="px-6 py-3 bg-red-500 text-white rounded-xl font-bold shadow-lg hover:shadow-red-500/30 active:scale-95 transition-all mb-4"
                         >
                             Перезагрузить страницу
                         </button>
+                        <p className="text-slate-500 text-sm">
+                            Ошибка повторяется?{' '}
+                            <a href="https://vk.com/fairsubs" target="_blank" rel="noopener noreferrer" className="text-accent-cyan hover:underline">
+                                Напишите нам в ВК
+                            </a>
+                        </p>
                     </div>
                 </div>
             );

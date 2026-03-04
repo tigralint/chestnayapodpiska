@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { LEVELS } from '../data/simulator-levels';
 import { SIMULATOR_CONFIG } from '../constants/simulator';
 
@@ -11,7 +11,16 @@ export function useSimulator() {
     const [score, setScore] = useState(SIMULATOR_CONFIG.INITIAL_SCORE);
     const [showResult, setShowResult] = useState(false);
 
-    const currentLevel = LEVELS[currentLevelIdx];
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Clean up any pending timer on unmount
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, []);
+
+    const currentLevel = LEVELS[currentLevelIdx]!;
     const progress = (currentLevelIdx / LEVELS.length) * 100;
 
     const nextLevel = useCallback(() => {
@@ -29,7 +38,7 @@ export function useSimulator() {
 
         setFeedback('hit');
 
-        setTimeout(() => {
+        timerRef.current = setTimeout(() => {
             if (currentLevel.maxSteps && currentStepIdx < currentLevel.maxSteps - 1) {
                 setCurrentStepIdx(prevStep => prevStep + 1);
                 setFeedback('idle');
@@ -43,12 +52,13 @@ export function useSimulator() {
     const handleMiss = useCallback(() => {
         if (feedback !== 'idle') return;
         setFeedback('miss');
-        setTimeout(() => {
+        timerRef.current = setTimeout(() => {
             nextLevel();
         }, SIMULATOR_CONFIG.MISS_FEEDBACK_DURATION);
     }, [feedback, nextLevel]);
 
     const reset = useCallback(() => {
+        if (timerRef.current) clearTimeout(timerRef.current);
         setCurrentLevelIdx(SIMULATOR_CONFIG.INITIAL_LEVEL_INDEX);
         setCurrentStepIdx(SIMULATOR_CONFIG.INITIAL_STEP_INDEX);
         setScore(SIMULATOR_CONFIG.INITIAL_SCORE);
@@ -70,3 +80,4 @@ export function useSimulator() {
         totalLevels: LEVELS.length
     };
 }
+

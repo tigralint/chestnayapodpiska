@@ -16,16 +16,18 @@ export const fuzzyMatch = (query: string, text: string): boolean => {
     const words = t.split(/[\s\-]+/);
     for (const word of words) {
         if (Math.abs(word.length - q.length) > 2) continue;
-        const dp = Array(word.length + 1).fill(null).map(() => Array(q.length + 1).fill(null));
-        for (let i = 0; i <= word.length; i++) dp[i][0] = i;
-        for (let j = 0; j <= q.length; j++) dp[0][j] = j;
+        const dp: number[][] = Array.from({ length: word.length + 1 }, () =>
+            Array.from({ length: q.length + 1 }, () => 0)
+        );
+        for (let i = 0; i <= word.length; i++) dp[i]![0] = i;
+        for (let j = 0; j <= q.length; j++) dp[0]![j] = j;
         for (let i = 1; i <= word.length; i++) {
             for (let j = 1; j <= q.length; j++) {
                 const cost = word[i - 1] === q[j - 1] ? 0 : 1;
-                dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+                dp[i]![j] = Math.min(dp[i - 1]![j]! + 1, dp[i]![j - 1]! + 1, dp[i - 1]![j - 1]! + cost);
             }
         }
-        if (dp[word.length][q.length] <= (q.length > 4 ? 2 : 1)) return true;
+        if (dp[word.length]![q.length]! <= (q.length > 4 ? 2 : 1)) return true;
     }
     return false;
 };

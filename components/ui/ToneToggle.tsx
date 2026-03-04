@@ -1,15 +1,28 @@
-import React from 'react';
 import { Tone } from '../../types';
+
+const TONE_THEMES = {
+    cyan: {
+        focusRing: 'focus-visible:ring-accent-cyan/50',
+        borderLeft: 'border-accent-cyan/40',
+    },
+    purple: {
+        focusRing: 'focus-visible:ring-accent-purple/50',
+        borderLeft: 'border-accent-purple/40',
+    },
+} as const;
+
+export type ToneThemeKey = keyof typeof TONE_THEMES;
 
 interface ToneToggleProps {
     tone: Tone;
     onToneChange: (t: Tone) => void;
-    accentColor: string;
+    theme: ToneThemeKey;
     softPreview: string;
     hardPreview: string;
 }
 
-export function ToneToggle({ tone, onToneChange, accentColor, softPreview, hardPreview }: ToneToggleProps) {
+export function ToneToggle({ tone, onToneChange, theme, softPreview, hardPreview }: ToneToggleProps) {
+    const t = TONE_THEMES[theme];
     return (
         <div className="pt-2">
             <label className="block text-sm font-semibold text-slate-300 mb-3 ml-1">Тональность документа</label>
@@ -17,14 +30,14 @@ export function ToneToggle({ tone, onToneChange, accentColor, softPreview, hardP
                 <button
                     type="button"
                     onClick={() => onToneChange('soft')}
-                    className={`flex-1 py-3 text-sm font-bold rounded-xl z-10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${accentColor}/50 ${tone === 'soft' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+                    className={`flex-1 py-3 text-sm font-bold rounded-xl z-10 transition-colors focus-visible:outline-none ${t.focusRing} ${tone === 'soft' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
                 >
                     Заявление на возврат
                 </button>
                 <button
                     type="button"
                     onClick={() => onToneChange('hard')}
-                    className={`flex-1 py-3 text-sm font-bold rounded-xl z-10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${accentColor}/50 ${tone === 'hard' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+                    className={`flex-1 py-3 text-sm font-bold rounded-xl z-10 transition-colors focus-visible:outline-none ${t.focusRing} ${tone === 'hard' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
                 >
                     Досудебная претензия
                 </button>
@@ -34,7 +47,7 @@ export function ToneToggle({ tone, onToneChange, accentColor, softPreview, hardP
             </div>
 
             {/* Live Tone Preview */}
-            <div className={`mt-4 px-3 border-l-2 border-${accentColor}/40`}>
+            <div className={`mt-4 px-3 border-l-2 ${t.borderLeft}`}>
                 <p className="text-[13px] text-slate-400 italic transition-all duration-300 min-h-[40px] flex items-center">
                     {tone === 'soft' ? softPreview : hardPreview}
                 </p>

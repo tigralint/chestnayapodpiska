@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, GraduationCap, ShieldAlert, ArrowRight, BookOpen, Gamepad, Radio, HelpCircle } from '../components/icons';
+import { CreditCard, GraduationCap, ArrowRight, BookOpen, Gamepad, Radio } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
 import { fuzzyMatch } from '../utils/fuzzyMatch';
 import { SearchInput } from '../components/ui/SearchInput';
@@ -33,7 +33,7 @@ export default function Dashboard() {
       />
 
       {/* Hero Section */}
-      <div className="w-full text-center md:text-left md:flex justify-between items-center mb-16 mt-8 md:mt-0 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
+      <div className="relative z-20 w-full text-center md:text-left md:flex justify-between items-center mb-16 mt-8 md:mt-0 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
         <div className="max-w-3xl">
           <div className="md:hidden inline-flex items-center justify-center w-16 h-10 rounded-full real-glass mb-6 px-1.5 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent-cyan to-accent-blue shadow-[0_0_15px_rgba(0,242,254,0.6)] animate-pulse-slow"></div>
@@ -47,7 +47,7 @@ export default function Dashboard() {
           </p>
 
           {/* Search Bar */}
-          <div className="relative group max-w-2xl">
+          <div className="relative group max-w-2xl z-50">
             <SearchInput
               value={searchQuery}
               onChange={setSearchQuery}
@@ -73,7 +73,7 @@ export default function Dashboard() {
                           <div className="text-xs text-slate-500">{result.type === 'course' ? 'Онлайн-курс' : 'Подписка'}</div>
                         </div>
                       </div>
-                      <div className="flex gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                      <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover/item:opacity-100 transition-opacity">
                         <button
                           onClick={() => navigateTo(`/guides/${result.id}`)}
                           className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors"

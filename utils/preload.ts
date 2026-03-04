@@ -23,8 +23,7 @@ export const preloadRoute = (path: string) => {
     const basePath = path.split('/').filter(Boolean)[0] ? `/${path.split('/').filter(Boolean)[0]}` : '/';
 
     if (routeImports[basePath] && !preloadedPaths.has(basePath)) {
-        console.log(`[Predictive] Preloading route: ${basePath}`);
-        routeImports[basePath]().catch(err => console.warn(`Preload failed for ${basePath}:`, err));
+        routeImports[basePath]().catch(() => { });
         preloadedPaths.add(basePath);
     }
 };

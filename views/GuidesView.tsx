@@ -15,8 +15,29 @@ export default function GuidesView() {
       setSelectedGuideId(id);
     }
   }, [id]);
+
+  // Scroll to top and lock body scroll when guide modal opens
+  useEffect(() => {
+    if (!selectedGuideId) {
+      document.body.style.overflow = '';
+      return;
+    }
+    window.scrollTo({ top: 0 });
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [selectedGuideId]);
   const [showModal, setShowModal] = useState(false);
   const [modalState, setModalState] = useState<'form' | 'success'>('form');
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!showModal) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowModal(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [showModal]);
 
   const handleSubmitPattern = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,20 +111,17 @@ export default function GuidesView() {
           ))}
         </div>
 
-        {/* --- CENTERED MODAL FOR GUIDE DETAILS --- */}
+        {/* --- GUIDE DETAILS MODAL (full-screen on mobile, centered on desktop) --- */}
         {selectedGuide && (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+          <div className="fixed inset-0 z-[150] flex items-end md:items-center justify-center md:p-6 overflow-hidden">
             {/* Backdrop */}
             <div
               className="absolute inset-0 bg-app-bg/30 backdrop-blur-xl animate-fade-in transition-opacity"
               onClick={() => setSelectedGuideId(null)}
             ></div>
 
-            {/* Modal Panel */}
-            <div className="relative w-full max-w-2xl bg-[#0a0f1c] border border-white/10 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] animate-pop-in flex flex-col max-h-[90vh] overflow-hidden">
-
-              {/* Abstract Watermark */}
-              <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-accent-cyan/5 rounded-full blur-[80px] pointer-events-none"></div>
+            {/* Modal Panel — full height on mobile, max-h on desktop */}
+            <div className="relative w-full max-w-2xl bg-[#0a0f1c] border border-white/10 rounded-t-[2rem] md:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] animate-pop-in flex flex-col max-h-[95vh] md:max-h-[90vh] overflow-hidden">
 
               {/* Header */}
               <div className="p-5 md:p-8 flex items-center justify-between border-b border-white/5 shrink-0 bg-[#0a0f1c]/80 backdrop-blur-md z-10">
@@ -131,7 +149,7 @@ export default function GuidesView() {
               >
                 <div className="mb-6">
                   <h3 className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Пошаговый алгоритм</h3>
-                  <div className="relative border-l border-white/10 ml-4 space-y-8">
+                  <div className="relative border-l border-white/10 ml-4 space-y-5 md:space-y-8">
                     {selectedGuide.steps.map((step, stepIdx) => {
                       const isDarkPattern = step.includes('ДАРК-ПАТТЕРН') || step.includes('ВНИМАНИЕ');
 

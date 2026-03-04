@@ -44,21 +44,21 @@ export default function App() {
       <MobileTabBar />
 
       <ErrorBoundary>
-        <div className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">
+        <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">
           {/* Key forces React to unmount and remount the view, ensuring entry animations play every time */}
           <div key={location.pathname} className="h-full w-full view-enter">
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/claim" element={<SubscriptionFlow />} />
-                <Route path="/claim/:service" element={<SubscriptionFlow />} />
-                <Route path="/course" element={<CourseFlow />} />
-                <Route path="/course/:service" element={<CourseFlow />} />
-                <Route path="/guides" element={<GuidesView />} />
-                <Route path="/guides/:id" element={<GuidesView />} />
-                <Route path="/simulator" element={<SimulatorView />} />
-                <Route path="/radar" element={<RadarView />} />
-                <Route path="/faq" element={<FaqView />} />
+                <Route path="/claim" element={<ErrorBoundary><SubscriptionFlow /></ErrorBoundary>} />
+                <Route path="/claim/:service" element={<ErrorBoundary><SubscriptionFlow /></ErrorBoundary>} />
+                <Route path="/course" element={<ErrorBoundary><CourseFlow /></ErrorBoundary>} />
+                <Route path="/course/:service" element={<ErrorBoundary><CourseFlow /></ErrorBoundary>} />
+                <Route path="/guides" element={<ErrorBoundary><GuidesView /></ErrorBoundary>} />
+                <Route path="/guides/:id" element={<ErrorBoundary><GuidesView /></ErrorBoundary>} />
+                <Route path="/simulator" element={<ErrorBoundary><SimulatorView /></ErrorBoundary>} />
+                <Route path="/radar" element={<ErrorBoundary><RadarView /></ErrorBoundary>} />
+                <Route path="/faq" element={<ErrorBoundary><FaqView /></ErrorBoundary>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

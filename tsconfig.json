@@ -12,6 +12,10 @@
       "node",
       "vite/client"
     ],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",

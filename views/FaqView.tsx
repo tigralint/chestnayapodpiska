@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, HelpCircle, ChevronDown } from '../components/icons';
 import { FAQ_ITEMS } from '../data/faq';
+import { SEO } from '../components/ui/SEO';
 
 export default function FaqView() {
   const navigate = useNavigate();
@@ -11,8 +12,23 @@ export default function FaqView() {
     setOpenId(openId === id ? null : id);
   };
 
+  const faqJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQ_ITEMS.map(item => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  }), []);
+
   return (
     <div className="flex flex-col h-full px-4 sm:px-6 pb-12">
+      <SEO
+        title="О проекте (FAQ) | ЧестнаяПодписка"
+        description="Ответы на главные вопросы о бесплатном правовом навигаторе для возврата денег за подписки и онлайн-курсы."
+        jsonLd={faqJsonLd}
+      />
       <div className="max-w-4xl mx-auto w-full">
 
         <div className="md:hidden flex items-center mb-8 mt-2 opacity-0 animate-fade-in" style={{ animationDelay: '50ms' }}>
