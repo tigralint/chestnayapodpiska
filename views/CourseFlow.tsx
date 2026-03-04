@@ -87,6 +87,9 @@ export default function CourseFlow() {
               <div>
                 <h3 className="text-red-300 font-bold mb-1 text-sm uppercase tracking-wider">Ошибка</h3>
                 <p className="text-red-200 text-sm leading-relaxed">{apiError}</p>
+                <p className="text-red-300/60 text-xs mt-2">
+                  Проблема не уходит? <a href="https://vk.com/fairsubs" target="_blank" rel="noopener noreferrer" className="text-accent-cyan hover:underline">Напишите нам</a>
+                </p>
               </div>
             </div>
           )}

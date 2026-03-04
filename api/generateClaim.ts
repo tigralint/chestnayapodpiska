@@ -22,12 +22,46 @@ function sanitizeInput(input: string, maxLength = 200): string {
         .trim();
 }
 
+// --- In-memory Rate Limiter (60 req/hour per IP) ---
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+// Cleanup stale entries every 10 minutes to prevent memory leaks
+setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of rateLimitMap) {
+        if (now > entry.resetAt) rateLimitMap.delete(ip);
+    }
+}, 10 * 60 * 1000);
+
+function isRateLimited(ip: string): boolean {
+    const now = Date.now();
+    const entry = rateLimitMap.get(ip);
+
+    if (!entry || now > entry.resetAt) {
+        rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+        return false;
+    }
+
+    entry.count++;
+    return entry.count > RATE_LIMIT;
+}
+
 export default async function handler(
     request: VercelRequest,
     response: VercelResponse,
 ) {
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
+    }
+
+    // Rate limiting: 60 requests per hour per IP
+    const clientIp = (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+        ?? request.socket?.remoteAddress
+        ?? 'unknown';
+    if (isRateLimited(clientIp)) {
+        return response.status(429).json({ error: 'Слишком много запросов. Попробуйте через некоторое время.' });
     }
 
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
