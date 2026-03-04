@@ -51,19 +51,23 @@ describe('generateSubscriptionClaim', () => {
         }));
     });
 
-    it('throws on HTTP error with server message', async () => {
+    it('throws fast on HTTP 403 error with server message', async () => {
+        // 403 should NOT trigger retry, it should fail fast
         mockFetch.mockResolvedValue(jsonResponse({ error: 'Капча не пройдена.' }, 403));
         await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow('Капча не пройдена.');
+        expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('throws on empty text response', async () => {
         mockFetch.mockResolvedValue(jsonResponse({ text: '' }));
         await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow('Модель не вернула текст');
+        expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('throws network error message on fetch failure', async () => {
+        // Will be retried 3 times, ending in this fallback error message
         mockFetch.mockRejectedValue(new TypeError('Failed to fetch'));
-        await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow('Ошибка связи с сервером');
+        await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow('Удаленный сервер перегружен (ошибка 429/500).');
     });
 
     it('throws on non-JSON response', async () => {
@@ -73,7 +77,7 @@ describe('generateSubscriptionClaim', () => {
             headers: new Headers({ 'content-type': 'text/html' }),
             text: () => Promise.resolve('502 Bad Gateway'),
         } as Response);
-        await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow('502 Bad Gateway');
+        await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow('Сервер вернул некорректный ответ (не JSON).');
     });
 });
 
@@ -92,8 +96,9 @@ describe('generateCourseClaim', () => {
         expect(body.type).toBe('course');
     });
 
-    it('throws on server error', async () => {
+    it('retries on server error 500 and throws fallback message', async () => {
         mockFetch.mockResolvedValue(jsonResponse({ error: 'Внутренняя ошибка' }, 500));
-        await expect(generateCourseClaim(mockCourseData, 35000)).rejects.toThrow('Внутренняя ошибка');
+        await expect(generateCourseClaim(mockCourseData, 35000)).rejects.toThrow('Удаленный сервер перегружен (ошибка 429/500).');
+        expect(mockFetch).toHaveBeenCalledTimes(3); // Expect 3 retries
     });
 });

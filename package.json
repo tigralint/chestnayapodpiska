@@ -6,15 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.4.2",
+    "clsx": "^2.1.1",
     "docx": "^9.6.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-helmet-async": "^3.0.0",
-    "react-router-dom": "^7.13.1"
+    "react-router-dom": "^7.13.1",
+    "remove-markdown": "^0.6.3",
+    "tailwind-merge": "^3.5.0",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
@@ -22,8 +28,10 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/remove-markdown": "^0.3.4",
     "@vercel/node": "^5.6.10",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.4.20",
     "jsdom": "^28.1.0",
     "postcss": "^8.4.49",
