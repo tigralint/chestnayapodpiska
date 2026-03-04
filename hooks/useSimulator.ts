@@ -1,0 +1,72 @@
+import { useState, useCallback } from 'react';
+import { LEVELS } from '../data/simulator-levels';
+import { SIMULATOR_CONFIG } from '../constants/simulator';
+
+export type FeedbackState = 'idle' | 'hit' | 'miss';
+
+export function useSimulator() {
+    const [currentLevelIdx, setCurrentLevelIdx] = useState(SIMULATOR_CONFIG.INITIAL_LEVEL_INDEX);
+    const [currentStepIdx, setCurrentStepIdx] = useState(SIMULATOR_CONFIG.INITIAL_STEP_INDEX);
+    const [feedback, setFeedback] = useState<FeedbackState>('idle');
+    const [score, setScore] = useState(SIMULATOR_CONFIG.INITIAL_SCORE);
+    const [showResult, setShowResult] = useState(false);
+
+    const currentLevel = LEVELS[currentLevelIdx];
+    const progress = (currentLevelIdx / LEVELS.length) * 100;
+
+    const nextLevel = useCallback(() => {
+        setFeedback('idle');
+        setCurrentStepIdx(SIMULATOR_CONFIG.INITIAL_STEP_INDEX);
+        if (currentLevelIdx < LEVELS.length - 1) {
+            setCurrentLevelIdx(idx => idx + 1);
+        } else {
+            setShowResult(true);
+        }
+    }, [currentLevelIdx]);
+
+    const handleHit = useCallback(() => {
+        if (feedback !== 'idle') return;
+
+        setFeedback('hit');
+
+        setTimeout(() => {
+            if (currentLevel.maxSteps && currentStepIdx < currentLevel.maxSteps - 1) {
+                setCurrentStepIdx(prevStep => prevStep + 1);
+                setFeedback('idle');
+            } else {
+                setScore(s => s + 1);
+                nextLevel();
+            }
+        }, SIMULATOR_CONFIG.HIT_FEEDBACK_DURATION);
+    }, [feedback, currentLevel, currentStepIdx, nextLevel]);
+
+    const handleMiss = useCallback(() => {
+        if (feedback !== 'idle') return;
+        setFeedback('miss');
+        setTimeout(() => {
+            nextLevel();
+        }, SIMULATOR_CONFIG.MISS_FEEDBACK_DURATION);
+    }, [feedback, nextLevel]);
+
+    const reset = useCallback(() => {
+        setCurrentLevelIdx(SIMULATOR_CONFIG.INITIAL_LEVEL_INDEX);
+        setCurrentStepIdx(SIMULATOR_CONFIG.INITIAL_STEP_INDEX);
+        setScore(SIMULATOR_CONFIG.INITIAL_SCORE);
+        setShowResult(false);
+        setFeedback('idle');
+    }, []);
+
+    return {
+        currentLevel,
+        currentLevelIdx,
+        currentStepIdx,
+        feedback,
+        score,
+        showResult,
+        progress,
+        handleHit,
+        handleMiss,
+        reset,
+        totalLevels: LEVELS.length
+    };
+}
