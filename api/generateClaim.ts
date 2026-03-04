@@ -1,24 +1,25 @@
-export const onRequestPost = async (context: any) => {
-    const { request, env } = context;
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-    const OPENROUTER_API_KEY = env.OPENROUTER_API_KEY;
-    const TURNSTILE_SECRET_KEY = env.TURNSTILE_SECRET_KEY;
+export default async function handler(
+    request: VercelRequest,
+    response: VercelResponse,
+) {
+    if (request.method !== 'POST') {
+        return response.status(405).json({ error: 'Method Not Allowed' });
+    }
+
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
 
     if (!OPENROUTER_API_KEY) {
-        return new Response(JSON.stringify({ error: 'Сервер не настроен (API ключ отсутствует).' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return response.status(500).json({ error: 'Сервер не настроен (API ключ отсутствует).' });
     }
 
     try {
-        const { type, data, calculatedRefund } = await request.json();
+        const { type, data, calculatedRefund } = request.body;
 
         if (!data || !data.turnstileToken) {
-            return new Response(JSON.stringify({ error: 'Капча не пройдена.' }), {
-                status: 403,
-                headers: { 'Content-Type': 'application/json' }
-            });
+            return response.status(403).json({ error: 'Капча не пройдена.' });
         }
 
         // Verify Turnstile
@@ -33,10 +34,7 @@ export const onRequestPost = async (context: any) => {
 
         const turnstileRes: any = await turnstileCheck.json();
         if (!turnstileRes.success) {
-            return new Response(JSON.stringify({ error: 'Ошибка капчи.' }), {
-                status: 403,
-                headers: { 'Content-Type': 'application/json' }
-            });
+            return response.status(403).json({ error: 'Ошибка капчи.' });
         }
 
         let prompt = '';
@@ -77,14 +75,9 @@ export const onRequestPost = async (context: any) => {
         const aiJson: any = await aiResponse.json();
         const text = aiJson.choices?.[0]?.message?.content || '';
 
-        return new Response(JSON.stringify({ text }), {
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return response.status(200).json({ text });
 
     } catch (error: any) {
-        return new Response(JSON.stringify({ error: 'Ошибка сервера', details: error.message }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return response.status(500).json({ error: 'Ошибка сервера', details: error.message });
     }
-};
+}
