@@ -1,12 +1,11 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, HelpCircle, ChevronDown } from '../components/icons';
+import { ChevronDown, HelpCircle } from '../components/icons';
 import { FAQ_ITEMS } from '../data/faq';
 import { SEO } from '../components/ui/SEO';
 import { cn } from '../utils/cn';
+import { ViewHeader } from '../components/layout/ViewHeader';
 
 export default function FaqView() {
-  const navigate = useNavigate();
   const [openId, setOpenId] = useState<number | null>(1);
 
   const toggleItem = (id: number) => {
@@ -32,23 +31,11 @@ export default function FaqView() {
       />
       <div className="max-w-4xl mx-auto w-full">
 
-        <div className="md:hidden flex items-center mb-8 mt-2 opacity-0 animate-fade-in" style={{ animationDelay: '50ms' }}>
-          <button onClick={() => navigate('/')} className="p-2 -ml-2 text-white bg-white/10 rounded-full mr-4 active:scale-95 transition-transform">
-            <ChevronLeft />
-          </button>
-          <h1 className="text-2xl font-bold text-white">Что это и зачем?</h1>
-        </div>
-
-        <div className="hidden md:block mb-12 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
-          <button onClick={() => navigate('/')} className="text-slate-400 hover:text-white font-semibold text-sm flex items-center transition-colors mb-6 active:scale-95">
-            <ChevronLeft className="w-5 h-5 mr-1" /> Вернуться
-          </button>
-          <h1 className="text-4xl font-extrabold text-white mb-3 tracking-tight flex items-center gap-4">
-            <HelpCircle className="w-10 h-10 text-accent-cyan" />
-            О проекте (FAQ)
-          </h1>
-          <p className="text-slate-400 text-lg">Ответы на главные вопросы о вашей цифровой безопасности.</p>
-        </div>
+        <ViewHeader
+          title="О проекте (FAQ)"
+          subtitle="Ответы на главные вопросы о вашей цифровой безопасности."
+          icon={<HelpCircle className="w-10 h-10 text-accent-cyan" />}
+        />
 
         <div className="space-y-4">
           {FAQ_ITEMS.map((item, idx) => {

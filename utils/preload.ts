@@ -4,7 +4,7 @@
  */
 
 // Map of route paths to their dynamic import functions
-const routeImports: Record<string, () => Promise<any>> = {
+const routeImports: Record<string, () => Promise<{ default: React.ComponentType }>> = {
     '/claim': () => import('../views/SubscriptionFlow'),
     '/course': () => import('../views/CourseFlow'),
     '/guides': () => import('../views/GuidesView'),

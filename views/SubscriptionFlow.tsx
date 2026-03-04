@@ -1,8 +1,9 @@
-import { FileText, AlertCircle, ChevronDown } from '../components/icons';
+import { FileText, ChevronDown } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ToneToggle } from '../components/ui/ToneToggle';
 import { ClaimResultPanel } from '../components/ui/ClaimResultPanel';
+import { ApiErrorBanner } from '../components/ui/ApiErrorBanner';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { SEO } from '../components/ui/SEO';
 import { useClaimFlow, REASONS } from '../hooks/useClaimFlow';
@@ -34,18 +35,7 @@ export default function SubscriptionFlow() {
             theme="cyan"
           />
 
-          {apiError && (
-            <div className="real-glass border-red-500/30 bg-red-500/10 p-5 rounded-[1.5rem] flex items-start gap-4 animate-pop-in shadow-[0_0_20px_rgba(239,68,68,0.1)]">
-              <AlertCircle className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-red-300 font-bold mb-1 text-sm uppercase tracking-wider">Ошибка</h3>
-                <p className="text-red-200 text-sm leading-relaxed">{apiError}</p>
-                <p className="text-red-300/60 text-xs mt-2">
-                  Проблема не уходит? <a href="https://vk.com/fairsubs" target="_blank" rel="noopener noreferrer" className="text-accent-cyan hover:underline">Напишите нам</a>
-                </p>
-              </div>
-            </div>
-          )}
+          {apiError && <ApiErrorBanner error={apiError} />}
 
           <div className="space-y-6 real-glass-panel p-6 sm:p-8 rounded-[2.5rem] opacity-0 animate-slide-up" style={{ animationDelay: '150ms' }}>
             {/* Service Name */}
@@ -92,7 +82,7 @@ export default function SubscriptionFlow() {
               </div>
             </div>
 
-            {/* Reason Dropdown */}
+            {/* Reason Dropdown with Keyboard Navigation */}
             <div className="group relative">
               <label className="block text-sm font-semibold text-slate-300 mb-3 ml-1 transition-colors group-focus-within:text-accent-cyan" id="reason-label">Причина (кратко)</label>
               <button
@@ -102,6 +92,23 @@ export default function SubscriptionFlow() {
                 aria-labelledby="reason-label"
                 className={`w-full text-left bg-white/5 rounded-2xl px-5 py-4 text-[17px] text-white outline-none transition-all shadow-inner flex justify-between items-center ${isReasonOpen ? 'border-2 border-accent-cyan/50 bg-white/10 ring-2 ring-accent-cyan/30 scale-[1.01]' : 'border border-white/10 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-accent-cyan/50 focus-visible:border-accent-cyan/50'}`}
                 onClick={() => setIsReasonOpen(!isReasonOpen)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (!isReasonOpen) setIsReasonOpen(true);
+                    const currentIdx = REASONS.indexOf(data.reason);
+                    const nextIdx = e.key === 'ArrowDown'
+                      ? Math.min(currentIdx + 1, REASONS.length - 1)
+                      : Math.max(currentIdx - 1, 0);
+                    setData({ ...data, reason: REASONS[nextIdx]! });
+                  } else if (e.key === 'Escape' && isReasonOpen) {
+                    e.preventDefault();
+                    setIsReasonOpen(false);
+                  } else if (e.key === 'Enter' && isReasonOpen) {
+                    e.preventDefault();
+                    setIsReasonOpen(false);
+                  }
+                }}
               >
                 <span className="truncate pr-4">{data.reason}</span>
                 <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 shrink-0 ${isReasonOpen ? 'rotate-180 text-accent-cyan' : ''}`} />
@@ -109,11 +116,13 @@ export default function SubscriptionFlow() {
               {isReasonOpen && <div className="fixed inset-0 z-40" onClick={() => setIsReasonOpen(false)}></div>}
               <div
                 role="listbox"
+                aria-labelledby="reason-label"
                 className={`absolute z-50 w-full mt-2 real-glass-panel rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300 origin-top ${isReasonOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}
               >
                 {REASONS.map((reason, idx) => (
                   <button
                     key={idx}
+                    id={`reason-option-${idx}`}
                     type="button"
                     role="option"
                     aria-selected={data.reason === reason}

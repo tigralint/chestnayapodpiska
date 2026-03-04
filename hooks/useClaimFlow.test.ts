@@ -101,7 +101,7 @@ describe('useClaimFlow', () => {
         });
 
         expect(generateMock).toHaveBeenCalledTimes(1);
-        expect(generateMock).toHaveBeenCalledWith(result.current.data);
+        expect(generateMock).toHaveBeenCalledWith(result.current.data, expect.any(AbortSignal));
 
         expect(result.current.result).toBe('Mocked Claim Text');
         expect(result.current.isGenerating).toBe(false);

@@ -75,7 +75,7 @@ describe('useClaimForm', () => {
         await act(async () => {
             await result.current.handleGenerate();
         });
-        expect(successGenerate).toHaveBeenCalledWith(initialData);
+        expect(successGenerate).toHaveBeenCalledWith(initialData, expect.any(AbortSignal));
         expect(result.current.result).toBe('Generated text');
         expect(result.current.isGenerating).toBe(false);
     });

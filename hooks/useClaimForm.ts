@@ -1,9 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { copyToClipboard } from '../utils/clipboard';
 
+/**
+ * Generic form hook for claim generation.
+ * generateFn receives (data, signal, ...extraArgs) so callers don't need to manage AbortController.
+ */
 export function useClaimForm<T extends { turnstileToken?: string }, A extends unknown[] = []>(
     initialData: T,
-    generateFn: (data: T, ...args: A) => Promise<string>,
+    generateFn: (data: T, signal: AbortSignal, ...args: A) => Promise<string>,
     validateFn: (data: T) => Record<string, string>
 ) {
     const [data, setData] = useState<T>(initialData);
@@ -12,6 +16,7 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
     const [copied, setCopied] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [apiError, setApiError] = useState('');
+    const abortRef = useRef<AbortController | null>(null);
 
     const handleGenerate = async (onAfterGenerate?: () => void, ...args: A) => {
         setApiError('');
@@ -22,18 +27,26 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
             return;
         }
 
+        // Abort any previous in-flight request
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+        const { signal } = abortRef.current;
+
         setIsGenerating(true);
         setResult('');
 
         if (window.innerWidth < 1024) {
-            // On mobile, scroll to top while generating
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         try {
-            const text = await generateFn(data, ...args);
+            const text = await generateFn(data, signal, ...args);
             setResult(text);
         } catch (e: unknown) {
+            // Silently ignore aborted requests
+            if (e instanceof DOMException && e.name === 'AbortError') return;
+            if ((e as { name?: string })?.name === 'AbortError') return;
+
             const message = e instanceof Error ? e.message : 'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.';
             setApiError(message);
 
@@ -43,12 +56,10 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
         } finally {
             setIsGenerating(false);
 
-            // Сбрасываем токен в состоянии, так как он одноразовый
             if (data.turnstileToken) {
                 setData(prev => ({ ...prev, turnstileToken: undefined }));
             }
 
-            // Даем возможность вызвать сброс виджета Turnstile
             if (onAfterGenerate) {
                 onAfterGenerate();
             }

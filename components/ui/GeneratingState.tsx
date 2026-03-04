@@ -27,7 +27,7 @@ export const GeneratingState = React.memo(function GeneratingState({
                     <div className={`absolute inset-0 rounded-[40%] border ${themeStyles.spinnerBorder} animate-spin-slow`}></div>
                     <div className="absolute inset-2 rounded-full border-y-2 border-white/40 animate-[spin_4s_linear_infinite_reverse]"></div>
                     <div className="absolute inset-5 rounded-[45%] border-x-2 border-white/60 animate-[spin_2s_linear_infinite]"></div>
-                    <div className="relative z-10 bg-app-bg/80 backdrop-blur-md w-16 h-16 rounded-full flex items-center justify-center border border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.2)] animate-float">
+                    <div className="relative z-10 bg-[#05050A]/95 w-16 h-16 rounded-full flex items-center justify-center border border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.2)] animate-float">
                         <FileText className="w-8 h-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-magic-pulse" />
                     </div>
                 </div>

@@ -56,26 +56,42 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
     loadingSubtitle
 }: ClaimResultPanelProps) {
     const themeStyles = RESULT_THEMES[theme];
+    const panelRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        // Scroll into view on mobile/tablet when generation starts or result appears
+        if (isGenerating || result) {
+            // Small delay to ensure render is complete
+            const timeoutId = setTimeout(() => {
+                panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [isGenerating, result]);
 
     if (isGenerating) {
         return (
-            <GeneratingState
-                theme={theme}
-                loadingTitle={loadingTitle}
-                loadingSubtitle={loadingSubtitle}
-            />
+            <div ref={panelRef} className="w-full h-full flex flex-col">
+                <GeneratingState
+                    theme={theme}
+                    loadingTitle={loadingTitle}
+                    loadingSubtitle={loadingSubtitle}
+                />
+            </div>
         );
     }
 
     if (result) {
         return (
-            <ResultSuccessCard
-                result={result}
-                theme={theme}
-                onCopy={onCopy}
-                copied={copied}
-                onDownload={onDownload}
-            />
+            <div ref={panelRef} className="w-full h-full flex flex-col">
+                <ResultSuccessCard
+                    result={result}
+                    theme={theme}
+                    onCopy={onCopy}
+                    copied={copied}
+                    onDownload={onDownload}
+                />
+            </div>
         );
     }
 
@@ -112,7 +128,7 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
             </div>
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className={`bg-app-bg/80 backdrop-blur-sm py-3 px-6 rounded-full border ${themeStyles.border} shadow-xl flex items-center gap-3 animate-float`}>
+                <div className={`bg-[#05050A]/95 py-3 px-6 rounded-full border ${themeStyles.border} shadow-xl flex items-center gap-3 animate-float`}>
                     <FileText className={`w-5 h-5 ${themeStyles.text}`} />
                     <span className="font-bold text-white tracking-wide">Окно предпросмотра</span>
                 </div>

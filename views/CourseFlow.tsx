@@ -1,9 +1,10 @@
-import { FileText, AlertCircle, Info } from '../components/icons';
+import { FileText, Info } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ToneToggle } from '../components/ui/ToneToggle';
 import { ClaimResultPanel } from '../components/ui/ClaimResultPanel';
 import { FprToggle } from '../components/ui/FprToggle';
+import { ApiErrorBanner } from '../components/ui/ApiErrorBanner';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { SEO } from '../components/ui/SEO';
 import { useCourseFlow } from '../hooks/useCourseFlow';
@@ -34,18 +35,7 @@ export default function CourseFlow() {
             theme="purple"
           />
 
-          {apiError && (
-            <div className="real-glass border-red-500/30 bg-red-500/10 p-5 rounded-[1.5rem] flex items-start gap-4 animate-pop-in shadow-[0_0_20px_rgba(239,68,68,0.1)]">
-              <AlertCircle className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-red-300 font-bold mb-1 text-sm uppercase tracking-wider">Ошибка</h3>
-                <p className="text-red-200 text-sm leading-relaxed">{apiError}</p>
-                <p className="text-red-300/60 text-xs mt-2">
-                  Проблема не уходит? <a href="https://vk.com/fairsubs" target="_blank" rel="noopener noreferrer" className="text-accent-cyan hover:underline">Напишите нам</a>
-                </p>
-              </div>
-            </div>
-          )}
+          {apiError && <ApiErrorBanner error={apiError} />}
 
           <div className="space-y-8 real-glass-panel p-6 sm:p-8 rounded-[2.5rem] opacity-0 animate-slide-up" style={{ animationDelay: '150ms' }}>
 

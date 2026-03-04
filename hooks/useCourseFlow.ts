@@ -25,7 +25,7 @@ export function useCourseFlow() {
             hasConsultations: false,
             hasCertificate: false
         },
-        (data: CourseData, refund: number) => generateCourseClaim(data, refund),
+        (courseData, signal, refund) => generateCourseClaim(courseData, refund, signal),
         (d) => {
             const errors: Record<string, string> = {};
             if (!d.courseName.trim()) errors.courseName = 'Укажите название школы или курса';
@@ -39,7 +39,7 @@ export function useCourseFlow() {
         [data.totalCost, data.percentCompleted]
     );
 
-    const turnstileRef = useRef<any>(null);
+    const turnstileRef = useRef<{ reset: () => void } | null>(null) as React.RefObject<any>;
 
     const handleSubmit = () => {
         handleGenerate(() => turnstileRef.current?.reset(), calculatedRefund);

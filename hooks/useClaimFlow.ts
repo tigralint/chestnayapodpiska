@@ -30,7 +30,7 @@ export function useClaimFlow() {
             reason: REASONS[0]!,
             tone: 'soft'
         },
-        generateSubscriptionClaim,
+        (claimData, signal) => generateSubscriptionClaim(claimData, signal),
         (d) => {
             const errors: Record<string, string> = {};
             if (!d.serviceName.trim()) errors.serviceName = 'Укажите название сервиса';
@@ -41,7 +41,7 @@ export function useClaimFlow() {
     );
 
     const [isReasonOpen, setIsReasonOpen] = useState(false);
-    const turnstileRef = useRef<any>(null);
+    const turnstileRef = useRef<{ reset: () => void } | null>(null) as React.RefObject<any>;
 
     const handleSubmit = () => {
         handleGenerate(() => turnstileRef.current?.reset());

@@ -118,7 +118,8 @@ describe('useCourseFlow', () => {
         expect(generateMock).toHaveBeenCalledTimes(1);
         expect(generateMock).toHaveBeenCalledWith(
             expect.objectContaining({ courseName: 'Test School' }),
-            100000 // calculatedRefund
+            100000, // calculatedRefund
+            expect.any(AbortSignal)
         );
         expect(result.current.result).toBe('Course Result Text');
     });

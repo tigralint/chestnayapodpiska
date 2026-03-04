@@ -13,20 +13,24 @@ function isGenerateClaimResponse(data: unknown): data is GenerateClaimResponse {
   if (typeof data !== 'object' || data === null || Array.isArray(data)) {
     return false;
   }
-  // Check strict fields if necessary, here we at least expect object literal 
-  // (not an array, not null)
-  return true;
+  const obj = data as Record<string, unknown>;
+  // Validate that text and error are strings if present
+  const hasValidText = !('text' in obj) || typeof obj.text === 'string';
+  const hasValidError = !('error' in obj) || typeof obj.error === 'string';
+  const hasValidDetails = !('details' in obj) || typeof obj.details === 'string';
+  return hasValidText && hasValidError && hasValidDetails;
 }
 
 /**
  * Core function to call /api/generateClaim.
  * Uses Strict Discriminated Unions and safe fetchWithRetry.
  */
-async function generateClaim(payload: ClaimPayload): Promise<string> {
+async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promise<string> {
   const response = await fetchWithRetry('/api/generateClaim', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+    signal,
   });
 
   const contentType = response.headers.get('content-type');
@@ -63,9 +67,9 @@ async function generateClaim(payload: ClaimPayload): Promise<string> {
 }
 
 /** Thin wrapper for subscription claims */
-export const generateSubscriptionClaim = (data: ClaimData): Promise<string> =>
-  generateClaim({ type: 'subscription', data });
+export const generateSubscriptionClaim = (data: ClaimData, signal?: AbortSignal): Promise<string> =>
+  generateClaim({ type: 'subscription', data }, signal);
 
 /** Thin wrapper for course claims */
-export const generateCourseClaim = (data: CourseData, calculatedRefund: number): Promise<string> =>
-  generateClaim({ type: 'course', data, calculatedRefund });
+export const generateCourseClaim = (data: CourseData, calculatedRefund: number, signal?: AbortSignal): Promise<string> =>
+  generateClaim({ type: 'course', data, calculatedRefund }, signal);

@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { buildSubscriptionPrompt, buildCoursePrompt } from './promptBuilder.js';
 
 interface TurnstileVerifyResponse {
     success: boolean;
@@ -10,6 +11,31 @@ interface OpenRouterResponse {
     error?: { message?: string };
 }
 
+import { z } from 'zod';
+
+export const claimSchema = z.object({
+    serviceName: z.string().min(1, 'Укажите название сервиса'),
+    amount: z.string(),
+    date: z.string(),
+    reason: z.string(),
+    tone: z.enum(['soft', 'hard']),
+    turnstileToken: z.string().optional()
+});
+
+export const courseSchema = z.object({
+    courseName: z.string().min(1, 'Укажите название курса'),
+    totalCost: z.number().positive('Сумма должна быть больше нуля'),
+    percentCompleted: z.number().min(0).max(100),
+    tone: z.enum(['soft', 'hard']),
+    hasPlatformAccess: z.boolean(),
+    hasConsultations: z.boolean(),
+    hasCertificate: z.boolean(),
+    turnstileToken: z.string().optional()
+});
+
+export type ClaimData = z.infer<typeof claimSchema>;
+export type CourseData = z.infer<typeof courseSchema>;
+
 /**
  * Strips characters that could be used for prompt injection.
  * Removes instruction-like patterns while keeping normal user text.
@@ -17,36 +43,21 @@ interface OpenRouterResponse {
 function sanitizeInput(input: string, maxLength = 200): string {
     return input
         .slice(0, maxLength)
-        .replace(/[<>{}[\]]/g, '')       // Remove brackets that could break prompts
         .replace(/\n/g, ' ')             // Flatten newlines
         .trim();
 }
 
-// --- In-memory Rate Limiter (60 req/hour per IP) ---
-const RATE_LIMIT = 60;
-const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
-// Cleanup stale entries every 10 minutes to prevent memory leaks
-setInterval(() => {
-    const now = Date.now();
-    for (const [ip, entry] of rateLimitMap) {
-        if (now > entry.resetAt) rateLimitMap.delete(ip);
-    }
-}, 10 * 60 * 1000);
-
-function isRateLimited(ip: string): boolean {
-    const now = Date.now();
-    const entry = rateLimitMap.get(ip);
-
-    if (!entry || now > entry.resetAt) {
-        rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-        return false;
-    }
-
-    entry.count++;
-    return entry.count > RATE_LIMIT;
-}
+// --- Redis Rate Limiter (60 req/hour per IP) ---
+// Instantiate only if credentials are present, falling back gracefully locally if not set
+const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
+    ? new Ratelimit({
+        redis: Redis.fromEnv(),
+        limiter: Ratelimit.slidingWindow(60, "1 h"),
+      }) 
+    : null;
 
 export default async function handler(
     request: VercelRequest,
@@ -56,12 +67,18 @@ export default async function handler(
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    // Rate limiting: 60 requests per hour per IP
+    // Rate limiting
     const clientIp = (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
         ?? request.socket?.remoteAddress
         ?? 'unknown';
-    if (isRateLimited(clientIp)) {
-        return response.status(429).json({ error: 'Слишком много запросов. Попробуйте через некоторое время.' });
+
+    if (ratelimit) {
+        const { success } = await ratelimit.limit(clientIp);
+        if (!success) {
+            return response.status(429).json({ error: 'Слишком много запросов. Попробуйте через некоторое время.' });
+        }
+    } else {
+        console.warn('Upstash Redis credentials are not set in the environment. Rate limiting is disabled.');
     }
 
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -83,14 +100,33 @@ export default async function handler(
             return response.status(400).json({ error: 'Неизвестный тип документа.' });
         }
 
-        if (!data || !data.turnstileToken) {
+        // Runtime validation of request body
+        let validData: ClaimData | CourseData;
+        if (type === 'subscription') {
+            const parsed = claimSchema.safeParse(data);
+            if (!parsed.success) {
+                return response.status(400).json({ error: 'Некорректные данные подписки. Проверьте заполнение всех полей.' });
+            }
+            validData = parsed.data;
+        } else {
+            const parsed = courseSchema.safeParse(data);
+            if (!parsed.success) {
+                return response.status(400).json({ error: 'Некорректные данные курса. Проверьте заполнение всех полей.' });
+            }
+            validData = parsed.data;
+            if (typeof calculatedRefund !== 'number' || calculatedRefund < 0) {
+                return response.status(400).json({ error: 'Некорректная сумма возврата.' });
+            }
+        }
+
+        if (!validData || !validData.turnstileToken) {
             return response.status(403).json({ error: 'Капча не пройдена.' });
         }
 
         // Verify Turnstile
         const formData = new URLSearchParams();
         formData.append('secret', TURNSTILE_SECRET_KEY);
-        formData.append('response', data.turnstileToken);
+        formData.append('response', validData.turnstileToken);
 
         const turnstileCheck = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
@@ -105,67 +141,19 @@ export default async function handler(
         // Sanitize all user-provided strings before embedding in prompt
         let prompt = '';
         if (type === 'subscription') {
-            const serviceName = sanitizeInput(data.serviceName);
-            const amount = sanitizeInput(String(data.amount), 20);
-            const date = sanitizeInput(String(data.date), 20);
-            const reason = sanitizeInput(data.reason);
-            const tonePart = data.tone === 'hard'
-                ? 'Тон: Ультимативный. Упомяни Роспотребнадзор и суд.'
-                : 'Тон: Вежливый и лояльный. Напиши, что я ценю сервис, но прошу возврат.';
-
-            prompt = `Составь развернутый текст заявления о возврате средств.
-ДАННЫЕ:
-- СЕРВИС: ${serviceName}
-- СУММА: ${amount} руб.
-- ДАТА: ${date}
-- ПРИЧИНА: ${reason}
-
-ИНСТРУКЦИЯ (СТРОГО):
-1. Обязательно назови сервис "${serviceName}" по имени в тексте.
-2. Ссылка на ст. 32 ЗоЗПП и ст. 782 ГК РФ.
-3. Срок возврата — 10 дней (ст. 31 ЗоЗПП).
-4. ${tonePart}
-5. Используй формы: «пользовался(-ась)», «подписался(-ась)», «отменил(а)».
-6. Текст должен содержать 4-5 отдельных абзацев (БЕЗ заголовков «Вступление», «Факты» и т.д. — просто сплошные абзацы текста):
-   - Кто я, когда и на что подписался.
-   - Что произошло, почему хочу вернуть деньги, подробности ситуации.
-   - Ссылки на конкретные статьи закона и их суть.
-   - Чётко сформулировать, чего именно требую (возврат суммы, сроки).
-   - Предупреждение о последствиях или вежливое завершение.
-7. Каждый абзац — не менее 2-3 предложений. Общий объём — минимум 200 слов.
-8. НЕ ВЫДУМЫВАЙ данные (ИНН, расчётные счета, БИК, номера договоров). Вместо них ставь плейсхолдеры: [ВАШИ РЕКВИЗИТЫ], [ФИО], [№ ДОГОВОРА].
-
-ФОРМАТ: ТОЛЬКО основной текст заявления. Без шапок, заголовков и подписей. Чистый текст. Абзацы разделяй пустой строкой.`;
+            const subData = validData as ClaimData;
+            const serviceName = sanitizeInput(subData.serviceName);
+            const amount = sanitizeInput(String(subData.amount), 20);
+            const date = sanitizeInput(String(subData.date), 20);
+            const reason = sanitizeInput(subData.reason);
+            prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, subData.tone);
         } else {
-            const courseName = sanitizeInput(data.courseName);
-            const totalCost = sanitizeInput(String(data.totalCost), 20);
-            const percentCompleted = sanitizeInput(String(data.percentCompleted), 5);
+            const courseD = validData as CourseData;
+            const courseName = sanitizeInput(courseD.courseName);
+            const totalCost = sanitizeInput(String(courseD.totalCost), 20);
+            const percentCompleted = sanitizeInput(String(courseD.percentCompleted), 5);
             const refund = sanitizeInput(String(calculatedRefund), 20);
-            const tonePart = data.tone === 'hard' ? 'Тон: Жесткий.' : 'Тон: Конструктивный.';
-
-            prompt = `Составь развернутый текст расторжения договора с онлайн-школой.
-ДАННЫЕ:
-- ШКОЛА: ${courseName}
-- ОБЩАЯ ЦЕНА: ${totalCost} руб.
-- ПРОЙДЕНО: ${percentCompleted}%
-- СУММА К ВОЗВРАТУ: ${refund} руб.
-
-ИНСТРУКЦИЯ (СТРОГО):
-1. Обязательно назови школу "${courseName}" по имени в тексте.
-2. Ссылка на ст. 32 ЗоЗПП.
-3. Требуй возврата суммы ${refund} руб.
-4. ${tonePart}
-5. Используй формы: «приобрел(а)», «изучил(а)», «решил(а)».
-6. Текст должен содержать 4-5 отдельных абзацев (БЕЗ заголовков «Вступление», «Факты» и т.д. — просто сплошные абзацы текста):
-   - Когда и какой договор был заключён, стоимость обучения.
-   - Сколько пройдено, почему решил(а) расторгнуть, конкретные претензии к качеству или формату.
-   - Ссылки на ст. 32 ЗоЗПП, расчёт суммы к возврату.
-   - Точная сумма возврата ${refund} руб., срок 10 дней.
-   - Предупреждение о последствиях или вежливое завершение.
-7. Каждый абзац — не менее 2-3 предложений. Общий объём — минимум 200 слов.
-8. НЕ ВЫДУМЫВАЙ данные (ИНН, расчётные счета, БИК, номера договоров). Вместо них ставь плейсхолдеры: [ВАШИ РЕКВИЗИТЫ], [ФИО], [№ ДОГОВОРА].
-
-ФОРМАТ: ТОЛЬКО тело текста. Без приветствий, шапок и заголовков. Чистый текст. Абзацы разделяй пустой строкой.`;
+            prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, courseD.tone);
         }
 
         const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -175,7 +163,7 @@ export default async function handler(
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "model": "qwen/qwen3-vl-30b-a3b-thinking",
+                "model": "arcee-ai/trinity-large-preview:free",
                 "messages": [{ "role": "user", "content": prompt }],
                 "temperature": 0.1,
             })
@@ -185,13 +173,24 @@ export default async function handler(
         const text = aiJson.choices?.[0]?.message?.content;
 
         if (!text) {
-            return response.status(502).json({ error: 'ИИ-модель не вернула результат. Попробуйте повторить запрос.' });
+            console.error('OpenRouter Error:', JSON.stringify(aiJson));
+            const aiErr = aiJson.error?.message || 'ИИ-модель не вернула результат';
+            // Return 422 instead of 502 so the client doesn't retry the request
+            // (retrying fails anyway because the Turnstile token is already consumed)
+            return response.status(422).json({ error: `Ошибка API ИИ: ${aiErr}` });
         }
 
         return response.status(200).json({ text });
 
     } catch (error: unknown) {
-        console.error('generateClaim error:', error);
+        console.error(JSON.stringify({
+            event: 'generateClaim_error',
+            type: request.body?.type,
+            ip: clientIp,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            timestamp: new Date().toISOString(),
+        }));
         return response.status(500).json({ error: 'Внутренняя ошибка сервера. Попробуйте позже.' });
     }
 }

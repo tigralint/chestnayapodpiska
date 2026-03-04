@@ -17,9 +17,15 @@ const NotFound = React.lazy(() => import('./views/NotFound'));
 
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { PwaPrompt } from './components/ui/PwaPrompt';
+import { CanvasBackground } from './components/ui/CanvasBackground';
+import { ToastContainer } from './components/ui/ToastContainer';
+import { useAppContext } from './context/AppContext';
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 export default function App() {
   const location = useLocation();
+  const { toasts, removeToast } = useAppContext();
 
   // Dynamic page title
   usePageTitle(location.pathname);
@@ -30,14 +36,8 @@ export default function App() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen relative text-slate-100 overflow-x-hidden">
-      {/* VisionOS Animated Mesh Gradient Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-app-bg">
-        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-accent-purple/15 blur-[120px] mix-blend-screen animate-blob transform-gpu"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-accent-blue/15 blur-[120px] mix-blend-screen animate-blob transform-gpu" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-[70vw] h-[70vw] rounded-full bg-accent-cyan/10 blur-[140px] mix-blend-screen animate-blob transform-gpu" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute top-[40%] left-[50%] w-[40vw] h-[40vw] rounded-full bg-accent-pink/10 blur-[100px] mix-blend-screen animate-blob transform-gpu" style={{ animationDelay: '6s' }}></div>
-      </div>
+    <div className="min-h-screen relative text-slate-100 overflow-x-hidden z-0">
+      <CanvasBackground />
 
       <AppHeader />
 
@@ -46,6 +46,12 @@ export default function App() {
 
       {/* PWA Update Prompt */}
       <PwaPrompt />
+
+      {/* Global Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      <Analytics />
+      <SpeedInsights />
 
       <ErrorBoundary>
         <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">

@@ -3,6 +3,7 @@ import { SimulatorResultPanel } from '../components/simulator/SimulatorResultPan
 import { SimulatorHeader } from '../components/simulator/SimulatorHeader';
 import { SimulatorInfoPanel } from '../components/simulator/SimulatorInfoPanel';
 import { SimulatorMockup } from '../components/simulator/SimulatorMockup';
+import { SEO } from '../components/ui/SEO';
 
 export default function SimulatorView() {
   const {
@@ -25,6 +26,10 @@ export default function SimulatorView() {
 
   return (
     <div className="flex flex-col h-full px-4 sm:px-6 pb-12">
+      <SEO
+        title="Тренажер общения с поддержкой | ЧестнаяПодписка"
+        description="Интерактивный тренажер: научитесь отвечать на скрипты поддержки и отстаивать свои права на возврат денег."
+      />
       <div className="max-w-5xl mx-auto w-full">
         <SimulatorHeader
           currentLevelIdx={currentLevelIdx}

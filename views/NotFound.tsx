@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, AlertCircle } from '../components/icons';
 import { SEO } from '../components/ui/SEO';
+import { Helmet } from 'react-helmet-async';
 
 export default function NotFound() {
     const navigate = useNavigate();
@@ -11,6 +12,9 @@ export default function NotFound() {
                 title="Страница не найдена | ЧестнаяПодписка"
                 description="Похоже, вы перешли по неверной ссылке. Вернитесь на главную страницу сервиса ЧестнаяПодписка."
             />
+            <Helmet>
+                <meta name="robots" content="noindex, nofollow" />
+            </Helmet>
             <div className="real-glass-panel rounded-[3rem] p-8 md:p-12 max-w-lg w-full text-center relative overflow-hidden shadow-2xl border border-red-500/20 animate-pop-in">
                 <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent"></div>
                 <div className="relative z-10">

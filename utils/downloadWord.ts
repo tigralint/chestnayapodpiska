@@ -120,6 +120,6 @@ export const downloadWordDoc = async (
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error generating DOCX:", error);
-    alert("Произошла ошибка при создании файла. Пожалуйста, скопируйте текст вручную.");
+    throw new Error("Произошла ошибка при создании файла. Пожалуйста, скопируйте текст вручную.");
   }
 };
