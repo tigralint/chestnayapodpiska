@@ -35,6 +35,17 @@ export default defineConfig(({ mode }) => {
         }
       })
     ],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-router': ['react-router-dom'],
+            'vendor-ui': ['react-helmet-async', '@marsidev/react-turnstile'],
+          }
+        }
+      }
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
