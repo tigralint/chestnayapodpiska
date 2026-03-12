@@ -19,7 +19,9 @@ export function buildClaimPrompt(params: PromptParams): string {
 
     return `Составь развернутый текст заявления о возврате средств.
 ДАННЫЕ:
+<user_input>
 ${params.financialDetails}
+</user_input>
 
 ИНСТРУКЦИЯ (СТРОГО):
 1. Обязательно назови ${params.entityLabel} "${params.entityName}" по имени в тексте.

@@ -11,28 +11,30 @@ interface OpenRouterResponse {
     error?: { message?: string };
 }
 
-// --- Runtime Type Guards for request body validation ---
-function isValidClaimData(d: unknown): d is { serviceName: string; amount: string; date: string; reason: string; tone: 'soft' | 'hard'; turnstileToken?: string } {
-    if (typeof d !== 'object' || !d) return false;
-    const obj = d as Record<string, unknown>;
-    return typeof obj.serviceName === 'string' && obj.serviceName.trim().length > 0
-        && typeof obj.amount === 'string'
-        && typeof obj.date === 'string'
-        && typeof obj.reason === 'string'
-        && (obj.tone === 'soft' || obj.tone === 'hard');
-}
+import { z } from 'zod';
 
-function isValidCourseData(d: unknown): d is { courseName: string; totalCost: number; percentCompleted: number; tone: 'soft' | 'hard'; hasPlatformAccess: boolean; hasConsultations: boolean; hasCertificate: boolean; turnstileToken?: string } {
-    if (typeof d !== 'object' || !d) return false;
-    const obj = d as Record<string, unknown>;
-    return typeof obj.courseName === 'string' && obj.courseName.trim().length > 0
-        && typeof obj.totalCost === 'number' && obj.totalCost > 0
-        && typeof obj.percentCompleted === 'number'
-        && (obj.tone === 'soft' || obj.tone === 'hard')
-        && typeof obj.hasPlatformAccess === 'boolean'
-        && typeof obj.hasConsultations === 'boolean'
-        && typeof obj.hasCertificate === 'boolean';
-}
+export const claimSchema = z.object({
+    serviceName: z.string().min(1, 'Укажите название сервиса'),
+    amount: z.string(),
+    date: z.string(),
+    reason: z.string(),
+    tone: z.enum(['soft', 'hard']),
+    turnstileToken: z.string().optional()
+});
+
+export const courseSchema = z.object({
+    courseName: z.string().min(1, 'Укажите название курса'),
+    totalCost: z.number().positive('Сумма должна быть больше нуля'),
+    percentCompleted: z.number().min(0).max(100),
+    tone: z.enum(['soft', 'hard']),
+    hasPlatformAccess: z.boolean(),
+    hasConsultations: z.boolean(),
+    hasCertificate: z.boolean(),
+    turnstileToken: z.string().optional()
+});
+
+export type ClaimData = z.infer<typeof claimSchema>;
+export type CourseData = z.infer<typeof courseSchema>;
 
 /**
  * Strips characters that could be used for prompt injection.
@@ -41,15 +43,21 @@ function isValidCourseData(d: unknown): d is { courseName: string; totalCost: nu
 function sanitizeInput(input: string, maxLength = 200): string {
     return input
         .slice(0, maxLength)
-        .replace(/[<>{}[\]]/g, '')       // Remove brackets that could break prompts
         .replace(/\n/g, ' ')             // Flatten newlines
         .trim();
 }
 
-import { RateLimiter } from './rateLimiter.js';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
-// --- Rate Limiter (60 req/hour per IP) ---
-const limiter = new RateLimiter(60, 60 * 60 * 1000);
+// --- Redis Rate Limiter (60 req/hour per IP) ---
+// Instantiate only if credentials are present, falling back gracefully locally if not set
+const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
+    ? new Ratelimit({
+        redis: Redis.fromEnv(),
+        limiter: Ratelimit.slidingWindow(60, "1 h"),
+      }) 
+    : null;
 
 export default async function handler(
     request: VercelRequest,
@@ -64,10 +72,13 @@ export default async function handler(
         ?? request.socket?.remoteAddress
         ?? 'unknown';
 
-    limiter.cleanup(); // Remove expired entries periodically
-
-    if (limiter.isLimited(clientIp)) {
-        return response.status(429).json({ error: 'Слишком много запросов. Попробуйте через некоторое время.' });
+    if (ratelimit) {
+        const { success } = await ratelimit.limit(clientIp);
+        if (!success) {
+            return response.status(429).json({ error: 'Слишком много запросов. Попробуйте через некоторое время.' });
+        }
+    } else {
+        console.warn('Upstash Redis credentials are not set in the environment. Rate limiting is disabled.');
     }
 
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -90,26 +101,32 @@ export default async function handler(
         }
 
         // Runtime validation of request body
-        if (type === 'subscription' && !isValidClaimData(data)) {
-            return response.status(400).json({ error: 'Некорректные данные подписки. Проверьте заполнение всех полей.' });
-        }
-        if (type === 'course') {
-            if (!isValidCourseData(data)) {
+        let validData: ClaimData | CourseData;
+        if (type === 'subscription') {
+            const parsed = claimSchema.safeParse(data);
+            if (!parsed.success) {
+                return response.status(400).json({ error: 'Некорректные данные подписки. Проверьте заполнение всех полей.' });
+            }
+            validData = parsed.data;
+        } else {
+            const parsed = courseSchema.safeParse(data);
+            if (!parsed.success) {
                 return response.status(400).json({ error: 'Некорректные данные курса. Проверьте заполнение всех полей.' });
             }
+            validData = parsed.data;
             if (typeof calculatedRefund !== 'number' || calculatedRefund < 0) {
                 return response.status(400).json({ error: 'Некорректная сумма возврата.' });
             }
         }
 
-        if (!data || !data.turnstileToken) {
+        if (!validData || !validData.turnstileToken) {
             return response.status(403).json({ error: 'Капча не пройдена.' });
         }
 
         // Verify Turnstile
         const formData = new URLSearchParams();
         formData.append('secret', TURNSTILE_SECRET_KEY);
-        formData.append('response', data.turnstileToken);
+        formData.append('response', validData.turnstileToken);
 
         const turnstileCheck = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
@@ -124,17 +141,19 @@ export default async function handler(
         // Sanitize all user-provided strings before embedding in prompt
         let prompt = '';
         if (type === 'subscription') {
-            const serviceName = sanitizeInput(data.serviceName);
-            const amount = sanitizeInput(String(data.amount), 20);
-            const date = sanitizeInput(String(data.date), 20);
-            const reason = sanitizeInput(data.reason);
-            prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, data.tone);
+            const subData = validData as ClaimData;
+            const serviceName = sanitizeInput(subData.serviceName);
+            const amount = sanitizeInput(String(subData.amount), 20);
+            const date = sanitizeInput(String(subData.date), 20);
+            const reason = sanitizeInput(subData.reason);
+            prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, subData.tone);
         } else {
-            const courseName = sanitizeInput(data.courseName);
-            const totalCost = sanitizeInput(String(data.totalCost), 20);
-            const percentCompleted = sanitizeInput(String(data.percentCompleted), 5);
+            const courseD = validData as CourseData;
+            const courseName = sanitizeInput(courseD.courseName);
+            const totalCost = sanitizeInput(String(courseD.totalCost), 20);
+            const percentCompleted = sanitizeInput(String(courseD.percentCompleted), 5);
             const refund = sanitizeInput(String(calculatedRefund), 20);
-            prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, data.tone);
+            prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, courseD.tone);
         }
 
         const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
