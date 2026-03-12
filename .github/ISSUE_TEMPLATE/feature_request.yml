@@ -1,0 +1,19 @@
+name: ✨ Предложить идею
+description: Предложить новую функцию или улучшение для проекта
+title: "[FEATURE] <название идеи>"
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: В чем суть идеи?
+      description: Какую проблему вы хотите решить или что добавить?
+    validations:
+      required: true
+  - type: textarea
+    id: how-it-works
+    attributes:
+      label: Как это должно работать?
+      description: Опишите ваше видение реализации.
+    validations:
+      required: true
