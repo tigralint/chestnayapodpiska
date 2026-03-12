@@ -42,13 +42,13 @@ describe('Dashboard integration', () => {
     it('should render all feature cards', () => {
         renderDashboard();
         expect(screen.getByText('Возврат подписок')).toBeTruthy();
-        expect(screen.getByText('Обучающие курсы')).toBeTruthy();
+        expect(screen.getByText('Онлайн-курсы')).toBeTruthy();
         expect(screen.getByText('База знаний')).toBeTruthy();
     });
 
     it('should render tool cards', () => {
         renderDashboard();
-        expect(screen.getByText('Тренажер отписки')).toBeTruthy();
+        expect(screen.getByText('Тренажёр отписки')).toBeTruthy();
         expect(screen.getByText('Народный радар')).toBeTruthy();
     });
 

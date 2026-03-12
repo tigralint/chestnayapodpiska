@@ -1,4 +1,4 @@
-import { FileText, ChevronDown } from '../components/icons';
+import { FileText, ChevronDown, Info } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ToneToggle } from '../components/ui/ToneToggle';
@@ -84,7 +84,17 @@ export default function SubscriptionFlow() {
 
             {/* Reason Dropdown with Keyboard Navigation */}
             <div className="group relative">
-              <label className="block text-sm font-semibold text-slate-300 mb-3 ml-1 transition-colors group-focus-within:text-accent-cyan" id="reason-label">Причина (кратко)</label>
+              <label className="flex items-center text-sm font-semibold text-slate-300 mb-3 ml-1 transition-colors group-focus-within:text-accent-cyan" id="reason-label">
+                Причина (кратко)
+                <div className="group/tooltip relative inline-flex ml-2 cursor-help">
+                  <Info className="w-4 h-4 text-slate-400 hover:text-accent-cyan transition-colors" />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-4 real-glass-panel rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 shadow-xl z-50 text-xs text-slate-300 font-normal border border-white/20">
+                    <span className="text-white font-bold mb-1 block">Основание для возврата (ст. 32 ЗоЗПП)</span>
+                    Если вы забыли отключить автопродление, но фактически не пользовались сервисом в новом периоде, закон в большинстве случаев на вашей стороне. Выбирайте вариант, максимально близкий к вашей ситуации.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white/20"></div>
+                  </div>
+                </div>
+              </label>
               <button
                 type="button"
                 aria-haspopup="listbox"
