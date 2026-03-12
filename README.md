@@ -6,7 +6,7 @@
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Vite](https://img.shields.io/badge/Vite-6.2-646cff?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
   [![Tests](https://img.shields.io/badge/Tests-132_passed-success?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
-  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
+  [![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0)
 </div>
 
 <br/>
@@ -147,6 +147,6 @@
 ## 📝 Лицензия
 
 Этот проект является открытым программным обеспечением (Open Source).
-Он распространяется на условиях лицензии **[GNU GPL v3.0](LICENSE)**. 
+Он распространяется на условиях лицензии **[GNU AGPL v3.0](LICENSE)**. 
 
 Свободно изучайте, улучшайте и форкайте!
