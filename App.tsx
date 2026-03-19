@@ -37,7 +37,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen relative text-slate-100 overflow-x-hidden z-0">
-      <div className="bg-noise" />
       <CanvasBackground />
 
       <AppHeader />

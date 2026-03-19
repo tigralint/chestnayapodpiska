@@ -36,7 +36,7 @@ export const ResultSuccessCard = React.memo(function ResultSuccessCard({
                 <div className="flex gap-4">
                     <button
                         onClick={onCopy}
-                        className={`flex-1 py-4 rounded-[1.5rem] text-[16px] font-bold shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30 ${copied ? 'bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-white text-app-bg hover:bg-slate-200 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]'}`}
+                        className={`flex-1 py-4 rounded-[1.5rem] text-[16px] font-bold shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30 ${copied ? 'bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-white text-app-bg hover:bg-slate-200 hover:scale-[1.02]'}`}
                     >
                         {copied ? <CheckCircle className="w-5 h-5 animate-pop-in" /> : <Copy className="w-5 h-5" />}
                         {copied ? 'Скопировано!' : 'Копировать'}

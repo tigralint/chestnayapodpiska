@@ -62,45 +62,26 @@ input:-webkit-autofill:active {
 
 .real-glass {
   background: linear-gradient(135deg, rgba(35, 35, 50, 0.8) 0%, rgba(15, 15, 25, 0.9) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top-color: rgba(255, 255, 255, 0.2);
-  border-left-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  border-left-color: rgba(255, 255, 255, 0.12);
   /* Многослойная тень для создания объема: падающая тень + внутренний блик сверху + внутреннее затемнение снизу */
   box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.6),
-    0 10px 20px -5px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2),
+    0 20px 40px -10px rgba(0, 0, 0, 0.5),
+    0 10px 20px -5px rgba(0, 0, 0, 0.3),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15),
     inset 0 -1px 2px 0 rgba(0, 0, 0, 0.5);
 }
 
 .real-glass-panel {
   background: linear-gradient(180deg, rgba(25, 25, 35, 0.95) 0%, rgba(15, 15, 20, 0.98) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-top-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top-color: rgba(255, 255, 255, 0.12);
   /* Мягкая падающая тень + внутренний блик + эффект "виньетки" (внутреннее размытие тени) */
   box-shadow:
     0 15px 35px -10px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
     inset 0 0 30px 0 rgba(0, 0, 0, 0.4);
-}
-
-/* bg-noise class */
-.bg-noise {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-}
-
-@layer utilities {
-  .text-glow-cyan {
-    text-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
-  }
-  .text-glow-purple {
-    text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
-  }
 }
 
 
