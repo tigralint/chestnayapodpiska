@@ -5,7 +5,7 @@
   [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Vite](https://img.shields.io/badge/Vite-6.2-646cff?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-  [![Tests](https://img.shields.io/badge/Tests-132_passed-success?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
+  [![Tests](https://img.shields.io/badge/Tests-124_passed-success?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
   [![License: CC BY--NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc/4.0/)
 </div>
 
@@ -49,7 +49,7 @@
 | **Стейт**      | Zustand с `persist` middleware для сохранения прогресса                            |
 | **Бэкенд**     | Vercel Serverless Functions (Node.js)                                              |
 | **AI Движок**  | OpenRouter API (LLM Qwen)                                                          |
-| **Security**   | Cloudflare Turnstile, Rate Limiting, Input Sanitization                            |
+| **Security**   | Cloudflare Turnstile, Rate Limiting, Input Sanitization, CSP, Zod Strict                            |
 | **PWA**        | `vite-plugin-pwa`, Service Worker с offline-кэшированием                           |
 | **Тестирование**| Vitest + React Testing Library (132 теста)                                        |
 
@@ -83,9 +83,10 @@
 
 Мы серьёзно относимся к защите API и пользовательских данных:
 - **Cloudflare Turnstile**: Серверная невидимая верификация (защита ИИ от ботов).
-- **Rate Limit**: Жёсткие лимиты (60 запросов/час на IP) с автоматической сборкой мусора.
-- **Runtime Type Guards**: Строгая валидация тела запроса (Zod/Custom) перед обращением к нейросети.
-- **Input Sanitization**: Удаление опасных символов (`<>{}[]`) из ввода пользователя.
+- **Rate Limit**: Жёсткие лимиты (60 запросов/час на IP) с автоматической блокировкой запросов (Fail-Closed) при падении базы данных для защиты бюджета.
+- **Runtime Type Guards**: Строгая валидация тела запроса (Zod `.max()`) перед обращением к нейросети, защищающая память от переполнения гигантскими Payload-ами.
+- **Input Sanitization**: Удаление опасных символов (`<>{}[]`) из ввода пользователя для защиты LLM-промптов.
+- **Глубинная защита (Defense-in-Depth)**: Строгий `Content-Security-Policy` и `CORS`, блокирующие исполнение сторонних скриптов.
 - **Graceful Degradation**: Обширное использование `ErrorBoundary`, кастомные fallback-интерфейсы.
 
 ---
@@ -105,6 +106,8 @@
    OPENROUTER_API_KEY=sk-or-...
    VITE_TURNSTILE_SITE_KEY=0x...
    TURNSTILE_SECRET_KEY=0x...
+   UPSTASH_REDIS_REST_URL=https://...
+   UPSTASH_REDIS_REST_TOKEN=...
    ```
 
 3. **Запустите проект:**
@@ -116,7 +119,7 @@
    npx vercel dev
    ```
 
-4. **Прогон тестов (132 test cases, 100% pass rate):**
+4. **Прогон тестов (124 test cases, 100% pass rate):**
    ```bash
    npm test
    ```

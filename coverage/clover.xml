@@ -1,62 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1772657614799" clover="3.2.0">
-  <project timestamp="1772657614800" name="All files">
-    <metrics statements="311" coveredstatements="249" conditionals="189" coveredconditionals="114" methods="112" coveredmethods="59" elements="612" coveredelements="422" complexity="0" loc="311" ncloc="311" packages="9" files="21" classes="21"/>
+<coverage generated="1773901239750" clover="3.2.0">
+  <project timestamp="1773901239750" name="All files">
+    <metrics statements="580" coveredstatements="366" conditionals="375" coveredconditionals="202" methods="219" coveredmethods="108" elements="1174" coveredelements="676" complexity="0" loc="580" ncloc="580" packages="11" files="40" classes="40"/>
+    <package name="api">
+      <metrics statements="7" coveredstatements="7" conditionals="4" coveredconditionals="4" methods="4" coveredmethods="4"/>
+      <file name="promptBuilder.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\api\promptBuilder.ts">
+        <metrics statements="7" coveredstatements="7" conditionals="4" coveredconditionals="4" methods="4" coveredmethods="4"/>
+        <line num="16" count="10" type="stmt"/>
+        <line num="17" count="47" type="stmt"/>
+        <line num="20" count="10" type="stmt"/>
+        <line num="47" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="51" count="5" type="stmt"/>
+        <line num="74" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="76" count="4" type="stmt"/>
+      </file>
+    </package>
     <package name="components.icons">
-      <metrics statements="46" coveredstatements="28" conditionals="23" coveredconditionals="5" methods="23" coveredmethods="5"/>
-      <file name="index.tsx" path="C:\Users\tigralint\Desktop\podpiska-main\components\icons\index.tsx">
-        <metrics statements="46" coveredstatements="28" conditionals="23" coveredconditionals="5" methods="23" coveredmethods="5"/>
-        <line num="2" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="3" count="0" type="stmt"/>
-        <line num="6" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="7" count="0" type="stmt"/>
-        <line num="10" count="4" type="cond" truecount="0" falsecount="1"/>
+      <metrics statements="46" coveredstatements="38" conditionals="23" coveredconditionals="15" methods="23" coveredmethods="15"/>
+      <file name="index.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\icons\index.tsx">
+        <metrics statements="46" coveredstatements="38" conditionals="23" coveredconditionals="15" methods="23" coveredmethods="15"/>
+        <line num="2" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="3" count="181" type="stmt"/>
+        <line num="6" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="7" count="10" type="stmt"/>
+        <line num="10" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="11" count="0" type="stmt"/>
-        <line num="14" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="15" count="0" type="stmt"/>
-        <line num="18" count="4" type="cond" truecount="1" falsecount="0"/>
-        <line num="19" count="3" type="stmt"/>
-        <line num="22" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="14" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="15" count="44" type="stmt"/>
+        <line num="18" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="19" count="38" type="stmt"/>
+        <line num="22" count="8" type="cond" truecount="1" falsecount="0"/>
         <line num="23" count="4" type="stmt"/>
-        <line num="26" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="26" count="8" type="cond" truecount="1" falsecount="0"/>
         <line num="27" count="5" type="stmt"/>
-        <line num="30" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="31" count="0" type="stmt"/>
-        <line num="34" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="35" count="0" type="stmt"/>
-        <line num="38" count="4" type="cond" truecount="0" falsecount="1"/>
+        <line num="30" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="31" count="5" type="stmt"/>
+        <line num="34" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="35" count="5" type="stmt"/>
+        <line num="38" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="39" count="0" type="stmt"/>
-        <line num="42" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="43" count="0" type="stmt"/>
-        <line num="46" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="47" count="0" type="stmt"/>
-        <line num="50" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="42" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="43" count="5" type="stmt"/>
+        <line num="46" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="47" count="25" type="stmt"/>
+        <line num="50" count="8" type="cond" truecount="1" falsecount="0"/>
         <line num="51" count="6" type="stmt"/>
-        <line num="54" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="55" count="0" type="stmt"/>
-        <line num="58" count="4" type="cond" truecount="0" falsecount="1"/>
+        <line num="54" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="55" count="5" type="stmt"/>
+        <line num="58" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="59" count="0" type="stmt"/>
-        <line num="62" count="4" type="cond" truecount="1" falsecount="0"/>
-        <line num="63" count="1" type="stmt"/>
-        <line num="66" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="67" count="0" type="stmt"/>
-        <line num="70" count="4" type="cond" truecount="0" falsecount="1"/>
+        <line num="62" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="63" count="6" type="stmt"/>
+        <line num="66" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="67" count="5" type="stmt"/>
+        <line num="70" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="71" count="0" type="stmt"/>
-        <line num="74" count="4" type="cond" truecount="0" falsecount="1"/>
+        <line num="74" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="75" count="0" type="stmt"/>
-        <line num="78" count="4" type="cond" truecount="0" falsecount="1"/>
+        <line num="78" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="79" count="0" type="stmt"/>
-        <line num="82" count="4" type="cond" truecount="0" falsecount="1"/>
-        <line num="83" count="0" type="stmt"/>
-        <line num="86" count="4" type="cond" truecount="0" falsecount="1"/>
+        <line num="82" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="83" count="5" type="stmt"/>
+        <line num="86" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="87" count="0" type="stmt"/>
-        <line num="90" count="4" type="cond" truecount="0" falsecount="1"/>
+        <line num="90" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="91" count="0" type="stmt"/>
       </file>
     </package>
     <package name="components.layout">
-      <metrics statements="11" coveredstatements="9" conditionals="8" coveredconditionals="6" methods="5" coveredmethods="2"/>
-      <file name="AppHeader.tsx" path="C:\Users\tigralint\Desktop\podpiska-main\components\layout\AppHeader.tsx">
+      <metrics statements="17" coveredstatements="13" conditionals="8" coveredconditionals="6" methods="8" coveredmethods="3"/>
+      <file name="AppHeader.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\layout\AppHeader.tsx">
         <metrics statements="11" coveredstatements="9" conditionals="8" coveredconditionals="6" methods="5" coveredmethods="2"/>
         <line num="8" count="1" type="stmt"/>
         <line num="17" count="1" type="stmt"/>
@@ -70,49 +83,185 @@
         <line num="50" count="24" type="stmt"/>
         <line num="54" count="0" type="stmt"/>
       </file>
+      <file name="PageHeader.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\layout\PageHeader.tsx">
+        <metrics statements="6" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="1"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="22" count="18" type="stmt"/>
+        <line num="23" count="18" type="stmt"/>
+        <line num="24" count="18" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+      </file>
     </package>
     <package name="components.ui">
-      <metrics statements="17" coveredstatements="16" conditionals="13" coveredconditionals="11" methods="4" coveredmethods="4"/>
-      <file name="ClaimResultPanel.tsx" path="C:\Users\tigralint\Desktop\podpiska-main\components\ui\ClaimResultPanel.tsx">
-        <metrics statements="8" coveredstatements="7" conditionals="4" coveredconditionals="3" methods="1" coveredmethods="1"/>
-        <line num="16" count="3" type="stmt"/>
-        <line num="48" count="3" type="stmt"/>
-        <line num="58" count="2" type="stmt"/>
-        <line num="60" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="61" count="1" type="stmt"/>
-        <line num="70" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="71" count="1" type="stmt"/>
-        <line num="84" count="0" type="stmt"/>
+      <metrics statements="112" coveredstatements="49" conditionals="48" coveredconditionals="31" methods="33" coveredmethods="17"/>
+      <file name="ApiErrorBanner.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\ApiErrorBanner.tsx">
+        <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="8" count="0" type="stmt"/>
       </file>
-      <file name="GeneratingState.tsx" path="C:\Users\tigralint\Desktop\podpiska-main\components\ui\GeneratingState.tsx">
+      <file name="ClaimResultPanel.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\ClaimResultPanel.tsx">
+        <metrics statements="14" coveredstatements="13" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="3"/>
+        <line num="16" count="5" type="stmt"/>
+        <line num="48" count="5" type="stmt"/>
+        <line num="58" count="19" type="stmt"/>
+        <line num="59" count="19" type="stmt"/>
+        <line num="61" count="19" type="stmt"/>
+        <line num="63" count="17" type="cond" truecount="4" falsecount="0"/>
+        <line num="65" count="2" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="68" count="2" type="stmt"/>
+        <line num="72" count="19" type="cond" truecount="2" falsecount="0"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="84" count="18" type="cond" truecount="2" falsecount="0"/>
+        <line num="85" count="1" type="stmt"/>
+        <line num="100" count="17" type="stmt"/>
+      </file>
+      <file name="FeatureCard.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\FeatureCard.tsx">
+        <metrics statements="6" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="1"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="38" count="15" type="stmt"/>
+        <line num="39" count="15" type="stmt"/>
+        <line num="41" count="15" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+      </file>
+      <file name="FprToggle.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\FprToggle.tsx">
+        <metrics statements="2" coveredstatements="1" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="1"/>
+        <line num="9" count="24" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+      </file>
+      <file name="GeneratingState.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\GeneratingState.tsx">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="13" count="3" type="stmt"/>
+        <line num="13" count="5" type="stmt"/>
         <line num="18" count="3" type="stmt"/>
         <line num="20" count="3" type="stmt"/>
       </file>
-      <file name="GlassCard.tsx" path="C:\Users\tigralint\Desktop\podpiska-main\components\ui\GlassCard.tsx">
+      <file name="GlassCard.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\GlassCard.tsx">
         <metrics statements="3" coveredstatements="3" conditionals="3" coveredconditionals="2" methods="1" coveredmethods="1"/>
-        <line num="11" count="3" type="stmt"/>
-        <line num="13" count="3" type="stmt"/>
-        <line num="28" count="3" type="stmt"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="13" count="20" type="stmt"/>
+        <line num="28" count="5" type="stmt"/>
       </file>
-      <file name="ResultSuccessCard.tsx" path="C:\Users\tigralint\Desktop\podpiska-main\components\ui\ResultSuccessCard.tsx">
+      <file name="HeroBlobCanvas.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\HeroBlobCanvas.tsx">
+        <metrics statements="57" coveredstatements="7" conditionals="12" coveredconditionals="2" methods="6" coveredmethods="2"/>
+        <line num="4" count="5" type="stmt"/>
+        <line num="6" count="5" type="stmt"/>
+        <line num="7" count="5" type="stmt"/>
+        <line num="8" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="10" count="5" type="stmt"/>
+        <line num="11" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="30" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="73" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="106" count="5" type="stmt"/>
+      </file>
+      <file name="ResultSuccessCard.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\ResultSuccessCard.tsx">
         <metrics statements="3" coveredstatements="3" conditionals="6" coveredconditionals="6" methods="1" coveredmethods="1"/>
-        <line num="14" count="3" type="stmt"/>
+        <line num="14" count="5" type="stmt"/>
         <line num="21" count="5" type="stmt"/>
         <line num="23" count="5" type="stmt"/>
       </file>
+      <file name="SEO.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\SEO.tsx">
+        <metrics statements="1" coveredstatements="1" conditionals="5" coveredconditionals="4" methods="1" coveredmethods="1"/>
+        <line num="20" count="28" type="stmt"/>
+      </file>
+      <file name="SearchInput.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\SearchInput.tsx">
+        <metrics statements="11" coveredstatements="7" conditionals="2" coveredconditionals="1" methods="7" coveredmethods="4"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="14" count="5" type="stmt"/>
+        <line num="15" count="5" type="stmt"/>
+        <line num="19" count="5" type="stmt"/>
+        <line num="20" count="5" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="23" count="5" type="stmt"/>
+        <line num="26" count="5" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+      </file>
+      <file name="ToneToggle.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\ToneToggle.tsx">
+        <metrics statements="5" coveredstatements="3" conditionals="8" coveredconditionals="4" methods="3" coveredmethods="1"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="26" count="18" type="stmt"/>
+        <line num="27" count="18" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+      </file>
+      <file name="ToolCard.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\components\ui\ToolCard.tsx">
+        <metrics statements="6" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="1"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="32" count="10" type="stmt"/>
+        <line num="33" count="10" type="stmt"/>
+        <line num="35" count="10" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+      </file>
     </package>
     <package name="constants">
-      <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-      <file name="simulator.ts" path="C:\Users\tigralint\Desktop\podpiska-main\constants\simulator.ts">
+      <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="simulator.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\constants\simulator.ts">
         <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="4" count="1" type="stmt"/>
       </file>
+      <file name="text.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\constants\text.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+      </file>
     </package>
     <package name="data">
-      <metrics statements="17" coveredstatements="1" conditionals="25" coveredconditionals="0" methods="17" coveredmethods="0"/>
-      <file name="simulator-levels.tsx" path="C:\Users\tigralint\Desktop\podpiska-main\data\simulator-levels.tsx">
+      <metrics statements="18" coveredstatements="2" conditionals="25" coveredconditionals="0" methods="17" coveredmethods="0"/>
+      <file name="guides.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\data\guides.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="3" count="2" type="stmt"/>
+      </file>
+      <file name="simulator-levels.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\data\simulator-levels.tsx">
         <metrics statements="17" coveredstatements="1" conditionals="25" coveredconditionals="0" methods="17" coveredmethods="0"/>
         <line num="13" count="1" type="stmt"/>
         <line num="20" count="0" type="stmt"/>
@@ -134,88 +283,128 @@
       </file>
     </package>
     <package name="hooks">
-      <metrics statements="119" coveredstatements="114" conditionals="53" coveredconditionals="42" methods="35" coveredmethods="33"/>
-      <file name="useClaimFlow.ts" path="C:\Users\tigralint\Desktop\podpiska-main\hooks\useClaimFlow.ts">
-        <metrics statements="17" coveredstatements="17" conditionals="8" coveredconditionals="8" methods="5" coveredmethods="5"/>
-        <line num="9" count="1" type="stmt"/>
-        <line num="17" count="12" type="stmt"/>
-        <line num="18" count="12" type="cond" truecount="2" falsecount="0"/>
-        <line num="25" count="12" type="stmt"/>
+      <metrics statements="156" coveredstatements="123" conditionals="75" coveredconditionals="46" methods="41" coveredmethods="36"/>
+      <file name="useClaimFlow.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\hooks\useClaimFlow.ts">
+        <metrics statements="18" coveredstatements="18" conditionals="8" coveredconditionals="8" methods="6" coveredmethods="6"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="17" count="22" type="stmt"/>
+        <line num="18" count="22" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="22" type="stmt"/>
+        <line num="33" count="1" type="stmt"/>
         <line num="35" count="3" type="stmt"/>
         <line num="36" count="3" type="cond" truecount="2" falsecount="0"/>
         <line num="37" count="3" type="cond" truecount="4" falsecount="0"/>
         <line num="38" count="1" type="stmt"/>
         <line num="39" count="3" type="stmt"/>
-        <line num="43" count="12" type="stmt"/>
-        <line num="44" count="12" type="stmt"/>
-        <line num="46" count="12" type="stmt"/>
+        <line num="43" count="22" type="stmt"/>
+        <line num="44" count="22" type="stmt"/>
+        <line num="46" count="22" type="stmt"/>
         <line num="47" count="3" type="stmt"/>
-        <line num="50" count="12" type="stmt"/>
+        <line num="50" count="22" type="stmt"/>
         <line num="51" count="1" type="stmt"/>
         <line num="52" count="1" type="stmt"/>
-        <line num="63" count="12" type="stmt"/>
+        <line num="63" count="22" type="stmt"/>
       </file>
-      <file name="useClaimForm.ts" path="C:\Users\tigralint\Desktop\podpiska-main\hooks\useClaimForm.ts">
-        <metrics statements="37" coveredstatements="36" conditionals="16" coveredconditionals="12" methods="7" coveredmethods="6"/>
-        <line num="9" count="47" type="stmt"/>
-        <line num="10" count="47" type="stmt"/>
-        <line num="11" count="47" type="stmt"/>
-        <line num="12" count="47" type="stmt"/>
-        <line num="13" count="47" type="stmt"/>
-        <line num="14" count="47" type="stmt"/>
-        <line num="16" count="47" type="stmt"/>
-        <line num="17" count="13" type="stmt"/>
-        <line num="18" count="13" type="stmt"/>
-        <line num="19" count="13" type="stmt"/>
-        <line num="21" count="13" type="cond" truecount="2" falsecount="0"/>
-        <line num="22" count="5" type="stmt"/>
-        <line num="25" count="8" type="stmt"/>
-        <line num="26" count="8" type="stmt"/>
-        <line num="28" count="8" type="cond" truecount="2" falsecount="0"/>
-        <line num="30" count="1" type="stmt"/>
-        <line num="33" count="8" type="stmt"/>
-        <line num="34" count="8" type="stmt"/>
-        <line num="35" count="7" type="stmt"/>
-        <line num="37" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="38" count="1" type="stmt"/>
-        <line num="40" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="41" count="0" type="stmt"/>
-        <line num="44" count="8" type="stmt"/>
-        <line num="47" count="8" type="cond" truecount="2" falsecount="0"/>
-        <line num="48" count="1" type="stmt"/>
-        <line num="52" count="8" type="cond" truecount="2" falsecount="0"/>
-        <line num="53" count="3" type="stmt"/>
-        <line num="58" count="47" type="stmt"/>
-        <line num="59" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="60" count="1" type="stmt"/>
-        <line num="64" count="47" type="stmt"/>
-        <line num="65" count="1" type="stmt"/>
-        <line num="66" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="67" count="1" type="stmt"/>
-        <line num="68" count="1" type="stmt"/>
-        <line num="72" count="47" type="stmt"/>
+      <file name="useClaimForm.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\hooks\useClaimForm.ts">
+        <metrics statements="42" coveredstatements="41" conditionals="20" coveredconditionals="14" methods="7" coveredmethods="6"/>
+        <line num="13" count="65" type="stmt"/>
+        <line num="14" count="65" type="stmt"/>
+        <line num="15" count="65" type="stmt"/>
+        <line num="16" count="65" type="stmt"/>
+        <line num="17" count="65" type="stmt"/>
+        <line num="18" count="65" type="stmt"/>
+        <line num="19" count="65" type="stmt"/>
+        <line num="21" count="65" type="stmt"/>
+        <line num="22" count="13" type="stmt"/>
+        <line num="23" count="13" type="stmt"/>
+        <line num="24" count="13" type="stmt"/>
+        <line num="26" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="27" count="5" type="stmt"/>
+        <line num="31" count="8" type="stmt"/>
+        <line num="32" count="13" type="stmt"/>
+        <line num="33" count="13" type="stmt"/>
+        <line num="35" count="13" type="stmt"/>
+        <line num="36" count="13" type="stmt"/>
+        <line num="38" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="42" count="8" type="stmt"/>
+        <line num="43" count="8" type="stmt"/>
+        <line num="44" count="7" type="stmt"/>
+        <line num="47" count="1" type="cond" truecount="2" falsecount="2"/>
+        <line num="48" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="50" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="53" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="57" count="8" type="stmt"/>
+        <line num="60" count="8" type="stmt"/>
+        <line num="62" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="63" count="3" type="stmt"/>
+        <line num="68" count="65" type="stmt"/>
+        <line num="69" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="74" count="65" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="76" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="77" count="1" type="stmt"/>
+        <line num="78" count="1" type="stmt"/>
+        <line num="82" count="65" type="stmt"/>
       </file>
-      <file name="useCourseFlow.ts" path="C:\Users\tigralint\Desktop\podpiska-main\hooks\useCourseFlow.ts">
+      <file name="useCourseFlow.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\hooks\useCourseFlow.ts">
         <metrics statements="17" coveredstatements="17" conditionals="9" coveredconditionals="8" methods="7" coveredmethods="7"/>
-        <line num="10" count="13" type="stmt"/>
-        <line num="11" count="13" type="cond" truecount="1" falsecount="1"/>
-        <line num="18" count="13" type="stmt"/>
+        <line num="10" count="21" type="stmt"/>
+        <line num="11" count="21" type="cond" truecount="1" falsecount="1"/>
+        <line num="18" count="21" type="stmt"/>
         <line num="28" count="1" type="stmt"/>
         <line num="30" count="2" type="stmt"/>
         <line num="31" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="32" count="2" type="cond" truecount="5" falsecount="0"/>
         <line num="33" count="2" type="stmt"/>
-        <line num="37" count="13" type="stmt"/>
-        <line num="38" count="10" type="stmt"/>
-        <line num="42" count="13" type="stmt"/>
-        <line num="44" count="13" type="stmt"/>
+        <line num="37" count="21" type="stmt"/>
+        <line num="38" count="17" type="stmt"/>
+        <line num="42" count="21" type="stmt"/>
+        <line num="44" count="21" type="stmt"/>
         <line num="45" count="2" type="stmt"/>
-        <line num="48" count="13" type="stmt"/>
+        <line num="48" count="21" type="stmt"/>
         <line num="49" count="1" type="stmt"/>
         <line num="50" count="1" type="stmt"/>
-        <line num="61" count="13" type="stmt"/>
+        <line num="61" count="21" type="stmt"/>
       </file>
-      <file name="usePageTitle.ts" path="C:\Users\tigralint\Desktop\podpiska-main\hooks\usePageTitle.ts">
+      <file name="useFocusTrap.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\hooks\useFocusTrap.ts">
+        <metrics statements="31" coveredstatements="3" conditionals="18" coveredconditionals="2" methods="5" coveredmethods="2"/>
+        <line num="13" count="10" type="stmt"/>
+        <line num="15" count="10" type="stmt"/>
+        <line num="16" count="10" type="cond" truecount="2" falsecount="2"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="39" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+      </file>
+      <file name="usePageTitle.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\hooks\usePageTitle.ts">
         <metrics statements="7" coveredstatements="7" conditionals="6" coveredconditionals="6" methods="3" coveredmethods="3"/>
         <line num="3" count="1" type="stmt"/>
         <line num="5" count="1" type="stmt"/>
@@ -225,7 +414,7 @@
         <line num="26" count="6" type="cond" truecount="2" falsecount="0"/>
         <line num="27" count="6" type="cond" truecount="2" falsecount="0"/>
       </file>
-      <file name="useSimulator.ts" path="C:\Users\tigralint\Desktop\podpiska-main\hooks\useSimulator.ts">
+      <file name="useSimulator.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\hooks\useSimulator.ts">
         <metrics statements="41" coveredstatements="37" conditionals="14" coveredconditionals="8" methods="13" coveredmethods="12"/>
         <line num="9" count="10" type="stmt"/>
         <line num="10" count="10" type="stmt"/>
@@ -271,40 +460,44 @@
       </file>
     </package>
     <package name="services">
-      <metrics statements="26" coveredstatements="21" conditionals="21" coveredconditionals="14" methods="5" coveredmethods="5"/>
-      <file name="geminiService.ts" path="C:\Users\tigralint\Desktop\podpiska-main\services\geminiService.ts">
-        <metrics statements="26" coveredstatements="21" conditionals="21" coveredconditionals="14" methods="5" coveredmethods="5"/>
+      <metrics statements="30" coveredstatements="25" conditionals="30" coveredconditionals="22" methods="5" coveredmethods="5"/>
+      <file name="geminiService.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\services\geminiService.ts">
+        <metrics statements="30" coveredstatements="25" conditionals="30" coveredconditionals="22" methods="5" coveredmethods="5"/>
         <line num="7" count="1" type="stmt"/>
         <line num="8" count="3" type="stmt"/>
         <line num="13" count="5" type="cond" truecount="4" falsecount="1"/>
         <line num="14" count="0" type="stmt"/>
-        <line num="18" count="5" type="stmt"/>
-        <line num="26" count="8" type="stmt"/>
-        <line num="32" count="6" type="stmt"/>
-        <line num="34" count="6" type="cond" truecount="4" falsecount="0"/>
-        <line num="36" count="1" type="stmt"/>
-        <line num="40" count="5" type="stmt"/>
-        <line num="41" count="5" type="stmt"/>
-        <line num="42" count="5" type="cond" truecount="1" falsecount="1"/>
-        <line num="43" count="0" type="stmt"/>
+        <line num="16" count="5" type="stmt"/>
+        <line num="18" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="19" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="20" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="21" count="5" type="cond" truecount="3" falsecount="0"/>
+        <line num="29" count="8" type="stmt"/>
+        <line num="36" count="6" type="stmt"/>
+        <line num="38" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="44" count="5" type="stmt"/>
         <line num="45" count="5" type="stmt"/>
-        <line num="47" count="0" type="cond" truecount="0" falsecount="4"/>
-        <line num="48" count="0" type="stmt"/>
-        <line num="50" count="0" type="stmt"/>
-        <line num="53" count="5" type="cond" truecount="2" falsecount="0"/>
-        <line num="55" count="1" type="cond" truecount="1" falsecount="1"/>
-        <line num="58" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="59" count="1" type="stmt"/>
-        <line num="62" count="3" type="stmt"/>
-        <line num="66" count="1" type="stmt"/>
-        <line num="67" count="5" type="stmt"/>
+        <line num="46" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="49" count="5" type="stmt"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="57" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="59" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="62" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="63" count="1" type="stmt"/>
+        <line num="66" count="3" type="stmt"/>
         <line num="70" count="1" type="stmt"/>
-        <line num="71" count="3" type="stmt"/>
+        <line num="71" count="5" type="stmt"/>
+        <line num="74" count="1" type="stmt"/>
+        <line num="75" count="3" type="stmt"/>
       </file>
     </package>
     <package name="store">
       <metrics statements="6" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="1"/>
-      <file name="appStore.ts" path="C:\Users\tigralint\Desktop\podpiska-main\store\appStore.ts">
+      <file name="appStore.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\store\appStore.ts">
         <metrics statements="6" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="1"/>
         <line num="12" count="1" type="stmt"/>
         <line num="14" count="1" type="stmt"/>
@@ -315,12 +508,42 @@
       </file>
     </package>
     <package name="utils">
-      <metrics statements="68" coveredstatements="57" conditionals="46" coveredconditionals="36" methods="17" coveredmethods="9"/>
-      <file name="cn.ts" path="C:\Users\tigralint\Desktop\podpiska-main\utils\cn.ts">
-        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="12" count="17" type="stmt"/>
+      <metrics statements="92" coveredstatements="69" conditionals="48" coveredconditionals="41" methods="22" coveredmethods="14"/>
+      <file name="clipboard.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\utils\clipboard.ts">
+        <metrics statements="6" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
       </file>
-      <file name="errors.ts" path="C:\Users\tigralint\Desktop\podpiska-main\utils\errors.ts">
+      <file name="cn.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\utils\cn.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="12" count="41" type="stmt"/>
+      </file>
+      <file name="downloadWord.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\utils\downloadWord.ts">
+        <metrics statements="18" coveredstatements="1" conditionals="2" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="111" count="0" type="stmt"/>
+        <line num="112" count="0" type="stmt"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="116" count="0" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="119" count="0" type="stmt"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="123" count="0" type="stmt"/>
+      </file>
+      <file name="errors.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\utils\errors.ts">
         <metrics statements="6" coveredstatements="6" conditionals="2" coveredconditionals="1" methods="1" coveredmethods="1"/>
         <line num="9" count="22" type="stmt"/>
         <line num="11" count="22" type="stmt"/>
@@ -329,7 +552,7 @@
         <line num="17" count="22" type="cond" truecount="1" falsecount="1"/>
         <line num="18" count="22" type="stmt"/>
       </file>
-      <file name="fetchWithRetry.ts" path="C:\Users\tigralint\Desktop\podpiska-main\utils\fetchWithRetry.ts">
+      <file name="fetchWithRetry.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\utils\fetchWithRetry.ts">
         <metrics statements="23" coveredstatements="22" conditionals="20" coveredconditionals="19" methods="3" coveredmethods="3"/>
         <line num="9" count="10" type="stmt"/>
         <line num="16" count="17" type="cond" truecount="2" falsecount="0"/>
@@ -355,15 +578,15 @@
         <line num="62" count="10" type="stmt"/>
         <line num="66" count="0" type="stmt"/>
       </file>
-      <file name="format.ts" path="C:\Users\tigralint\Desktop\podpiska-main\utils\format.ts">
+      <file name="format.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\utils\format.ts">
         <metrics statements="3" coveredstatements="3" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
-        <line num="1" count="1" type="stmt"/>
-        <line num="2" count="7" type="cond" truecount="2" falsecount="0"/>
-        <line num="3" count="5" type="stmt"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="24" type="cond" truecount="2" falsecount="0"/>
+        <line num="3" count="22" type="stmt"/>
       </file>
-      <file name="fuzzyMatch.ts" path="C:\Users\tigralint\Desktop\podpiska-main\utils\fuzzyMatch.ts">
+      <file name="fuzzyMatch.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\utils\fuzzyMatch.ts">
         <metrics statements="22" coveredstatements="22" conditionals="16" coveredconditionals="14" methods="3" coveredmethods="3"/>
-        <line num="1" count="1" type="stmt"/>
+        <line num="1" count="2" type="stmt"/>
         <line num="2" count="10" type="stmt"/>
         <line num="3" count="10" type="stmt"/>
         <line num="5" count="10" type="cond" truecount="2" falsecount="0"/>
@@ -386,21 +609,130 @@
         <line num="30" count="4" type="cond" truecount="3" falsecount="1"/>
         <line num="32" count="1" type="stmt"/>
       </file>
-      <file name="preload.ts" path="C:\Users\tigralint\Desktop\podpiska-main\utils\preload.ts">
-        <metrics statements="13" coveredstatements="3" conditionals="6" coveredconditionals="0" methods="8" coveredmethods="0"/>
-        <line num="7" count="1" type="stmt"/>
-        <line num="8" count="0" type="stmt"/>
-        <line num="9" count="0" type="stmt"/>
-        <line num="10" count="0" type="stmt"/>
+      <file name="preload.ts" path="C:\Users\tigralint\Desktop\chestnayapodpiska\utils\preload.ts">
+        <metrics statements="13" coveredstatements="10" conditionals="6" coveredconditionals="5" methods="8" coveredmethods="4"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
         <line num="11" count="0" type="stmt"/>
         <line num="12" count="0" type="stmt"/>
         <line num="13" count="0" type="stmt"/>
-        <line num="16" count="1" type="stmt"/>
-        <line num="21" count="1" type="stmt"/>
-        <line num="23" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="25" count="0" type="cond" truecount="0" falsecount="4"/>
-        <line num="26" count="0" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="23" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="25" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="26" count="3" type="stmt"/>
+        <line num="27" count="3" type="stmt"/>
+      </file>
+    </package>
+    <package name="views">
+      <metrics statements="94" coveredstatements="36" conditionals="114" coveredconditionals="37" methods="60" coveredmethods="13"/>
+      <file name="CourseFlow.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\views\CourseFlow.tsx">
+        <metrics statements="12" coveredstatements="3" conditionals="24" coveredconditionals="12" methods="14" coveredmethods="2"/>
+        <line num="20" count="8" type="stmt"/>
+        <line num="22" count="8" type="stmt"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="83" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="129" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="147" count="0" type="stmt"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+      </file>
+      <file name="Dashboard.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\views\Dashboard.tsx">
+        <metrics statements="14" coveredstatements="7" conditionals="18" coveredconditionals="2" methods="9" coveredmethods="2"/>
+        <line num="15" count="5" type="stmt"/>
+        <line num="16" count="5" type="stmt"/>
+        <line num="18" count="5" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="23" count="5" type="stmt"/>
+        <line num="24" count="5" type="stmt"/>
+        <line num="25" count="5" type="cond" truecount="1" falsecount="1"/>
         <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="32" count="5" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="88" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="103" count="0" type="stmt"/>
+      </file>
+      <file name="GuidesView.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\views\GuidesView.tsx">
+        <metrics statements="43" coveredstatements="21" conditionals="24" coveredconditionals="4" methods="21" coveredmethods="5"/>
+        <line num="10" count="5" type="stmt"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="12" count="5" type="stmt"/>
+        <line num="15" count="5" type="stmt"/>
+        <line num="16" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="22" count="5" type="stmt"/>
+        <line num="23" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="24" count="5" type="stmt"/>
+        <line num="25" count="5" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="5" type="stmt"/>
+        <line num="32" count="5" type="stmt"/>
+        <line num="35" count="5" type="stmt"/>
+        <line num="36" count="5" type="stmt"/>
+        <line num="38" count="5" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="43" count="5" type="stmt"/>
+        <line num="45" count="5" type="stmt"/>
+        <line num="46" count="5" type="stmt"/>
+        <line num="48" count="5" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="57" count="135" type="stmt"/>
+        <line num="59" count="5" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="100" count="135" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="144" count="0" type="stmt"/>
+        <line num="160" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="162" count="0" type="stmt"/>
+        <line num="204" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="219" count="0" type="stmt"/>
+        <line num="223" count="0" type="stmt"/>
+      </file>
+      <file name="SubscriptionFlow.tsx" path="C:\Users\tigralint\Desktop\chestnayapodpiska\views\SubscriptionFlow.tsx">
+        <metrics statements="25" coveredstatements="5" conditionals="48" coveredconditionals="19" methods="16" coveredmethods="4"/>
+        <line num="20" count="10" type="stmt"/>
+        <line num="22" count="10" type="stmt"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="66" count="1" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="106" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="108" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="110" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="114" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="116" count="0" type="stmt"/>
+        <line num="117" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="119" count="0" type="stmt"/>
+        <line num="126" count="0" type="cond" truecount="1" falsecount="1"/>
+        <line num="133" count="40" type="stmt"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="151" count="0" type="stmt"/>
+        <line num="162" count="0" type="stmt"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="164" count="0" type="stmt"/>
       </file>
     </package>
   </project>

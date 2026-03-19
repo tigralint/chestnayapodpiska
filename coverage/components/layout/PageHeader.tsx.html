@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for components/ui/GeneratingState.tsx</title>
+    <title>Code coverage report for components/layout/PageHeader.tsx</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">components/ui</a> GeneratingState.tsx</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">components/layout</a> PageHeader.tsx</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>4/6</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>1/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>4/6</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -111,23 +111,7 @@
 <a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -145,6 +129,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -153,51 +143,61 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React from 'react';
-import { FileText } from '../icons';
-import { cn } from '../../utils/cn';
-import { GlassCard } from './GlassCard';
-import { ResultThemeKey, RESULT_THEMES } from './ClaimResultPanel';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useNavigate } from 'react-router-dom';
+import { ChevronLeft } from '../icons';
 &nbsp;
-interface GeneratingStateProps {
-    theme: ResultThemeKey;
-    loadingTitle: string;
-    loadingSubtitle: string;
+const PAGE_HEADER_THEMES = {
+    cyan: {
+        focusRing: 'focus-visible:ring-accent-cyan/50',
+    },
+    purple: {
+        focusRing: 'focus-visible:ring-accent-purple/50',
+    },
+} as const;
+&nbsp;
+export type PageHeaderThemeKey = keyof typeof PAGE_HEADER_THEMES;
+&nbsp;
+interface PageHeaderProps {
+    title: string;
+    subtitle: string;
+    theme: PageHeaderThemeKey;
 }
 &nbsp;
-export const GeneratingState = React.memo(function GeneratingState({
-    theme,
-    loadingTitle,
-    loadingSubtitle
-}: GeneratingStateProps) {
-    const themeStyles = RESULT_THEMES[theme];
-&nbsp;
+export function PageHeader({ title, subtitle, theme }: PageHeaderProps) {
+    const navigate = useNavigate();
+    const t = PAGE_HEADER_THEMES[theme];
     return (
-        &lt;GlassCard className={cn("flex-grow flex flex-col items-center justify-center border relative overflow-hidden animate-fade-in min-h-[400px]", themeStyles.border)}&gt;
-            &lt;div className={cn("absolute inset-0 bg-gradient-to-tr animate-gradient-shift bg-[length:200%_200%]", themeStyles.gradient)}&gt;&lt;/div&gt;
-            &lt;div className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-[80px] animate-magic-pulse", themeStyles.bg)}&gt;&lt;/div&gt;
-&nbsp;
-            &lt;div className="relative z-10 text-center flex flex-col items-center"&gt;
-                &lt;div className="w-32 h-32 mx-auto mb-8 relative flex items-center justify-center perspective-[1000px]"&gt;
-                    &lt;div className={`absolute inset-0 rounded-[40%] border ${themeStyles.spinnerBorder} animate-spin-slow`}&gt;&lt;/div&gt;
-                    &lt;div className="absolute inset-2 rounded-full border-y-2 border-white/40 animate-[spin_4s_linear_infinite_reverse]"&gt;&lt;/div&gt;
-                    &lt;div className="absolute inset-5 rounded-[45%] border-x-2 border-white/60 animate-[spin_2s_linear_infinite]"&gt;&lt;/div&gt;
-                    &lt;div className="relative z-10 bg-[#05050A]/95 w-16 h-16 rounded-full flex items-center justify-center border border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.2)] animate-float"&gt;
-                        &lt;FileText className="w-8 h-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-magic-pulse" /&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-&nbsp;
-                &lt;h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 mb-3 animate-pulse"&gt;
-                    {loadingTitle}
-                &lt;/h3&gt;
-                &lt;div className={`flex items-center gap-3 justify-center ${themeStyles.text} font-mono text-sm uppercase tracking-widest ${themeStyles.bg} bg-opacity-50 px-4 py-2 rounded-full border ${themeStyles.border}`}&gt;
-                    &lt;span className={`w-2 h-2 rounded-full ${themeStyles.bg} animate-ping`}&gt;&lt;/span&gt;
-                    {loadingSubtitle}
-                &lt;/div&gt;
+        &lt;&gt;
+            &lt;div className="hidden md:block opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}&gt;
+                &lt;button onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >n</span>avigate('/')} c</span>lassName={`text-slate-400 hover:text-white font-semibold text-sm flex items-center transition-colors mb-6 active:scale-95 focus-visible:outline-none focus-visible:ring-2 ${t.focusRing} rounded-lg px-2 py-1 -ml-2`}&gt;
+                    &lt;ChevronLeft className="w-5 h-5 mr-1" /&gt; Вернуться
+                &lt;/button&gt;
+                &lt;h1 className="text-3xl lg:text-4xl font-extrabold text-white mb-4"&gt;{title}&lt;/h1&gt;
+                &lt;p className="text-slate-400 text-base leading-relaxed"&gt;
+                    {subtitle}
+                &lt;/p&gt;
             &lt;/div&gt;
-        &lt;/GlassCard&gt;
+&nbsp;
+            &lt;div className="md:hidden flex items-center mb-6 opacity-0 animate-fade-in" style={{ animationDelay: '50ms' }}&gt;
+                &lt;button onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >n</span>avigate('/')} c</span>lassName={`p-2 -ml-2 text-white bg-white/10 rounded-full mr-4 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 ${t.focusRing}`}&gt;
+                    &lt;ChevronLeft /&gt;
+                &lt;/button&gt;
+                &lt;h1 className="text-xl font-bold text-white"&gt;{title}&lt;/h1&gt;
+            &lt;/div&gt;
+        &lt;/&gt;
     );
-});
+}
+&nbsp;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->

@@ -104,15 +104,33 @@ export function RadarCanvas() {
             }
         };
 
-        const handleVisibility = () => {
-            if (document.hidden) {
+        let isTabVisible = !document.hidden;
+        let isIntersecting = true;
+
+        const updateRunningState = () => {
+            const shouldRun = isTabVisible && isIntersecting;
+            if (shouldRun && !isRunning) {
+                isRunning = true;
+                lastRenderTime = performance.now();
+                render(performance.now());
+            } else if (!shouldRun && isRunning) {
                 isRunning = false;
                 cancelAnimationFrame(rafId);
-            } else {
-                isRunning = true;
-                render(performance.now());
             }
         };
+
+        const handleVisibility = () => {
+            isTabVisible = !document.hidden;
+            updateRunningState();
+        };
+
+        const io = new IntersectionObserver(([entry]) => {
+            if (entry) {
+                isIntersecting = entry.isIntersecting;
+                updateRunningState();
+            }
+        }, { threshold: 0 });
+        io.observe(canvas);
 
         // Watch for containing element resize
         const observer = new ResizeObserver(() => resize());
@@ -127,6 +145,7 @@ export function RadarCanvas() {
             isRunning = false;
             cancelAnimationFrame(rafId);
             observer.disconnect();
+            io.disconnect();
             document.removeEventListener('visibilitychange', handleVisibility);
         };
     }, []);

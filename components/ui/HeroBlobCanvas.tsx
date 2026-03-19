@@ -81,15 +81,33 @@ export function HeroBlobCanvas() {
             ctx.fill();
         };
 
-        const handleVisibility = () => {
-            if (document.hidden) {
+        let isTabVisible = !document.hidden;
+        let isIntersecting = true;
+
+        const updateRunningState = () => {
+            const shouldRun = isTabVisible && isIntersecting;
+            if (shouldRun && !isRunning) {
+                isRunning = true;
+                lastRenderTime = performance.now();
+                render(performance.now());
+            } else if (!shouldRun && isRunning) {
                 isRunning = false;
                 cancelAnimationFrame(rafId);
-            } else {
-                isRunning = true;
-                render(performance.now());
             }
         };
+
+        const handleVisibility = () => {
+            isTabVisible = !document.hidden;
+            updateRunningState();
+        };
+
+        const io = new IntersectionObserver(([entry]) => {
+            if (entry) {
+                isIntersecting = entry.isIntersecting;
+                updateRunningState();
+            }
+        }, { threshold: 0 });
+        io.observe(canvas);
 
         document.addEventListener('visibilitychange', handleVisibility);
 
@@ -100,6 +118,7 @@ export function HeroBlobCanvas() {
             isRunning = false;
             cancelAnimationFrame(rafId);
             document.removeEventListener('visibilitychange', handleVisibility);
+            io.disconnect();
         };
     }, []);
 
