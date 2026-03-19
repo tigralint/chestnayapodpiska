@@ -56,9 +56,8 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
         } finally {
             setIsGenerating(false);
 
-            if (data.turnstileToken) {
-                setData(prev => ({ ...prev, turnstileToken: undefined }));
-            }
+            // Always clear the consumed turnstile token (use functional setter to avoid stale closure)
+            setData(prev => ({ ...prev, turnstileToken: undefined }));
 
             if (onAfterGenerate) {
                 onAfterGenerate();

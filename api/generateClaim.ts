@@ -14,23 +14,23 @@ interface OpenRouterResponse {
 import { z } from 'zod';
 
 export const claimSchema = z.object({
-    serviceName: z.string().min(1, 'Укажите название сервиса'),
-    amount: z.string(),
-    date: z.string(),
-    reason: z.string(),
+    serviceName: z.string().min(1, 'Укажите название сервиса').max(100, 'Название сервиса слишком длинное'),
+    amount: z.string().max(50, 'Сумма слишком длинная'),
+    date: z.string().max(50, 'Дата слишком длинная'),
+    reason: z.string().max(1000, 'Причина слишком длинная'),
     tone: z.enum(['soft', 'hard']),
-    turnstileToken: z.string().optional()
+    turnstileToken: z.string().min(1, 'Токен капчи обязателен'),
 });
 
 export const courseSchema = z.object({
-    courseName: z.string().min(1, 'Укажите название курса'),
-    totalCost: z.number().positive('Сумма должна быть больше нуля'),
+    courseName: z.string().min(1, 'Укажите название курса').max(100, 'Название курса слишком длинное'),
+    totalCost: z.number().positive('Сумма должна быть больше нуля').max(1000000000, 'Слишком большая сумма'),
     percentCompleted: z.number().min(0).max(100),
     tone: z.enum(['soft', 'hard']),
     hasPlatformAccess: z.boolean(),
     hasConsultations: z.boolean(),
     hasCertificate: z.boolean(),
-    turnstileToken: z.string().optional()
+    turnstileToken: z.string().min(1, 'Токен капчи обязателен'),
 });
 
 export type ClaimData = z.infer<typeof claimSchema>;
@@ -38,12 +38,16 @@ export type CourseData = z.infer<typeof courseSchema>;
 
 /**
  * Strips characters that could be used for prompt injection.
- * Removes instruction-like patterns while keeping normal user text.
+ * Removes XML/HTML tags, instruction-like patterns, and bracket characters.
  */
 function sanitizeInput(input: string, maxLength = 200): string {
     return input
         .slice(0, maxLength)
-        .replace(/\n/g, ' ')             // Flatten newlines
+        .replace(/\n/g, ' ')                                      // Flatten newlines
+        .replace(/<\/?[a-z_][a-z0-9_]*>/gi, '')                    // Strip XML/HTML tags
+        .replace(/\b(SYSTEM|ASSISTANT|INSTRUCTION|IGNORE|PROMPT)\b/gi, '')  // Strip instruction keywords
+        .replace(/[{}[\]<>]/g, '')                                 // Remove brackets
+        .replace(/\s{2,}/g, ' ')                                   // Collapse multiple spaces
         .trim();
 }
 
@@ -68,7 +72,9 @@ export default async function handler(
     }
 
     // Rate limiting
-    const clientIp = (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+    // Prefer Vercel's trusted header (cannot be spoofed by client)
+    const clientIp = (request.headers['x-vercel-forwarded-for'] as string)?.split(',')[0]?.trim()
+        ?? (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
         ?? request.socket?.remoteAddress
         ?? 'unknown';
 
@@ -78,7 +84,12 @@ export default async function handler(
             return response.status(429).json({ error: 'Слишком много запросов. Попробуйте через некоторое время.' });
         }
     } else {
-        console.warn('Upstash Redis credentials are not set in the environment. Rate limiting is disabled.');
+        console.error('CRITICAL: Upstash Redis credentials are not set. Rate limiting is missing.');
+        if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production') {
+            return response.status(500).json({ error: 'Сервис временно недоступен из-за ошибки конфигурации.' });
+        } else {
+            console.warn('Allowing request only because environment is not production.');
+        }
     }
 
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -119,11 +130,10 @@ export default async function handler(
             }
         }
 
-        if (!validData || !validData.turnstileToken) {
-            return response.status(403).json({ error: 'Капча не пройдена.' });
-        }
+        // turnstileToken is now validated as required by Zod schema (.min(1))
+        // No need for a separate nullish check here
 
-        // Verify Turnstile
+        // Verify Turnstile (with timeout to prevent hanging)
         const formData = new URLSearchParams();
         formData.append('secret', TURNSTILE_SECRET_KEY);
         formData.append('response', validData.turnstileToken);
@@ -131,6 +141,7 @@ export default async function handler(
         const turnstileCheck = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
             body: formData,
+            signal: AbortSignal.timeout(8_000),
         });
 
         const turnstileRes = await turnstileCheck.json() as TurnstileVerifyResponse;
@@ -166,18 +177,19 @@ export default async function handler(
                 "model": "arcee-ai/trinity-large-preview:free",
                 "messages": [{ "role": "user", "content": prompt }],
                 "temperature": 0.1,
-            })
+            }),
+            signal: AbortSignal.timeout(30_000),
         });
 
         const aiJson = await aiResponse.json() as OpenRouterResponse;
         const text = aiJson.choices?.[0]?.message?.content;
 
         if (!text) {
+            // Log details server-side only — never expose OpenRouter internals to client
             console.error('OpenRouter Error:', JSON.stringify(aiJson));
-            const aiErr = aiJson.error?.message || 'ИИ-модель не вернула результат';
             // Return 422 instead of 502 so the client doesn't retry the request
             // (retrying fails anyway because the Turnstile token is already consumed)
-            return response.status(422).json({ error: `Ошибка API ИИ: ${aiErr}` });
+            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
         }
 
         return response.status(200).json({ text });

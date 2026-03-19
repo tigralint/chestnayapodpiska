@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.07% </span>
+                <span class="strong">76.92% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/13</span>
+                <span class='fraction'>10/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>5/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>4/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.07% </span>
+                <span class="strong">76.92% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/13</span>
+                <span class='fraction'>10/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -98,27 +98,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
@@ -127,10 +127,10 @@
  */
 &nbsp;
 // Map of route paths to their dynamic import functions
-const routeImports: Record&lt;string, () =&gt; Promise&lt;any&gt;&gt; = {
-    '/claim': <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('../views/SubscriptionFlow'),</span>
-    '/course': <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('../views/CourseFlow'),</span>
-    '/guides': <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('../views/GuidesView'),</span>
+const routeImports: Record&lt;string, () =&gt; Promise&lt;{ default: React.ComponentType }&gt;&gt; = {
+    '/claim': () =&gt; import('../views/SubscriptionFlow'),
+    '/course': () =&gt; import('../views/CourseFlow'),
+    '/guides': () =&gt; import('../views/GuidesView'),
     '/simulator': <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('../views/SimulatorView'),</span>
     '/radar': <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('../views/RadarView'),</span>
     '/faq': <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >i</span>mport('../views/FaqView'),</span>
@@ -141,13 +141,13 @@ const preloadedPaths = new Set&lt;string&gt;();
 /**
  * Preloads the chunk for a given path if it hasn't been preloaded yet.
  */
-export const preloadRoute = <span class="fstat-no" title="function not covered" >(p</span>ath: string) =&gt; {
+export const preloadRoute = (path: string) =&gt; {
     // Extract base path (e.g., /claim/netflix -&gt; /claim)
-    const basePath = <span class="cstat-no" title="statement not covered" >path.split('/').filter(Boolean)[0] ? `/${path.split('/').filter(Boolean)[0]}` : '/';</span>
+    const basePath = path.split('/').filter(Boolean)[0] ? `/${path.split('/').filter(Boolean)[0]}` : <span class="branch-1 cbranch-no" title="branch not covered" >'/';</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    if (routeImports[basePath] &amp;&amp; !preloadedPaths.has(basePath)) {</span>
-<span class="cstat-no" title="statement not covered" >        routeImports[basePath]().catch(<span class="fstat-no" title="function not covered" >() =&gt; {</span> });</span>
-<span class="cstat-no" title="statement not covered" >        preloadedPaths.add(basePath);</span>
+    if (routeImports[basePath] &amp;&amp; !preloadedPaths.has(basePath)) {
+        routeImports[basePath]().catch(<span class="fstat-no" title="function not covered" >() =&gt; {</span> });
+        preloadedPaths.add(basePath);
     }
 };
 &nbsp;</pre></td></tr></table></pre>
@@ -157,7 +157,7 @@ export const preloadRoute = <span class="fstat-no" title="function not covered" 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-04T20:53:34.771Z
+                at 2026-03-19T06:20:39.702Z
             </div>
         <script src="../prettify.js"></script>
         <script>
