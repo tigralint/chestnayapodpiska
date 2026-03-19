@@ -6,7 +6,7 @@
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Vite](https://img.shields.io/badge/Vite-6.2-646cff?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
   [![Tests](https://img.shields.io/badge/Tests-132_passed-success?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
-  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
+  [![License: CC BY--NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc/4.0/)
 </div>
 
 <br/>
@@ -145,9 +145,16 @@
 
 ---
 
-## 📝 Лицензия
+## 📝 Лицензия (License)
 
-Этот проект является открытым программным обеспечением (Open Source).
-Он распространяется на условиях лицензии **[GNU GPL v3.0](LICENSE)**. 
+Проект использует модель **Двойного лицензирования (Dual License)**.
 
-Свободно изучайте, улучшайте и форкайте!
+1. **Некоммерческое использование (Non-Commercial Use)**
+   Код открыт для некоммерческих, образовательных или личных целей по лицензии [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Вы можете свободно изучать, форкать и модифицировать код (без права на монетизацию).
+
+2. **Коммерческое использование (Commercial Use)**
+   Использование компонентов, архитектуры или исходного кода в любых коммерческих сервисах, SaaS или продуктах, приносящих прибыль, **СТРОГО ЗАПРЕЩЕНО** без приобретения коммерческой лицензии у автора. 
+   
+По вопросам коммерческой лицензии: [@tigralint](https://t.me/tigralint)
+
+Подробности в файле [LICENSE](LICENSE).
