@@ -25,7 +25,7 @@ describe('API: reportPattern', () => {
             });
             expect(result.success).toBe(false);
             if (!result.success) {
-               expect(result.error.issues[0].message).toContain('минимум 10 символов');
+               expect(result.error.issues[0]?.message).toContain('минимум 10 символов');
             }
         });
 
