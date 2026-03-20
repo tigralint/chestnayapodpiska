@@ -10,7 +10,7 @@ All rights reserved.
 
 ЧАСТЬ 1: НЕКОММЕРЧЕСКОЕ ИСПОЛЬЗОВАНИЕ (NON-COMMERCIAL USE)
 ------------------------------------------------------------
-Для личного, образовательного и некоммерческого использования данный код распространяется на условиях открытой лицензии Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).
+Для личного, образовательного и некоммерческого использования данный код распространяется на условиях лицензии Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).
 
 Вы ИМЕЕТЕ ПРАВО:
 - Делиться (копировать и распространять материал на любом носителе и в любом формате).
@@ -23,6 +23,7 @@ All rights reserved.
 Полный юридический текст CC BY-NC 4.0:
 https://creativecommons.org/licenses/by-nc/4.0/legalcode.ru
 
+---
 
 ЧАСТЬ 2: КОММЕРЧЕСКОЕ ИСПОЛЬЗОВАНИЕ (COMMERCIAL USE)
 ------------------------------------------------------------
@@ -31,11 +32,17 @@ https://creativecommons.org/licenses/by-nc/4.0/legalcode.ru
 Коммерческим считается использование, которое направлено на получение коммерческой выгоды или денежной компенсации, включая, но не ограничиваясь:
 - Запуск платных платформ (SaaS), продающих доступ к сгенерированным документам.
 - Использование кода для создания похожих B2C-продуктов конкурентов.
-- Интеграция фрагментов кода в B2B-программы, предоставляемые юридическим лицам за плату.
+- Интеграция фрагментов кода или архитектуры в B2B-программы, предоставляемые юридическим лицам за плату.
 
 Для приобретения Коммерческой Лицензии или передачи эксклюзивных прав на код свяжитесь с автором:
 Telegram: @tigralint
 ВКонтакте: vk.com/fairsubs
+
+---
+
+ЧАСТЬ 3: ОТКАЗ ОТ ГАРАНТИЙ И ОГРАНИЧЕНИЕ ОТВЕТСТВЕННОСТИ (DISCLAIMER AND LIMITATION OF LIABILITY)
+------------------------------------------------------------
+ПРОГРАММНОЕ ОБЕСПЕЧЕНИЕ ПРЕДОСТАВЛЯЕТСЯ «КАК ЕСТЬ» ("AS IS"), БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ, ЯВНЫХ ИЛИ ПОДРАЗУМЕВАЕМЫХ, ВКЛЮЧАЯ, НО НЕ ОГРАНИЧИВАЯСЬ ПОДРАЗУМЕВАЕМЫМИ ГАРАНТИЯМИ ТОВАРНОЙ ПРИГОДНОСТИ, ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННОЙ ЦЕЛИ И НЕНАРУШЕНИЯ ПРАВ. НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ АВТОР(Ы) ИЛИ ПРАВООБЛАДАТЕЛЬ НЕ НЕСУТ ОТВЕТСТВЕННОСТИ ЗА ЛЮБЫЕ ИСКИ, УБЫТКИ ИЛИ ИНОЙ УЩЕРБ, БУДЬ ТО В СИЛУ ДОГОВОРА, ДЕЛИКТА ИЛИ ИНОГО ОСНОВАНИЯ, ВОЗНИКАЮЩИЕ ИЗ, ИЛИ В СВЯЗИ С ПРОГРАММНЫМ ОБЕСПЕЧЕНИЕМ ИЛИ ЕГО ИСПОЛЬЗОВАНИЕМ ПРОИЗВОДНЫХ.
 
 ============================================================
 ENGLISH VERSION
@@ -58,7 +65,6 @@ Under the following terms:
 Full legal text of CC BY-NC 4.0:
 https://creativecommons.org/licenses/by-nc/4.0/legalcode
 
-
 PART 2: COMMERCIAL USE
 ------------------------------------------------------------
 Any commercial use of this software, its source code, UI components, or architectural solutions is STRICTLY PROHIBITED without the prior written consent and purchase of a Commercial License.
@@ -71,3 +77,7 @@ Commercial use includes any use intended for commercial advantage or monetary co
 To purchase a Commercial License or acquire exclusive rights to the code, contact the author:
 Telegram: @tigralint
 VK: vk.com/fairsubs
+
+PART 3: DISCLAIMER OF WARRANTY AND LIMITATION OF LIABILITY
+------------------------------------------------------------
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
