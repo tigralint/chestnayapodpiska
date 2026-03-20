@@ -4,6 +4,11 @@ import { Redis } from '@upstash/redis';
 const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+    // Проверка работоспособности по GET-запросу в браузере
+    if (req.method === 'GET') {
+        return res.status(200).json({ status: 'Webhook is running perfectly!' });
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -59,35 +64,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         newText += '\n\n❌ Отклонено модератором.';
                     }
 
-                    // Edit original message to remove buttons and show status
-                    if (message && message.chat && message.message_id) {
-                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
+                    // 1. СРАЗУ снимаем "часики" загрузки на кнопке (Answer Callback)
+                    try {
+                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                chat_id: message.chat.id,
-                                message_id: message.message_id,
-                                text: newText,
-                                // Remove inline keyboard
-                                reply_markup: { inline_keyboard: [] }
+                                callback_query_id: callbackQuery.id,
+                                text: isApprove ? 'Одобрено!' : 'Отклонено!'
                             })
                         });
+                    } catch (e) {
+                        console.error('Answer callback error:', e);
                     }
-                    
-                    // Answer callback OK with toast
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            callback_query_id: callbackQuery.id,
-                            text: isApprove ? 'Успешно опубликовано!' : 'Заявка удалена.'
-                        })
-                    });
+
+                    // 2. Меняем текст сообщения и удаляем кнопки
+                    if (message && message.chat && message.message_id) {
+                        try {
+                            const editRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: message.chat.id,
+                                    message_id: message.message_id,
+                                    text: newText,
+                                    reply_markup: { inline_keyboard: [] }
+                                })
+                            });
+                            if (!editRes.ok) console.error('TG Edit Error:', await editRes.text());
+                        } catch (e) {
+                            console.error('Edit Message error:', e);
+                        }
+                    }
                 }
             }
         }
         
-        // Always return 200 OK so Telegram doesn't retry
         return res.status(200).json({ ok: true });
     } catch (error) {
         console.error('Webhook processing error:', error);
