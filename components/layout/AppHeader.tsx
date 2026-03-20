@@ -2,8 +2,6 @@ import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { preloadRoute } from '../../utils/preload';
-import { useAppStore } from '../../store/appStore';
-import { Gamepad } from '../icons';
 
 const NAV_ITEMS = [
     { path: '/claim', label: 'Претензии', activeColor: 'text-accent-cyan', barColor: 'bg-accent-cyan' },
@@ -18,7 +16,6 @@ export const AppHeader = React.memo(function AppHeader() {
     const location = useLocation();
     const navigate = useNavigate();
     const { scrolled } = useAppContext();
-    const score = useAppStore(state => state.score);
 
     return (
         <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hidden md:block pt-6 px-6 ${scrolled ? 'translate-y-[-120%]' : 'translate-y-0'}`}>
@@ -33,16 +30,6 @@ export const AppHeader = React.memo(function AppHeader() {
                             Честная<span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-blue">Подписка</span>
                         </span>
                     </button>
-
-                    {/* Score Badge */}
-                    {score > 0 && (
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-accent-pink/20 shadow-[0_0_15px_rgba(236,72,153,0.15)] animate-fade-in shrink-0">
-                            <Gamepad className="w-4 h-4 text-accent-pink animate-pulse" />
-                            <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent-pink to-accent-purple">
-                                {score} XP
-                            </span>
-                        </div>
-                    )}
                 </div>
                 <div className="flex gap-1 text-[14px] font-semibold tracking-wide overflow-x-auto no-scrollbar">
                     {NAV_ITEMS.map(item => {

@@ -12,7 +12,6 @@ describe('useSimulator', () => {
         const { result } = renderHook(() => useSimulator());
 
         expect(result.current.currentLevelIdx).toBe(0);
-        expect(result.current.score).toBe(0);
         expect(result.current.feedback).toBe('idle');
         expect(result.current.showResult).toBe(false);
     });
@@ -31,7 +30,6 @@ describe('useSimulator', () => {
             vi.advanceTimersByTime(3000);
         });
 
-        expect(result.current.score).toBe(1);
         expect(result.current.currentLevelIdx).toBe(1);
         expect(result.current.feedback).toBe('idle');
     });
@@ -49,7 +47,6 @@ describe('useSimulator', () => {
             vi.advanceTimersByTime(2500);
         });
 
-        expect(result.current.score).toBe(0);
         expect(result.current.currentLevelIdx).toBe(1);
     });
 
@@ -61,13 +58,10 @@ describe('useSimulator', () => {
             vi.advanceTimersByTime(3000);
         });
 
-        expect(result.current.score).toBe(1);
-
         act(() => {
             result.current.reset();
         });
 
-        expect(result.current.score).toBe(0);
         expect(result.current.currentLevelIdx).toBe(0);
     });
 });

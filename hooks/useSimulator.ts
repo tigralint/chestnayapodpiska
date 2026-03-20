@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { LEVELS } from '../data/simulator-levels';
 import { SIMULATOR_CONFIG } from '../constants/simulator';
-import { useAppStore } from '../store/appStore';
 
 export type FeedbackState = 'idle' | 'hit' | 'miss';
 
@@ -9,10 +8,7 @@ export function useSimulator() {
     const [currentLevelIdx, setCurrentLevelIdx] = useState(SIMULATOR_CONFIG.INITIAL_LEVEL_INDEX);
     const [currentStepIdx, setCurrentStepIdx] = useState(SIMULATOR_CONFIG.INITIAL_STEP_INDEX);
     const [feedback, setFeedback] = useState<FeedbackState>('idle');
-    const [localScore, setLocalScore] = useState(SIMULATOR_CONFIG.INITIAL_SCORE);
     const [showResult, setShowResult] = useState(false);
-
-    const incrementGlobalScore = useAppStore((state) => state.incrementScore);
 
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -33,10 +29,8 @@ export function useSimulator() {
             setCurrentLevelIdx(idx => idx + 1);
         } else {
             setShowResult(true);
-            // Save local score to global store at the end of the simulation
-            incrementGlobalScore(localScore * 10);
         }
-    }, [currentLevelIdx, localScore, incrementGlobalScore]);
+    }, [currentLevelIdx]);
 
     const handleHit = useCallback(() => {
         if (feedback !== 'idle') return;
@@ -48,7 +42,6 @@ export function useSimulator() {
                 setCurrentStepIdx(prevStep => prevStep + 1);
                 setFeedback('idle');
             } else {
-                setLocalScore(s => s + 1);
                 nextLevel();
             }
         }, SIMULATOR_CONFIG.HIT_FEEDBACK_DURATION);
@@ -66,7 +59,6 @@ export function useSimulator() {
         if (timerRef.current) clearTimeout(timerRef.current);
         setCurrentLevelIdx(SIMULATOR_CONFIG.INITIAL_LEVEL_INDEX);
         setCurrentStepIdx(SIMULATOR_CONFIG.INITIAL_STEP_INDEX);
-        setLocalScore(SIMULATOR_CONFIG.INITIAL_SCORE);
         setShowResult(false);
         setFeedback('idle');
     }, []);
@@ -76,7 +68,6 @@ export function useSimulator() {
         currentLevelIdx,
         currentStepIdx,
         feedback,
-        score: localScore,
         showResult,
         progress,
         handleHit,

@@ -11,7 +11,6 @@ export default function SimulatorView() {
     currentLevelIdx,
     currentStepIdx,
     feedback,
-    score,
     showResult,
     progress,
     handleHit,
@@ -21,7 +20,7 @@ export default function SimulatorView() {
   } = useSimulator();
 
   if (showResult) {
-    return <SimulatorResultPanel score={score} totalLevels={totalLevels} reset={reset} />;
+    return <SimulatorResultPanel reset={reset} />;
   }
 
   return (
@@ -34,7 +33,6 @@ export default function SimulatorView() {
         <SimulatorHeader
           currentLevelIdx={currentLevelIdx}
           totalLevels={totalLevels}
-          score={score}
           progress={progress}
         />
 

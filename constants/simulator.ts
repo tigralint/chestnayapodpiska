@@ -8,9 +8,6 @@ export const SIMULATOR_CONFIG = {
     // Duration of feedback display for a miss/mistake (in ms)
     MISS_FEEDBACK_DURATION: 2500,
 
-    // Starting score
-    INITIAL_SCORE: 0,
-
     // Starting level index
     INITIAL_LEVEL_INDEX: 0,
 

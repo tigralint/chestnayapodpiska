@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Plus, X, CheckCircle, FileText, ExternalLink } from '../components/icons';
+import { ChevronLeft, Plus, X, CheckCircle, FileText, ExternalLink, Search } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
 import { SEO } from '../components/ui/SEO';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export default function GuidesView() {
   const navigate = useNavigate();
@@ -28,8 +29,23 @@ export default function GuidesView() {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, [selectedGuideId]);
+
   const [showModal, setShowModal] = useState(false);
   const [modalState, setModalState] = useState<'form' | 'success'>('form');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Filtering and Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'subscription' | 'course'>('all');
+
+  // Form State
+  const [formInput, setFormInput] = useState({
+    serviceName: '',
+    description: '',
+    contactInfo: '',
+    turnstileToken: undefined as string | undefined
+  });
+  const turnstileRef = useRef<{ reset: () => void } | null>(null) as any;
 
   // Focus trap refs
   const guideModalRef = useRef<HTMLDivElement>(null);
@@ -45,16 +61,52 @@ export default function GuidesView() {
   useFocusTrap(guideModalRef, !!selectedGuideId, closeGuide);
   useFocusTrap(formModalRef, showModal, closeForm);
 
-  const handleSubmitPattern = (e: React.FormEvent) => {
+  const handleSubmitPattern = async (e: React.FormEvent) => {
     e.preventDefault();
-    setModalState('success');
-    setTimeout(() => {
-      setShowModal(false);
-      setTimeout(() => setModalState('form'), 500); // Reset after closing
-    }, 2500);
+    if (!formInput.turnstileToken) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/reportPattern', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formInput)
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Server error');
+      }
+      
+      setModalState('success');
+      setFormInput({ serviceName: '', description: '', contactInfo: '', turnstileToken: undefined });
+      turnstileRef.current?.reset();
+      
+      setTimeout(() => {
+        setShowModal(false);
+        setTimeout(() => setModalState('form'), 500); // Reset after closing
+      }, 2500);
+
+    } catch (error: any) {
+       console.error(error);
+       alert(error.message === 'Server error' ? "Не удалось отправить форму. Пожалуйста, попробуйте позже." : error.message);
+    } finally {
+       setIsSubmitting(false);
+    }
   };
 
   const selectedGuide = GUIDES_DB.find(g => g.id === selectedGuideId);
+
+  const filteredGuides = useMemo(() => {
+    return GUIDES_DB.filter(g => {
+        if (activeTab !== 'all' && g.type !== activeTab) return false;
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            return g.service.toLowerCase().includes(query) || g.aliases.some(a => a.toLowerCase().includes(query));
+        }
+        return true;
+    });
+  }, [searchQuery, activeTab]);
 
   return (
     <div className="flex flex-col h-full px-4 sm:px-6 pb-12 relative min-h-screen">
@@ -64,14 +116,14 @@ export default function GuidesView() {
       />
       <div className="max-w-6xl mx-auto w-full">
 
-        <div className="md:hidden flex items-center mb-8 mt-2 opacity-0 animate-fade-in" style={{ animationDelay: '50ms' }}>
+        <div className="md:hidden flex items-center mb-6 mt-2 opacity-0 animate-fade-in" style={{ animationDelay: '50ms' }}>
           <button onClick={() => navigate('/')} className="p-2 -ml-2 text-white bg-white/10 rounded-full mr-4 active:scale-95 transition-transform" aria-label="Вернуться на главную">
             <ChevronLeft />
           </button>
           <h1 className="text-2xl font-bold text-white">База знаний</h1>
         </div>
 
-        <div className="hidden md:block mb-12 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
+        <div className="hidden md:block mb-8 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
           <button onClick={() => navigate('/')} className="text-slate-400 hover:text-white font-semibold text-sm flex items-center transition-colors mb-6 active:scale-95">
             <ChevronLeft className="w-5 h-5 mr-1" /> Вернуться
           </button>
@@ -79,24 +131,63 @@ export default function GuidesView() {
           <p className="text-slate-400 text-lg">Компании прячут кнопки отмены. Мы нашли все короткие пути сквозь дарк-паттерны.</p>
         </div>
 
+        {/* --- SEARCH AND FILTERS --- */}
+        <div className="mb-8 opacity-0 animate-slide-up" style={{ animationDelay: '100ms' }}>
+           <div className="relative mb-5 max-w-2xl">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                 <Search className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                 type="text"
+                 placeholder="Название сервиса (например, Яндекс или Skillbox)..."
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 className="block w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 transition-all font-medium text-base sm:text-lg"
+              />
+           </div>
+           
+           <div className="flex flex-wrap items-center gap-2">
+              <button 
+                  onClick={() => setActiveTab('all')} 
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'all' ? 'bg-accent-cyan text-gray-900 shadow-[0_0_15px_rgba(0,242,254,0.4)]' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}`}
+              >
+                  Все ({GUIDES_DB.length})
+              </button>
+              <button 
+                  onClick={() => setActiveTab('subscription')} 
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'subscription' ? 'bg-accent-cyan text-gray-900 shadow-[0_0_15px_rgba(0,242,254,0.4)]' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}`}
+              >
+                  Подписки ({GUIDES_DB.filter(g => g.type === 'subscription').length})
+              </button>
+              <button 
+                  onClick={() => setActiveTab('course')} 
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'course' ? 'bg-accent-cyan text-gray-900 shadow-[0_0_15px_rgba(0,242,254,0.4)]' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}`}
+              >
+                  Онлайн-курсы ({GUIDES_DB.filter(g => g.type === 'course').length})
+              </button>
+           </div>
+        </div>
+
         {/* --- GRID OF CARDS --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-8 w-full">
 
           {/* Add Pattern Button (First Item) */}
-          <div
-            className="real-glass-panel rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white/10 hover:border-accent-cyan/30 active:scale-[0.98] transition-all duration-300 border border-dashed border-white/20 group opacity-0 animate-slide-up h-[140px]"
-            style={{ animationDelay: '100ms' }}
-            onClick={() => setShowModal(true)}
-          >
-            <div className="w-10 h-10 rounded-full bg-accent-cyan/10 flex items-center justify-center text-accent-cyan mb-3 group-hover:scale-110 transition-transform duration-300 border border-accent-cyan/20">
-              <Plus className="w-5 h-5" />
+          {(!searchQuery && activeTab === 'all') && (
+            <div
+              className="real-glass-panel rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white/10 hover:border-accent-cyan/30 active:scale-[0.98] transition-all duration-300 border border-dashed border-white/20 group opacity-0 animate-slide-up h-[140px]"
+              style={{ animationDelay: '150ms' }}
+              onClick={() => setShowModal(true)}
+            >
+              <div className="w-10 h-10 rounded-full bg-accent-cyan/10 flex items-center justify-center text-accent-cyan mb-3 group-hover:scale-110 transition-transform duration-300 border border-accent-cyan/20">
+                <Plus className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-white text-sm mb-1">Новая уловка?</h3>
+              <p className="text-xs text-slate-400">Сообщить о дарк-паттерне</p>
             </div>
-            <h3 className="font-bold text-white text-sm mb-1">Новая уловка?</h3>
-            <p className="text-xs text-slate-400">Сообщить о дарк-паттерне</p>
-          </div>
+          )}
 
           {/* Guide Cards */}
-          {GUIDES_DB.map((guide, idx) => (
+          {filteredGuides.map((guide, idx) => (
             <button
               key={guide.id}
               onClick={() => setSelectedGuideId(guide.id)}
@@ -115,6 +206,12 @@ export default function GuidesView() {
               </div>
             </button>
           ))}
+          
+          {filteredGuides.length === 0 && (
+             <div className="col-span-1 sm:col-span-2 lg:col-span-3 xl:col-span-4 py-12 text-center text-slate-400 animate-fade-in border border-dashed border-white/10 rounded-2xl">
+                 Нет инструкций по вашему запросу. Вы можете <button onClick={() => setShowModal(true)} className="text-accent-cyan font-bold hover:underline tracking-wide">сообщить об уловке</button> для этого сервиса!
+             </div>
+          )}
         </div>
 
         {/* --- GUIDE DETAILS MODAL (full-screen on mobile, centered on desktop) --- */}
@@ -154,7 +251,10 @@ export default function GuidesView() {
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 <div className="mb-6">
-                  <h3 className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Пошаговый алгоритм</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest">Пошаговый алгоритм</h3>
+
+                  </div>
                   <div className="relative border-l border-white/10 ml-4 space-y-5 md:space-y-8">
                     {selectedGuide.steps.map((step, stepIdx) => {
                       const isDarkPattern = step.includes('ДАРК-ПАТТЕРН') || step.includes('ВНИМАНИЕ');
@@ -188,7 +288,7 @@ export default function GuidesView() {
                   <div className="mb-2 bg-white/5 p-6 rounded-3xl border border-white/10 flex flex-col items-center text-center">
                     <span className="text-slate-400 text-sm mb-2">Официальный контакт поддержки:</span>
                     <a href={`mailto:${selectedGuide.contactEmail}`} className="font-mono text-lg font-bold text-accent-cyan hover:text-white transition-colors tracking-wide flex items-center gap-2">
-                      {selectedGuide.contactEmail}
+                       {selectedGuide.contactEmail}
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   </div>
@@ -233,33 +333,56 @@ export default function GuidesView() {
                     <Plus className="w-6 h-6" />
                   </div>
                   <h2 className="text-2xl font-bold text-white mb-2">Сообщить об уловке</h2>
-                  <p className="text-slate-400 text-sm mb-2">Помогите нам пополнить базу. Мы проверим сервис и добавим инструкцию.</p>
-                  <p className="text-amber-400/80 text-xs mb-6">⚠ Модуль сбора данных в разработке — информация пока не сохраняется на сервере.</p>
-
-                  <div className="space-y-4 mb-8">
+                  <p className="text-slate-400 text-sm mb-6">Помогите нам пополнить базу. Мы проверим сервис и добавим инструкцию.</p>
+                  
+                  <div className="space-y-4 mb-6">
                     <div>
                       <input
                         type="text"
                         required
-                        placeholder="Название сервиса"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 outline-none transition-all"
+                        placeholder="Название сервиса*"
+                        value={formInput.serviceName}
+                        onChange={e => setFormInput(p => ({ ...p, serviceName: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 outline-none transition-all placeholder-slate-500"
                       />
                     </div>
                     <div>
                       <textarea
                         required
-                        placeholder="Как они прячут кнопку? Опишите кратко..."
+                        placeholder="Как они прячут кнопку? Опишите кратко...*"
                         rows={3}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 outline-none transition-all resize-none"
+                        value={formInput.description}
+                        onChange={e => setFormInput(p => ({ ...p, description: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 outline-none transition-all resize-none placeholder-slate-500"
                       ></textarea>
                     </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Ваши контакты (tg/email), опционально"
+                        value={formInput.contactInfo}
+                        onChange={e => setFormInput(p => ({ ...p, contactInfo: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 outline-none transition-all placeholder-slate-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mb-6 flex justify-center">
+                    <Turnstile
+                        ref={turnstileRef}
+                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''}
+                        onSuccess={(token) => setFormInput(prev => ({ ...prev, turnstileToken: token }))}
+                        onError={() => setFormInput(prev => ({ ...prev, turnstileToken: undefined }))}
+                        onExpire={() => setFormInput(prev => ({ ...prev, turnstileToken: undefined }))}
+                    />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-4 bg-button-glow text-app-bg font-bold rounded-2xl active:scale-95 transition-transform"
+                    disabled={isSubmitting || !formInput.turnstileToken}
+                    className="w-full py-4 bg-button-glow text-app-bg font-bold rounded-2xl active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                   >
-                    Отправить информацию
+                    {isSubmitting ? 'Отправка...' : 'Отправить информацию'}
                   </button>
                 </form>
               ) : (
@@ -268,7 +391,7 @@ export default function GuidesView() {
                     <CheckCircle className="w-10 h-10" />
                   </div>
                   <h2 className="text-2xl font-bold text-white mb-2">Принято!</h2>
-                  <p className="text-slate-400 text-sm">Спасибо за ваш вклад. Юристы проекта скоро разберут этот сервис.</p>
+                  <p className="text-slate-400 text-sm mb-4">Спасибо за ваш вклад. Данные успешно отправлены в Telegram.</p>
                 </div>
               )}
             </div>

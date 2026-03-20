@@ -2,12 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { Award } from '../icons';
 
 interface SimulatorResultPanelProps {
-    score: number;
-    totalLevels: number;
     reset: () => void;
 }
 
-export function SimulatorResultPanel({ score, totalLevels, reset }: SimulatorResultPanelProps) {
+export function SimulatorResultPanel({ reset }: SimulatorResultPanelProps) {
     const navigate = useNavigate();
 
     return (
@@ -19,12 +17,9 @@ export function SimulatorResultPanel({ score, totalLevels, reset }: SimulatorRes
                         <Award className="w-12 h-12 text-accent-pink" />
                     </div>
                     <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">Тренажер пройден!</h2>
-                    <p className="text-accent-pink font-bold text-xl mb-6">Счет: {score} из {totalLevels}</p>
 
                     <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-                        {score === 10 ? "Идеально! Вы настоящий цифровой ниндзя, корпорациям вас не обмануть." :
-                            score >= 7 ? "Отличный результат! У вас хороший иммунитет к дарк-паттернам." :
-                                "Вам стоит быть внимательнее. Дизайнеры корпораций используют множество уловок."}
+                        Вы успешно проанализировали все интерфейсы. Теперь вы вооружены знаниями о корпоративных уловках!
                     </p>
 
                     <div className="bg-white/5 p-6 rounded-2xl border border-white/10 mb-8 text-left shadow-inner">

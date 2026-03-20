@@ -38,4 +38,33 @@ export interface Guide {
     type: 'subscription' | 'course';
     steps: string[];
     contactEmail?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
+    lastUpdated?: string;
+    tags?: string[];
+}
+
+export type AlertCategory = 
+  'hidden_cancel' | 'auto_renewal' | 'dark_pattern' | 
+  'phishing' | 'refund_refused' | 'other';
+
+export type AlertSeverity = 'critical' | 'high' | 'medium' | 'success';
+
+export interface RadarReport {
+  serviceName: string;
+  city: string;
+  amount?: number;
+  description: string;
+  category: AlertCategory;
+  turnstileToken: string;
+}
+
+export interface RadarAlertResponse {
+  id: string;
+  location: string;
+  time: string;           
+  text: string;
+  severity: AlertSeverity;
+  category: AlertCategory;
+  serviceName: string;
+  reportCount: number;     
 }

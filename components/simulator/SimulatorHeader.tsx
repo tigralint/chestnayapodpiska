@@ -4,11 +4,10 @@ import { ChevronLeft } from '../icons';
 interface SimulatorHeaderProps {
     currentLevelIdx: number;
     totalLevels: number;
-    score: number;
     progress: number;
 }
 
-export function SimulatorHeader({ currentLevelIdx, totalLevels, score, progress }: SimulatorHeaderProps) {
+export function SimulatorHeader({ currentLevelIdx, totalLevels, progress }: SimulatorHeaderProps) {
     const navigate = useNavigate();
 
     return (
@@ -31,9 +30,6 @@ export function SimulatorHeader({ currentLevelIdx, totalLevels, score, progress 
                 <div className="text-sm font-bold text-accent-pink bg-accent-pink/10 px-4 py-1.5 rounded-full border border-accent-pink/20 uppercase tracking-widest hidden sm:block">
                     Уровень {currentLevelIdx + 1} / {totalLevels}
                 </div>
-                <div className="hidden sm:flex items-center gap-2 text-sm font-bold text-emerald-400 bg-emerald-400/10 px-4 py-1.5 rounded-full border border-emerald-400/20">
-                    <span className="text-emerald-300" aria-hidden="true">✓</span> {score}/{totalLevels}
-                </div>
             </div>
 
             {/* Progress Bar */}
@@ -43,12 +39,9 @@ export function SimulatorHeader({ currentLevelIdx, totalLevels, score, progress 
                     style={{ width: `${progress}%` }}
                 ></div>
             </div>
-            <div className="sm:hidden mt-2 flex items-center justify-between">
+            <div className="sm:hidden mt-2 flex items-center justify-end">
                 <span className="text-xs font-bold text-accent-pink uppercase tracking-widest">
                     Уровень {currentLevelIdx + 1} / {totalLevels}
-                </span>
-                <span className="text-xs font-bold text-emerald-400">
-                    ✓ {score}/{totalLevels}
                 </span>
             </div>
         </section>

@@ -5,7 +5,7 @@
   [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Vite](https://img.shields.io/badge/Vite-6.2-646cff?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-  [![Tests](https://img.shields.io/badge/Tests-124_passed-success?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
+  [![Tests](https://img.shields.io/badge/Tests-133_passed-success?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
   [![License: CC BY--NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc/4.0/)
 </div>
 
@@ -32,11 +32,11 @@
 ### 🎮 Тренажёр отписки (Симулятор дарк-паттернов)
 Интерактивная игра-тренажер! Попробуйте найти настоящую кнопку отмены среди уловок маркетологов («Остаться с нами», «Может, передумаете?» и микроскопических крестиков). Обучение через игру — после прохождения реальные интерфейсы вас уже не застанут врасплох.
 
-### 📡 Народный радар
-Живая тепловая карта жалоб. Узнайте, какие сервисы прямо сейчас списывают деньги чаще всего (на основе пользовательских отчётов).
+### 📡 Народный радар (v1.1)
+Живая тепловая карта жалоб на сервисы. Полноценная лента алертов на базе **Upstash Redis**, позволяющая мгновенно выявлять массовые списания. Пользователи могут анонимно передавать сигналы через защищенную форму (Turnstile), а юристы — получать их в реальном времени через **Telegram Bot API**.
 
-### 📚 База знаний
-**27 пошаговых инструкций** по отписке от конкретных популярных сервисов. Самый короткий путь сквозь все дарк-паттерны компаний.
+### 📚 База знаний (v1.1)
+**Расширенный каталог инструкций** по отписке (вкл. Apple, Spotify, EdTech и др.) со встроенным **умным поиском**, фильтрацией по категориям и рейтингом сложности отмены (Низкая / Средняя / Высокая). Форма связи также отправляет новые уловки напрямую в телеграм юристам.
 
 ---
 
@@ -47,11 +47,11 @@
 | **Фронтенд**   | React 19, TypeScript, Vite                                                         |
 | **Стилизация** | Tailwind CSS, кастомная glassmorphism-система UI                                   |
 | **Стейт**      | Zustand с `persist` middleware для сохранения прогресса                            |
-| **Бэкенд**     | Vercel Serverless Functions (Node.js)                                              |
+| **Бэкенд**     | Vercel Serverless Functions (Node.js) + Upstash Redis                              |
 | **AI Движок**  | OpenRouter API (LLM Qwen)                                                          |
 | **Security**   | Cloudflare Turnstile, Rate Limiting, Input Sanitization, CSP, Zod Strict                            |
 | **PWA**        | `vite-plugin-pwa`, Service Worker с offline-кэшированием                           |
-| **Тестирование**| Vitest + React Testing Library (132 теста)                                        |
+| **Тестирование**| Vitest + React Testing Library (133 тестов)                                       |
 
 ---
 
@@ -119,7 +119,7 @@
    npx vercel dev
    ```
 
-4. **Прогон тестов (124 test cases, 100% pass rate):**
+4. **Прогон тестов (133 test cases, 100% pass rate):**
    ```bash
    npm test
    ```
