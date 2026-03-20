@@ -24,6 +24,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const update = req.body;
+
+        // Обработка текстовых сообщений (команды из бота)
+        if (update && update.message && update.message.text) {
+            const message = update.message;
+            if (message.text.startsWith('/list')) {
+                // Берем последние 5 алертов с радара
+                const items = await redis.zrange('radar:alerts', 0, 4, { rev: true });
+                
+                if (!items || items.length === 0) {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        body: JSON.stringify({ chat_id: message.chat.id, text: "На радаре пока пусто." }),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                } else {
+                    for (const item of items) {
+                        const alert = item as any;
+                        const text = `📌 <b>${alert.serviceName}</b> (${alert.city})\n📝 ${alert.description}`;
+                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                chat_id: message.chat.id,
+                                text: text,
+                                parse_mode: 'HTML',
+                                reply_markup: {
+                                    inline_keyboard: [[{ text: '🗑 Удалить с сайта', callback_data: `delradar_${alert.id}` }]]
+                                }
+                            }),
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                    }
+                }
+                return res.status(200).json({ ok: true });
+            }
+        }
         
         // We only care about callback query
         if (update && update.callback_query) {
@@ -96,6 +131,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             console.error('Edit Message error:', e);
                         }
                     }
+                }
+            } else if (data && data.startsWith('delradar_')) {
+                // Логика удаления _уже опубликованного_ алерта
+                const reportId = data.replace('delradar_', '');
+                
+                // Ищем элемент во всем списке (чтобы удалить, нужно передать точный объект)
+                const items = await redis.zrange('radar:alerts', 0, -1);
+                const itemToRemove = items.find((i: any) => i?.id === reportId);
+
+                if (itemToRemove) {
+                    await redis.zrem('radar:alerts', itemToRemove);
+                }
+
+                try {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ callback_query_id: callbackQuery.id, text: 'Удалено навсегда!' })
+                    });
+                } catch (e) {}
+
+                if (message && message.chat && message.message_id) {
+                    try {
+                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: message.chat.id,
+                                message_id: message.message_id,
+                                text: (message?.text || 'Заявка с Радара') + '\n\n🗑 Удалено с сайта.',
+                                reply_markup: { inline_keyboard: [] }
+                            })
+                        });
+                    } catch (e) {}
                 }
             }
         }
