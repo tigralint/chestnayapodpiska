@@ -1,6 +1,6 @@
-// hooks/useClaimFlow.ts
 import { useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import type { TurnstileInstance } from '@marsidev/react-turnstile';
 import { ClaimData } from '../types';
 import { generateSubscriptionClaim } from '../services/geminiService';
 import { downloadWordDoc } from '../utils/downloadWord';
@@ -41,7 +41,7 @@ export function useClaimFlow() {
     );
 
     const [isReasonOpen, setIsReasonOpen] = useState(false);
-    const turnstileRef = useRef<{ reset: () => void } | null>(null) as React.RefObject<any>;
+    const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
 
     const handleSubmit = () => {
         handleGenerate(() => turnstileRef.current?.reset());

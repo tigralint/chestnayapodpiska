@@ -31,6 +31,7 @@ export function SearchInput({ value, onChange, placeholder }: SearchInputProps) 
                 </div>
                 <input
                     type="text"
+                    aria-label="Поиск по сервисам"
                     className="w-full pl-16 pr-14 py-6 real-glass rounded-[2rem] text-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 focus:bg-white/10 focus:shadow-[0_0_30px_rgba(0,242,254,0.15)] transition-all shadow-2xl"
                     placeholder={placeholder}
                     value={localValue}
