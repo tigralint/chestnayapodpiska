@@ -2,6 +2,13 @@
 
 Все значимые релизы проекта «Честная Подписка» фиксируются здесь.
 
+## [1.1.2] — 2026-03-27
+### 🔍 Линтинг, Структурированные данные и Надёжность
+- **⚙️ ESLint + Prettier**: Настроен ESLint 9 (Flat Config) с `@typescript-eslint/recommended` и `react-hooks/rules-of-hooks`. Добавлен Prettier для единообразного форматирования. Шаг `lint` добавлен в CI.
+- **🔍 JSON-LD**: Добавлены структурированные данные Schema.org на 4 страницы: `WebApplication` (Dashboard, SubscriptionFlow, CourseFlow) и `ItemList` (GuidesView). Google теперь может показывать Rich Snippets.
+- **🛡️ Error handling**: Устранены пустые `catch {}` в `tgWebhook.ts` (2 шт). Добавлена защита `res.json().catch()` в `radarService.ts` — теперь ошибки парсинга JSON дают понятное сообщение вместо `Unexpected token <`.
+- **🗺️ Sitemap**: Добавлены `<lastmod>` даты в `sitemap.xml` для приоритизации индексации.
+
 ## [1.1.1] — 2026-03-27
 ### 🛠 Качество кода и инфраструктура
 - **🔧 Type Safety**: Устранены все `any` в серверных обработчиках (`api/radar.ts`, `api/tgWebhook.ts`). Добавлены типы `RadarStoredData`, `TelegramUpdate`, `TelegramMessage`, `TelegramCallbackQuery`. Ref-ы Turnstile типизированы через `TurnstileInstance`.

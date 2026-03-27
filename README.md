@@ -74,13 +74,14 @@
 | **Database**   | **Upstash Redis** (высокопроизводительный Rate Limiting и база для Радара)         |
 | **AI Движок**  | **OpenRouter API** (интеграция с LLM Qwen/GPT) + Кастомный `PromptBuilder`         |
 | **PWA**        | Полная поддержка Offline-режима и установки на рабочий стол через `vite-plugin-pwa` |
+| **Linter**     | **ESLint 9** (Flat Config) + **Prettier**                                          |
 | **Тесты**      | **Vitest** + React Testing Library (133 теста, полное покрытие логики API)         |
 
 > **Инженерные особенности:**
 > -   **Strongly Typed**: Весь проект написан на строгом TypeScript (`strict`, `noUncheckedIndexedAccess`) с использованием **Zod** для валидации контрактов API.
 > -   **Generic Logic**: Универсальный хук `useClaimForm<T>` обеспечивает переиспользование логики между разными типами претензий.
-> -   **Resilience**: Механизмы `AbortController` для отмены запросов и автоматические ретраи (`fetchWithRetry`) для стабильности AI-генерации.
-> -   **CI/CD**: Автоматическая проверка типов, 133 теста и production-сборка на каждый PR через GitHub Actions.
+> -   **Resilience**: Механизмы `AbortController` для отмены запросов и автоматические ретраи (`fetchWithRetry`) с защитным парсингом JSON для стабильности AI-генерации.
+> -   **CI/CD**: Автоматическая проверка стиля (Lint), типов (tsc), 133 теста и production-сборка на каждый PR через GitHub Actions.
 
 ---
 
@@ -91,9 +92,18 @@
 - **Serverless Rate Limiting**: Жёсткие лимиты на базе Redis, предотвращающие перерасход бюджета на AI.
 - **Input Sanitization**: Многоуровневая очистка пользовательского ввода для предотвращения Prompt Injection.
 - **Strict CSP & CORS**: Заголовки `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` настроены в `vercel.json`.
+- **Defensive API**: Защищенный парсинг `res.json().catch()` во всех сетевых сервисах, предотвращающий падения при нестабильном ответе сервера.
 - **Graceful Degradation**: Тщательно проработанные Error Boundaries и fallback-интерфейсы.
 
 ---
+
+---
+
+## 📈 SEO и Поисковая оптимизация
+
+- **Structured Data**: Интеграция JSON-LD (`WebApplication`, `FAQPage`, `ItemList`) на всех ключевых страницах для Rich Snippets в Google и Яндекс.
+- **Meta Tags**: Полная поддержка OpenGraph, Twitter Cards и канонических URL через `react-helmet-async`.
+- **Performance**: 95+ Score в Lighthouse за счет минимизации JS-бандла и оптимизации шрифтов.
 
 ## ♿ Доступность (Accessibility)
 

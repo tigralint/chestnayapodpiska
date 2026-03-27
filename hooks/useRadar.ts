@@ -14,8 +14,8 @@ export function useRadar() {
         try {
             const data = await RadarService.getAlerts(cat);
             setAlerts(data);
-        } catch (err: any) {
-            setError(err.message || 'Ошибка загрузки');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Ошибка загрузки');
         } finally {
             setLoading(false);
         }

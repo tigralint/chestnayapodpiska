@@ -169,7 +169,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ callback_query_id: callbackQuery.id, text: 'Удалено навсегда!' })
                     });
-                } catch (e) {}
+                } catch (e) {
+                    console.error('[tgWebhook] answerCallbackQuery error:', e);
+                }
 
                 if (message && message.chat && message.message_id) {
                     try {
@@ -183,7 +185,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                                 reply_markup: { inline_keyboard: [] }
                             })
                         });
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error('[tgWebhook] editMessageText error:', e);
+                    }
                 }
             }
         }

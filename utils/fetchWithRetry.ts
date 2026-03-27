@@ -37,7 +37,7 @@ export async function fetchWithRetry(url: string, options: RequestInit, retryOpt
 
             // In Node/Vitest environments, instanceof DOMException can sometimes fail depending on globals.
             // Even if it's a raw object, checking err?.name === 'AbortError' is safer and covers browser DOMException too.
-            const isAbortError = (error as any)?.name === 'AbortError';
+            const isAbortError = error instanceof Error && error.name === 'AbortError';
 
             if (isAbortError) {
                 // Never retry explicitly aborted requests. This comes before other checks

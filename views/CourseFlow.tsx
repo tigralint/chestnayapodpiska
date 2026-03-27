@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { FileText, Info } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -24,6 +25,13 @@ export default function CourseFlow() {
       <SEO
         title="Отказ от онлайн-курса и возврат денег | ЧестнаяПодписка"
         description="Расторгните договор с онлайн-школой без незаконных штрафов. Рассчитайте сумму возврата и сгенерируйте юридическую претензию в 2 клика."
+        jsonLd={useMemo(() => ({
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: 'Генератор претензий на возврат за онлайн-курс',
+          applicationCategory: 'UtilityApplication',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'RUB' },
+        }), [])}
       />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto w-full">
 

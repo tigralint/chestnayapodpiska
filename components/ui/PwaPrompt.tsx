@@ -8,11 +8,10 @@ export function PwaPrompt() {
         updateServiceWorker,
     } = useRegisterSW({
         onRegistered(r: ServiceWorkerRegistration | undefined) {
-            // eslint-disable-next-line prefer-template
-            console.log('SW Registered: ' + r);
+            console.warn('SW Registered:', r);
         },
         onRegisterError(error: Error) {
-            console.log('SW registration error', error);
+            console.error('SW registration error', error);
         },
     });
 

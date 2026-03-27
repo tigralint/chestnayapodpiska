@@ -10,7 +10,9 @@ export const RadarService = {
             headers: { 'Content-Type': 'application/json' }
         });
         if (!res.ok) throw new Error('Не удалось загрузить данные');
-        return res.json();
+        return res.json().catch(() => {
+            throw new Error('Сервер вернул некорректный ответ');
+        });
     },
 
     async submitAlert(data: RadarReport): Promise<{ success: boolean; id?: string }> {
@@ -23,6 +25,8 @@ export const RadarService = {
             const errData = await res.json().catch(() => ({}));
             throw new Error(errData.error || 'Server error');
         }
-        return res.json();
+        return res.json().catch(() => {
+            throw new Error('Сервер вернул некорректный ответ');
+        });
     }
 };

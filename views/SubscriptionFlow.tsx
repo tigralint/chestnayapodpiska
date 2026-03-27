@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { FileText, ChevronDown, Info } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -24,6 +25,13 @@ export default function SubscriptionFlow() {
       <SEO
         title="Возврат средств за подписку | ЧестнаяПодписка"
         description="Сгенерируйте претензию для возврата денег за случайно продленную подписку. Полное соответствие Гражданскому кодексу и закону о защите прав потребителей."
+        jsonLd={useMemo(() => ({
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: 'Генератор претензий на возврат подписки',
+          applicationCategory: 'UtilityApplication',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'RUB' },
+        }), [])}
       />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto w-full">
 

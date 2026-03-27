@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Plus, X, CheckCircle, FileText, ExternalLink, Search } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
 import { SEO } from '../components/ui/SEO';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import { Turnstile } from '@marsidev/react-turnstile';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 
 export default function GuidesView() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export default function GuidesView() {
     contactInfo: '',
     turnstileToken: undefined as string | undefined
   });
-  const turnstileRef = useRef<{ reset: () => void } | null>(null) as any;
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
 
   // Focus trap refs
   const guideModalRef = useRef<HTMLDivElement>(null);
@@ -87,9 +88,10 @@ export default function GuidesView() {
         setTimeout(() => setModalState('form'), 500); // Reset after closing
       }, 2500);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
        console.error(error);
-       alert(error.message === 'Server error' ? "Не удалось отправить форму. Пожалуйста, попробуйте позже." : error.message);
+       const message = error instanceof Error ? error.message : 'Ошибка отправки';
+       alert(message === 'Server error' ? "Не удалось отправить форму. Пожалуйста, попробуйте позже." : message);
     } finally {
        setIsSubmitting(false);
     }
@@ -108,11 +110,25 @@ export default function GuidesView() {
     });
   }, [searchQuery, activeTab]);
 
+  const guidesJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Инструкции по отписке от сервисов',
+    numberOfItems: GUIDES_DB.length,
+    itemListElement: GUIDES_DB.slice(0, 10).map((g, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: g.service,
+      url: `https://chestnayapodpiska.vercel.app/guides/${g.id}`,
+    })),
+  }), []);
+
   return (
     <div className="flex flex-col h-full px-4 sm:px-6 pb-12 relative min-h-screen">
       <SEO
         title="База знаний: инструкции по возврату средств | ЧестнаяПодписка"
         description="Пошаговые инструкции и лайфхаки по возврату денег от популярных сервисов (Яндекс Плюс, ivi, Skillbox, GeekBrains и др.). Умный поиск по базе."
+        jsonLd={guidesJsonLd}
       />
       <div className="max-w-6xl mx-auto w-full">
 

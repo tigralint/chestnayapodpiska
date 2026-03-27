@@ -7,7 +7,8 @@ describe('cn — class name merger', () => {
     });
 
     it('should handle conditional classes via clsx', () => {
-        expect(cn('base', false && 'hidden', 'extra')).toBe('base extra');
+        const isHidden = false;
+        expect(cn('base', isHidden && 'hidden', 'extra')).toBe('base extra');
     });
 
     it('should merge conflicting Tailwind classes (tailwind-merge)', () => {

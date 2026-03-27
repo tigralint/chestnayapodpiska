@@ -29,11 +29,23 @@ export default function Dashboard() {
     ].slice(0, 5);
   }, [searchQuery]);
 
+  const appJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Честная Подписка',
+    url: 'https://chestnayapodpiska.vercel.app',
+    applicationCategory: 'UtilityApplication',
+    operatingSystem: 'All',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'RUB' },
+    description: 'Бесплатный ИИ-сервис для генерации юридически грамотных претензий на возврат средств за подписки и онлайн-курсы.',
+  }), []);
+
   return (
     <div className="w-full flex flex-col items-center">
       <SEO
         title="Честная Подписка — Верните свои деньги"
         description="Бесплатный ИИ-сервис для генерации юридически грамотных претензий на возврат средств за подписки и онлайн-курсы."
+        jsonLd={appJsonLd}
       />
 
       {/* Hero Section */}

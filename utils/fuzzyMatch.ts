@@ -13,7 +13,7 @@ export const fuzzyMatch = (query: string, text: string): boolean => {
     }
 
     // Levenshtein distance against individual words to allow 1-2 typos
-    const words = t.split(/[\s\-]+/);
+    const words = t.split(/[\s-]+/);
     for (const word of words) {
         if (Math.abs(word.length - q.length) > 2) continue;
         const dp: number[][] = Array.from({ length: word.length + 1 }, () =>

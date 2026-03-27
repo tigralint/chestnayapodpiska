@@ -6,7 +6,7 @@ import { SEO } from '../components/ui/SEO';
 import { RadarCanvas } from '../components/ui/RadarCanvas';
 import { ViewHeader } from '../components/layout/ViewHeader';
 import { useRadar } from '../hooks/useRadar';
-import { Turnstile } from '@marsidev/react-turnstile';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import { AlertCategory, RadarReport } from '../types';
 
 export default function RadarView() {
@@ -23,7 +23,7 @@ export default function RadarView() {
     category: 'other',
     turnstileToken: undefined
   });
-  const turnstileRef = useRef<any>(null);
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
 
   const displayAlerts = alerts.length > 0 ? alerts : (loading ? [] : ALERTS_SEED);
 
@@ -41,12 +41,13 @@ export default function RadarView() {
            setShowModal(false);
            setTimeout(() => setModalState('form'), 500);
        }, 2000);
-    } catch(err: any) {
+    } catch(err: unknown) {
        console.error(err);
-       alert(err.message === 'Server error' ? "Ошибка отправки." : err.message);
+       const message = err instanceof Error ? err.message : 'Ошибка отправки';
+       alert(message === 'Server error' ? "Ошибка отправки." : message);
     } finally {
        setIsSubmitting(false);
-       turnstileRef.current?.reset?.();
+       turnstileRef.current?.reset();
     }
   };
 
