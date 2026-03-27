@@ -1,3 +1,12 @@
+/**
+ * Client-side type definitions.
+ * 
+ * NOTE: ClaimData & CourseData here represent the *form state* — turnstileToken is optional
+ * because the Turnstile widget delivers it asynchronously. The server-side Zod schemas
+ * in api/generateClaim.ts enforce turnstileToken as required (.min(1)) at the *wire* level.
+ * This is intentional: form state ≠ wire format.
+ */
+
 export type Tone = 'soft' | 'hard';
 
 export interface ClaimData {
@@ -48,6 +57,17 @@ export type AlertCategory =
   'phishing' | 'refund_refused' | 'other';
 
 export type AlertSeverity = 'critical' | 'high' | 'medium' | 'success';
+
+/** Shape of a radar report stored in Redis (used by api/radar.ts and api/tgWebhook.ts) */
+export interface RadarStoredData {
+  id: string;
+  timestamp: number;
+  serviceName: string;
+  city: string;
+  amount?: number;
+  description: string;
+  category: AlertCategory;
+}
 
 export interface RadarReport {
   serviceName: string;

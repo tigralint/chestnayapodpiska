@@ -1,6 +1,7 @@
 // hooks/useCourseFlow.ts
 import { useMemo, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import type { TurnstileInstance } from '@marsidev/react-turnstile';
 import { CourseData } from '../types';
 import { generateCourseClaim } from '../services/geminiService';
 import { downloadWordDoc } from '../utils/downloadWord';
@@ -39,7 +40,7 @@ export function useCourseFlow() {
         [data.totalCost, data.percentCompleted]
     );
 
-    const turnstileRef = useRef<{ reset: () => void } | null>(null) as React.RefObject<any>;
+    const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
 
     const handleSubmit = () => {
         handleGenerate(() => turnstileRef.current?.reset(), calculatedRefund);

@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { RadarAlertResponse, AlertCategory, AlertSeverity } from '../types';
+import { RadarAlertResponse, RadarStoredData, AlertCategory, AlertSeverity } from '../types';
 
 interface TurnstileVerifyResponse {
     success: boolean;
@@ -53,13 +53,13 @@ export default async function handler(request: VercelRequest, response: VercelRe
             const limit = parseInt(request.query.limit as string) || 20;
             const category = request.query.category as string;
             
-            let items: any[] = await redis.zrange('radar:alerts', 0, 100, { rev: true });
+            let items = await redis.zrange('radar:alerts', 0, 100, { rev: true }) as RadarStoredData[];
             
             if (category && category !== 'all') {
-                items = items.filter((item: any) => item.category === category);
+                items = items.filter((item) => item.category === category);
             }
             
-            const results = items.slice(0, limit).map((data: any) => {
+            const results = items.slice(0, limit).map((data) => {
                 const ageMinutes = Math.floor((Date.now() - data.timestamp) / 60000);
                 let timeStr = ageMinutes < 60 ? `${ageMinutes} мин назад` : `${Math.floor(ageMinutes/60)} ч назад`;
                 if (ageMinutes === 0) timeStr = 'только что';

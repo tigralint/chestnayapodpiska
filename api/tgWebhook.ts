@@ -1,5 +1,24 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Redis } from '@upstash/redis';
+import type { RadarStoredData } from '../types';
+
+/** Subset of Telegram Bot API types used by this webhook */
+interface TelegramMessage {
+    chat: { id: number };
+    message_id: number;
+    text?: string;
+}
+
+interface TelegramCallbackQuery {
+    id: string;
+    data?: string;
+    message?: TelegramMessage;
+}
+
+interface TelegramUpdate {
+    message?: TelegramMessage;
+    callback_query?: TelegramCallbackQuery;
+}
 
 const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
 
@@ -23,12 +42,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const update = req.body;
+        const update = req.body as TelegramUpdate;
 
         // Обработка текстовых сообщений (команды из бота)
         if (update && update.message && update.message.text) {
             const message = update.message;
-            if (message.text.startsWith('/list')) {
+            if (message.text?.startsWith('/list')) {
                 // Берем последние 5 алертов с радара
                 const items = await redis.zrange('radar:alerts', 0, 4, { rev: true });
                 
@@ -40,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     });
                 } else {
                     for (const item of items) {
-                        const alert = item as any;
+                        const alert = item as RadarStoredData;
                         const text = `📌 <b>${alert.serviceName}</b> (${alert.city})\n📝 ${alert.description}`;
                         await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                             method: 'POST',
@@ -89,7 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     let newText = originalText;
                     
                     if (isApprove) {
-                        const parsedData = typeof pendingDataStr === 'string' ? JSON.parse(pendingDataStr) : pendingDataStr;
+                        const parsedData: RadarStoredData = typeof pendingDataStr === 'string' ? JSON.parse(pendingDataStr) : pendingDataStr as RadarStoredData;
                         // Move to active alerts list
                         await redis.zadd('radar:alerts', { score: parsedData.timestamp, member: parsedData });
                         await redis.del(pendingKey);
@@ -138,7 +157,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 
                 // Ищем элемент во всем списке (чтобы удалить, нужно передать точный объект)
                 const items = await redis.zrange('radar:alerts', 0, -1);
-                const itemToRemove = items.find((i: any) => i?.id === reportId);
+                const itemToRemove = items.find((i) => (i as RadarStoredData)?.id === reportId);
 
                 if (itemToRemove) {
                     await redis.zrem('radar:alerts', itemToRemove);

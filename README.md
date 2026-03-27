@@ -8,6 +8,7 @@
     <a href="https://react.dev/"><img src="https://img.shields.io/badge/React%2019-61dafb?style=for-the-badge&logo=react&logoColor=black" alt="React" /></a>
     <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178c6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
     <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646cff?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" /></a>
+    <a href="https://github.com/tigralint/chestnayapodpiska/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/tigralint/chestnayapodpiska/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI" alt="CI" /></a>
     <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Tests-133_passed-2ea44f?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-Dual_License-blue?style=for-the-badge" alt="License" /></a>
   </p>
@@ -76,9 +77,10 @@
 | **Тесты**      | **Vitest** + React Testing Library (133 теста, полное покрытие логики API)         |
 
 > **Инженерные особенности:**
-> -   **Strongly Typed**: Весь проект написан на строгом TypeScript с использованием **Zod** для валидации контрактов API.
+> -   **Strongly Typed**: Весь проект написан на строгом TypeScript (`strict`, `noUncheckedIndexedAccess`) с использованием **Zod** для валидации контрактов API.
 > -   **Generic Logic**: Универсальный хук `useClaimForm<T>` обеспечивает переиспользование логики между разными типами претензий.
 > -   **Resilience**: Механизмы `AbortController` для отмены запросов и автоматические ретраи (`fetchWithRetry`) для стабильности AI-генерации.
+> -   **CI/CD**: Автоматическая проверка типов, 133 теста и production-сборка на каждый PR через GitHub Actions.
 
 ---
 
@@ -88,7 +90,17 @@
 - **Cloudflare Turnstile**: Интегрированная невидимая капча для защиты API от ботов.
 - **Serverless Rate Limiting**: Жёсткие лимиты на базе Redis, предотвращающие перерасход бюджета на AI.
 - **Input Sanitization**: Многоуровневая очистка пользовательского ввода для предотвращения Prompt Injection.
+- **Strict CSP & CORS**: Заголовки `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` настроены в `vercel.json`.
 - **Graceful Degradation**: Тщательно проработанные Error Boundaries и fallback-интерфейсы.
+
+---
+
+## ♿ Доступность (Accessibility)
+
+- Семантическая разметка: `<nav>`, `role="main"`, `aria-current="page"`.
+- `aria-label` на всех интерактивных элементах навигации и поиска.
+- Skip-to-content ссылка (`Перейти к содержимому`) для клавиатурной навигации.
+- `prefers-reduced-motion` — глобальное отключение анимаций для пользователей с вестибулярными расстройствами.
 
 ---
 

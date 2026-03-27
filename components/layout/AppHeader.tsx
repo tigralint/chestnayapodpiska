@@ -21,7 +21,7 @@ export const AppHeader = React.memo(function AppHeader() {
         <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hidden md:block pt-6 px-6 ${scrolled ? 'translate-y-[-120%]' : 'translate-y-0'}`}>
             <div className="max-w-6xl mx-auto h-16 real-glass rounded-[2rem] px-6 flex items-center justify-between shadow-2xl">
                 <div className="flex items-center gap-6">
-                    <button onClick={() => navigate('/')} className="flex items-center gap-3 group shrink-0 transition-transform active:scale-95">
+                    <button onClick={() => navigate('/')} aria-label="На главную" className="flex items-center gap-3 group shrink-0 transition-transform active:scale-95">
                         <div className="relative w-10 h-6 rounded-full bg-white/5 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] flex items-center px-1 group-hover:bg-white/10 transition-all">
                             <div className="w-4 h-4 rounded-full bg-gradient-to-br from-accent-cyan to-accent-blue shadow-[0_0_10px_rgba(0,242,254,0.5)] group-hover:translate-x-4 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"></div>
                             <div className="absolute inset-0 rounded-full bg-accent-cyan/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -31,7 +31,7 @@ export const AppHeader = React.memo(function AppHeader() {
                         </span>
                     </button>
                 </div>
-                <div className="flex gap-1 text-[14px] font-semibold tracking-wide overflow-x-auto no-scrollbar">
+                <nav aria-label="Основная навигация" className="flex gap-1 text-[14px] font-semibold tracking-wide overflow-x-auto no-scrollbar">
                     {NAV_ITEMS.map(item => {
                         const isActive = location.pathname.startsWith(item.path);
                         return (
@@ -49,7 +49,7 @@ export const AppHeader = React.memo(function AppHeader() {
                             </NavLink>
                         );
                     })}
-                </div>
+                </nav>
             </div>
         </div>
     );

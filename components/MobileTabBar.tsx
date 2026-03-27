@@ -64,6 +64,7 @@ const MobileTabBar = React.memo(function MobileTabBar() {
                                 onClick={() => navigate(tab.path)}
                                 onMouseEnter={() => preloadRoute(tab.path)}
                                 aria-current={isActive ? 'page' : undefined}
+                                aria-label={tab.label}
                                 className={`flex flex-col items-center gap-1 py-2 px-3 rounded-2xl transition-all duration-300 relative ${isActive ? 'text-white' : 'text-slate-500 active:scale-90'
                                     }`}
                             >

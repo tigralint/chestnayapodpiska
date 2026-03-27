@@ -9,12 +9,14 @@ interface SEOProps {
     jsonLd?: Record<string, unknown>;
 }
 
+const SITE_URL = 'https://chestnayapodpiska.vercel.app';
+
 export function SEO({
     title,
     description,
     type = 'website',
-    image = '/og-image.jpg',
-    url = 'https://chestnaya-podpiska.ru',
+    image = `${SITE_URL}/logo.png`,
+    url = SITE_URL,
     jsonLd,
 }: SEOProps) {
     return (
@@ -30,6 +32,8 @@ export function SEO({
             <meta property="og:description" content={description} />
             <meta property="og:image" content={image} />
             <meta property="og:url" content={url} />
+            <meta property="og:locale" content="ru_RU" />
+            <meta property="og:site_name" content="Честная Подписка" />
 
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />
