@@ -18,6 +18,10 @@ const XIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
 );
 
+const TrashIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+);
+
 const SendIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
 );
@@ -29,6 +33,8 @@ export function LegalBot() {
     const [isLoading, setIsLoading] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [limits, setLimits] = useState<{ remaining: number; limit: number } | null>(null);
+    const [isRequestingLimit, setIsRequestingLimit] = useState(false);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
@@ -68,6 +74,44 @@ export function LegalBot() {
             }));
         }
     }, [messages, isOpen]);
+
+    // Load limits dynamically
+    useEffect(() => {
+        if (isOpen && !limits) {
+            fetch('/api/chatStatus')
+                .then(r => r.json())
+                .then(d => {
+                    if (d && typeof d.remaining === 'number') {
+                        setLimits({ remaining: d.remaining, limit: d.limit || 10 });
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [isOpen]);
+
+    const handleClearChat = () => {
+        if (confirm("Удалить историю чата?")) {
+            setMessages([]);
+            localStorage.removeItem(STORAGE_KEY);
+            setErrorMsg(null);
+        }
+    };
+
+    const handleRequestMoreLimits = async () => {
+        setIsRequestingLimit(true);
+        try {
+            const res = await fetch('/api/requestLimit', { method: 'POST' });
+            if (res.ok) {
+                alert('🚀 Заявка отправлена модератору! Подождите пару минут и попробуйте задать вопрос снова.');
+            } else {
+                alert('Ошибка при отправке заявки.');
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsRequestingLimit(false);
+        }
+    };
 
     // Strip <think> tags from text
     const cleanText = (text: string) => {
@@ -183,15 +227,24 @@ export function LegalBot() {
                             </div>
                             <div>
                                 <h3 className="font-bold text-white text-sm">Юрист-Ассистент</h3>
-                                <p className="text-xs text-slate-400">Gemma 4 AI</p>
+                                <p className="text-xs text-slate-400">{limits ? `Запросов: ${limits.remaining}/${limits.limit}` : 'Онлайн'}</p>
                             </div>
                         </div>
-                        <button 
-                            onClick={() => setIsOpen(false)}
-                            className="text-slate-400 hover:text-white transition-colors p-1"
-                        >
-                            <XIcon />
-                        </button>
+                        <div className="flex items-center gap-1">
+                            <button 
+                                onClick={handleClearChat}
+                                className="text-slate-400 hover:text-rose-400 transition-colors p-1"
+                                title="Очистить чат"
+                            >
+                                <TrashIcon />
+                            </button>
+                            <button 
+                                onClick={() => setIsOpen(false)}
+                                className="text-slate-400 hover:text-white transition-colors p-1"
+                            >
+                                <XIcon />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Messages Area */}
@@ -201,7 +254,9 @@ export function LegalBot() {
                                 <BotIcon />
                                 <p className="mt-3">Привет! Я юридический ИИ-ассистент.</p>
                                 <p className="mt-1">Задайте мне вопрос о возврате за курсы или подписки.</p>
-                                <p className="mt-4 text-xs text-amber-300/80">Доступно: 10 запросов / сутки</p>
+                                {limits && (
+                                    <p className="mt-4 text-xs text-amber-300/80">Доступно: {limits.remaining} запросов</p>
+                                )}
                             </div>
                         )}
                         
@@ -254,8 +309,17 @@ export function LegalBot() {
 
                     {/* Error Banner */}
                     {errorMsg && (
-                        <div className="bg-rose-500/10 border-t border-rose-500/20 px-4 py-2 text-xs text-rose-400 text-center">
-                            {errorMsg}
+                        <div className="bg-rose-500/10 border-t border-rose-500/20 px-4 py-3 flex flex-col gap-2">
+                            <span className="text-xs text-rose-400 text-center">{errorMsg}</span>
+                            {(errorMsg.includes('лимит') || errorMsg.includes('много')) && (
+                                <button 
+                                    onClick={handleRequestMoreLimits}
+                                    disabled={isRequestingLimit}
+                                    className="bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors text-xs py-1.5 px-3 rounded-lg w-full font-medium"
+                                >
+                                    {isRequestingLimit ? "Отправка..." : "Запросить больше запросов"}
+                                </button>
+                            )}
                         </div>
                     )}
 
