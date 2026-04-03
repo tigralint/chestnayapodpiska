@@ -13,6 +13,7 @@ const GuidesView = React.lazy(() => import('./views/GuidesView'));
 const SimulatorView = React.lazy(() => import('./views/SimulatorView'));
 const RadarView = React.lazy(() => import('./views/RadarView'));
 const FaqView = React.lazy(() => import('./views/FaqView'));
+const TermsView = React.lazy(() => import('./views/TermsView'));
 const NotFound = React.lazy(() => import('./views/NotFound'));
 
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
@@ -69,6 +70,7 @@ export default function App() {
                 <Route path="/simulator" element={<ErrorBoundary><SimulatorView /></ErrorBoundary>} />
                 <Route path="/radar" element={<ErrorBoundary><RadarView /></ErrorBoundary>} />
                 <Route path="/faq" element={<ErrorBoundary><FaqView /></ErrorBoundary>} />
+                <Route path="/terms" element={<ErrorBoundary><TermsView /></ErrorBoundary>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

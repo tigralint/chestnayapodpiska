@@ -63,7 +63,14 @@ async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promi
     throw new ApiError(500, 'Модель не вернула текст. Попробуйте повторить.');
   }
 
-  return cleanMarkdown(result.text);
+  // Preserve the [ОТКАЗ] refusal marker before cleaning markdown
+  // (removeMarkdown strips square brackets which would destroy the marker)
+  const REFUSAL_PREFIX = '[ОТКАЗ]';
+  const hasRefusal = result.text.trimStart().startsWith(REFUSAL_PREFIX);
+  const rawText = hasRefusal ? result.text.trimStart().slice(REFUSAL_PREFIX.length) : result.text;
+  const cleaned = cleanMarkdown(rawText);
+
+  return hasRefusal ? `${REFUSAL_PREFIX} ${cleaned}` : cleaned;
 }
 
 /** Thin wrapper for subscription claims */

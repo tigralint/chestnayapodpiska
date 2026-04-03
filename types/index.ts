@@ -14,6 +14,7 @@ export interface ClaimData {
     amount: string;
     date: string;
     reason: string;
+    customReason?: string;
     tone: Tone;
     turnstileToken?: string;
 }

@@ -43,6 +43,7 @@ interface ClaimResultPanelProps {
     theme: ResultThemeKey;
     loadingTitle: string;
     loadingSubtitle: string;
+    isRefusal?: boolean;
 }
 
 export const ClaimResultPanel = React.memo(function ClaimResultPanel({
@@ -53,7 +54,8 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
     onDownload,
     theme,
     loadingTitle,
-    loadingSubtitle
+    loadingSubtitle,
+    isRefusal = false
 }: ClaimResultPanelProps) {
     const themeStyles = RESULT_THEMES[theme];
     const panelRef = React.useRef<HTMLDivElement>(null);
@@ -90,6 +92,7 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
                     onCopy={onCopy}
                     copied={copied}
                     onDownload={onDownload}
+                    isRefusal={isRefusal}
                 />
             </div>
         );

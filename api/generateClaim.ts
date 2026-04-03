@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { buildSubscriptionPrompt, buildCoursePrompt } from './promptBuilder.js';
+import { buildSubscriptionPrompt, buildCoursePrompt, buildCustomReasonPrompt } from './promptBuilder.js';
 
 interface TurnstileVerifyResponse {
     success: boolean;
@@ -22,6 +22,7 @@ export const claimSchema = z.object({
     amount: z.string().max(50, 'Сумма слишком длинная'),
     date: z.string().max(50, 'Дата слишком длинная'),
     reason: z.string().max(1000, 'Причина слишком длинная'),
+    customReason: z.string().max(500, 'Причина слишком длинная').optional(),
     tone: z.enum(['soft', 'hard']),
     turnstileToken: z.string().min(1, 'Токен капчи обязателен'),
 });
@@ -224,8 +225,15 @@ export default async function handler(
             const serviceName = sanitizeInput(subData.serviceName);
             const amount = sanitizeInput(String(subData.amount), 20);
             const date = sanitizeInput(String(subData.date), 20);
-            const reason = sanitizeInput(subData.reason);
-            prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, subData.tone);
+
+            // Custom reason uses a separate prompt with AI validation
+            if (subData.reason === 'custom' && subData.customReason) {
+                const customReason = sanitizeInput(subData.customReason, 500);
+                prompt = buildCustomReasonPrompt(serviceName, amount, date, customReason, subData.tone);
+            } else {
+                const reason = sanitizeInput(subData.reason);
+                prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, subData.tone);
+            }
         } else {
             const courseD = validData as CourseData;
             const courseName = sanitizeInput(courseD.courseName);
