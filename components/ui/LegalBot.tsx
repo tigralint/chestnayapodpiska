@@ -126,20 +126,23 @@ export function LegalBot() {
             const decoder = new TextDecoder('utf-8');
             let done = false;
             let fullText = '';
+            let buffer = '';
 
             while (!done) {
                 const { value, done: readerDone } = await reader.read();
                 done = readerDone;
                 if (value) {
-                    const chunk = decoder.decode(value, { stream: true });
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
                     
-                    // SSE gives us `data: {...}` lines
-                    const lines = chunk.split('\\\\n');
+                    // keep the last incomplete chunk in the buffer
+                    buffer = lines.pop() || '';
+                    
                     for (const line of lines) {
-                        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine.startsWith('data: ') && trimmedLine !== 'data: [DONE]') {
                             try {
-                                const data = JSON.parse(line.slice(6));
-                                // Gemini API schema for StreamGenerateContent
+                                const data = JSON.parse(trimmedLine.slice(6));
                                 const parts = data.candidates?.[0]?.content?.parts || [];
                                 const newText = parts.map((p: any) => p.text).join('');
                                 
@@ -150,10 +153,8 @@ export function LegalBot() {
                                     );
                                 }
                             } catch (e) {
-                                // sometimes chunks overlap parsing, ignore broken JSON for now
-                                // In production you'd use a proper EventSource or SSE parser,
-                                // but buffering here works decently for standard chunk sizes.
-                                console.warn('JSON Parse inner error (stream chunking)', e);
+                                // If parsing fails, just ignore and let it log, the text might be corrupted
+                                console.warn('JSON Parse inner error', e, trimmedLine);
                             }
                         }
                     }

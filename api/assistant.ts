@@ -71,21 +71,23 @@ export default async function handler(req: Request) {
         }
 
         // 3. Format messages for Gemini API
-        const formattedMessages = messages.map((msg: any) => ({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.text }]
-        }));
+        // gemma-4-31b-it might not support the system_instruction parameter.
+        // We inject the system prompt into the very first message.
+        const formattedMessages = messages.map((msg: any, index: number) => {
+            let text = msg.text;
+            if (index === 0 && msg.role === 'user') {
+                text = `[ИНСТРУКЦИЯ ДЛЯ ИИ]:\n${SYSTEM_PROMPT}\n\n[ЗАПРОС ПОЛЬЗОВАТЕЛЯ]:\n${text}`;
+            }
+            return {
+                role: msg.role === 'user' ? 'user' : 'model',
+                parts: [{ text }]
+            };
+        });
 
-        // 4. Call Gemini API (Gemma 4 31B with Search Grounding via Gemini API proxy)
-        // Note: 'gemma-4-31b-it' might not support system_instruction in standard format, 
-        // but we can inject it as the first user message if needed. Let's try standard system_instruction first.
         const modelId = 'gemma-4-31b-it';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
         const aiRequestPayload = {
-            system_instruction: {
-                parts: [{ text: SYSTEM_PROMPT }]
-            },
             contents: formattedMessages,
             tools: [{
                 googleSearch: {}
@@ -105,35 +107,6 @@ export default async function handler(req: Request) {
 
         if (!aiResponse.ok) {
             const errText = await aiResponse.text();
-            
-            // If system instruction is not supported for this model, fallback to prepending it
-            if (aiResponse.status === 400 && errText.includes('system_instruction')) {
-                const fallbackPayload: any = { ...aiRequestPayload };
-                delete fallbackPayload.system_instruction;
-                
-                // Inject system instruction invisibly into the first message
-                fallbackPayload.contents[0].parts[0].text = `[SYSTEM RULE]: ${SYSTEM_PROMPT}\n\n\n[USER REQUEST]: ${fallbackPayload.contents[0].parts[0].text}`;
-                
-                const fallbackResponse = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(fallbackPayload)
-                });
-                
-                if (!fallbackResponse.ok) {
-                    return new Response(JSON.stringify({ error: 'AI Error: ' + await fallbackResponse.text() }), { status: 500 });
-                }
-                
-                // Return SSE stream
-                return new Response(fallbackResponse.body, {
-                    headers: {
-                        'Content-Type': 'text/event-stream',
-                        'Cache-Control': 'no-cache',
-                        'Connection': 'keep-alive',
-                    }
-                });
-            }
-
             return new Response(JSON.stringify({ error: 'AI Error: ' + errText }), { status: 500 });
         }
 
