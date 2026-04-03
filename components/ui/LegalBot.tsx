@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, FormEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { stripHtml } from 'string-strip-html';
 
 type Message = {
     role: 'user' | 'model';
@@ -115,8 +116,12 @@ export function LegalBot() {
 
     // Strip <think> and <|channel>thought tags from text (support various reasoning models)
     const cleanText = (text: string) => {
+        // Models like Gemma 4 deeply nest these shadow tags. We use a robust HTML stripper
+        // to wipe all tags out to strictly expose just the inner text, ignoring weird artifacts.
         let cleaned = text.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '');
         cleaned = cleaned.replace(/<\|channel>thought[\s\S]*?(<channel\|>|$)/gi, '');
+        // Strip out any remaining rogue tags completely
+        cleaned = stripHtml(cleaned).result;
         return cleaned.trim();
     };
 
