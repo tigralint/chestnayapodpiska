@@ -356,17 +356,15 @@ export function LegalBot() {
                 </div>
             )}
 
-            {/* Floating Toggle Button */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center justify-center shadow-lg shadow-cyan-500/20 transition-all duration-300 ${
-                    isOpen 
-                        ? 'bg-white/10 text-white w-12 h-12 rounded-full border border-white/20' 
-                        : 'bg-accent-cyan text-slate-900 w-14 h-14 rounded-full hover:scale-110 hover:shadow-cyan-500/40'
-                }`}
-            >
-                {isOpen ? <XIcon /> : <BotIcon />}
-            </button>
+            {/* Floating Toggle Button (Hidden when open) */}
+            {!isOpen && (
+                <button
+                    onClick={() => setIsOpen(true)}
+                    className="flex items-center justify-center shadow-lg shadow-cyan-500/20 transition-all duration-300 bg-accent-cyan text-slate-900 w-14 h-14 rounded-full hover:scale-110 hover:shadow-cyan-500/40"
+                >
+                    <BotIcon />
+                </button>
+            )}
         </div>
     );
 }

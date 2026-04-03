@@ -65,33 +65,18 @@ export default async function handler(req: Request) {
         }
 
         // 3. Format messages for Gemini API
-        const formattedMessages = messages.map((msg: { role: string; text: string }, index: number) => {
-            let itemText = msg.text;
-            
-            // Force Gemma to bypass chain of thought logic by framing it strictly as an immediate roleplay instruction
-            // Force Gemma to bypass chain of thought logic by framing it strictly as an immediate roleplay instruction
-            if (index === 0 && msg.role === 'user') {
-                itemText = `[SYS INSTRUCTIONS]
-You are a legal assistant for "Честная Подписка". All your output MUST be in Russian.
-Your output MUST contain ONLY the final message to the user. DO NOT output any internal thoughts, reasoning, context or metadata. 
-
-[SERVICE RULES]
-${SYSTEM_PROMPT}
-
-[USER MESSAGE TO REPLY TO]
-${itemText}`;
-            }
-
-            return {
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text: itemText }]
-            };
-        });
+        const formattedMessages = messages.map((msg: { role: string; text: string }) => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.text }]
+        }));
 
         const modelId = 'gemma-4-31b-it';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
         const aiRequestPayload = {
+            systemInstruction: {
+                parts: [{ text: SYSTEM_PROMPT }]
+            },
             contents: formattedMessages,
             tools: [{
                 googleSearch: {}
