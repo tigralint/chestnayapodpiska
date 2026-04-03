@@ -350,7 +350,7 @@ export function LegalBot() {
                     {errorMsg && (
                         <div className="bg-rose-500/10 border-t border-rose-500/20 px-4 py-3 flex flex-col gap-2">
                             <span className="text-xs text-rose-400 text-center">{errorMsg}</span>
-                            {(errorMsg.includes('лимит') || errorMsg.includes('много')) && (
+                            {(errorMsg.toLowerCase().includes('лимит') || errorMsg.toLowerCase().includes('много')) && (
                                 <button 
                                     onClick={handleRequestMoreLimits}
                                     disabled={isRequestingLimit}
