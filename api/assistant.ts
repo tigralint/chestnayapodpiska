@@ -70,7 +70,7 @@ export default async function handler(req: Request) {
             parts: [{ text: msg.text }]
         }));
 
-        const modelId = 'gemma-4-26b-it';
+        const modelId = 'gemma-4-26b-a4b-it';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
         const aiRequestPayload = {
