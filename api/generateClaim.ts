@@ -8,7 +8,7 @@ interface TurnstileVerifyResponse {
 
 interface GeminiResponse {
     candidates?: {
-        content?: { parts?: { text?: string }[] };
+        content?: { parts?: { text?: string; thought?: boolean }[] };
         finishReason?: string;
     }[];
     promptFeedback?: { blockReason?: string };
@@ -179,7 +179,10 @@ export default async function handler(
             },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.1 },
+                generationConfig: {
+                    temperature: 0.1,
+                    thinkingConfig: { thinkingBudget: 0 },
+                },
                 safetySettings: [
                     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                     { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -211,7 +214,12 @@ export default async function handler(
             return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
         }
 
-        const text = candidate?.content?.parts?.[0]?.text;
+        // Gemma 4 is a thinking model — response may contain multiple parts:
+        // parts with thought=true (reasoning) and parts without (actual answer).
+        // Filter out thinking parts and extract only the answer text.
+        const parts = candidate?.content?.parts ?? [];
+        const answerParts = parts.filter(p => !p.thought && p.text);
+        const text = answerParts.map(p => p.text).join('') || undefined;
 
         if (!text) {
             // Log details server-side only — never expose Gemini internals to client
