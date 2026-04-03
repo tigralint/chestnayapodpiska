@@ -69,14 +69,16 @@ export default async function handler(req: Request) {
             let itemText = msg.text;
             
             // Force Gemma to bypass chain of thought logic by framing it strictly as an immediate roleplay instruction
+            // Force Gemma to bypass chain of thought logic by framing it strictly as an immediate roleplay instruction
             if (index === 0 && msg.role === 'user') {
-                itemText = `[ПРАВИЛА ИИ]
-Твоя задача — строго следовать этим правилам. НЕ пиши свои внутренние мысли на английском ("User asks...", "I should calculate..."). ВЕСЬ твой ответ должен быть только финальным текстом на русском языке, который сразу прочтет клиент.
+                itemText = `[SYS INSTRUCTIONS]
+You are a legal assistant for "Честная Подписка". All your output MUST be in Russian.
+Your output MUST contain ONLY the final message to the user. DO NOT output any internal thoughts, reasoning, context or metadata. 
 
-ПРАВИЛА СЕРВИСА:
+[SERVICE RULES]
 ${SYSTEM_PROMPT}
 
-[СООБЩЕНИЕ ОТ КЛИЕНТА]
+[USER MESSAGE TO REPLY TO]
 ${itemText}`;
             }
 
