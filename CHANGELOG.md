@@ -44,7 +44,7 @@
 
 **Архитектура и Безопасность (Enterprise-Grade Security):**
 - 🔒 **Модель Dual License**: Код распространяется по лицензии CC BY-NC 4.0 (с запретом коммерческого использования без покупки лицензии).
-- 🛡️ **Защита от AI-инъекций (Prompt Injection)**: Многоуровневая санитаризация ввода перед отправкой в OpenRouter (LLM Qwen).
+- 🛡️ **Защита от AI-инъекций (Prompt Injection)**: Многоуровневая санитаризация ввода перед отправкой в Gemini API (Gemma 4 31B).
 - 🚦 **Rate Limiting & Anti-Bot**: Интеграция Cloudflare Turnstile и Upstash Redis (Fail-Closed алгоритм для защиты от DDoS).
 - 🧱 **Strict CSP & CORS**: Жёсткие политики безопасности в `vercel.json` для защиты от XSS.
 - ⚡ **Zero-JS Canvas Animations**: Максимально оптимизированные фоны на WebGL/Canvas с использованием `IntersectionObserver` (0% нагрузки на GPU вне зоны видимости).

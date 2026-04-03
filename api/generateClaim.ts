@@ -6,9 +6,9 @@ interface TurnstileVerifyResponse {
     'error-codes'?: string[];
 }
 
-interface OpenRouterResponse {
-    choices?: { message?: { content?: string } }[];
-    error?: { message?: string };
+interface GeminiResponse {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+    error?: { message?: string; code?: number };
 }
 
 import { z } from 'zod';
@@ -92,10 +92,10 @@ export default async function handler(
         }
     }
 
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
 
-    if (!OPENROUTER_API_KEY) {
+    if (!GEMINI_API_KEY) {
         return response.status(500).json({ error: 'Сервер не настроен (API ключ отсутствует).' });
     }
 
@@ -167,26 +167,25 @@ export default async function handler(
             prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, courseD.tone);
         }
 
-        const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${GEMINI_API_KEY}`;
+        const aiResponse = await fetch(geminiUrl, {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "model": "arcee-ai/trinity-large-preview:free",
-                "messages": [{ "role": "user", "content": prompt }],
-                "temperature": 0.1,
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.1 },
             }),
             signal: AbortSignal.timeout(30_000),
         });
 
-        const aiJson = await aiResponse.json() as OpenRouterResponse;
-        const text = aiJson.choices?.[0]?.message?.content;
+        const aiJson = await aiResponse.json() as GeminiResponse;
+        const text = aiJson.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (!text) {
-            // Log details server-side only — never expose OpenRouter internals to client
-            console.error('OpenRouter Error:', JSON.stringify(aiJson));
+            // Log details server-side only — never expose Gemini internals to client
+            console.error('Gemini API Error:', JSON.stringify(aiJson));
             // Return 422 instead of 502 so the client doesn't retry the request
             // (retrying fails anyway because the Turnstile token is already consumed)
             return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });

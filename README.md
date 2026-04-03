@@ -72,7 +72,7 @@
 | **State**      | **Zustand** с `persist` middleware (хранение состояния формы без БД на клиенте)    |
 | **Backend**    | **Vercel Serverless Functions** (Node.js)                                          |
 | **Database**   | **Upstash Redis** (высокопроизводительный Rate Limiting и база для Радара)         |
-| **AI Движок**  | **OpenRouter API** (интеграция с LLM Qwen/GPT) + Кастомный `PromptBuilder`         |
+| **AI Движок**  | **Google Gemini API** (модель Gemma 4 31B) + Кастомный `PromptBuilder`                    |
 | **PWA**        | Полная поддержка Offline-режима и установки на рабочий стол через `vite-plugin-pwa` |
 | **Linter**     | **ESLint 9** (Flat Config) + **Prettier**                                          |
 | **Тесты**      | **Vitest** + React Testing Library (133 теста, полное покрытие логики API)         |
@@ -126,7 +126,7 @@
 2. **Настройте переменные окружения:**
    Создайте файл `.env` в корне (см. `.env.example`):
    ```env
-   OPENROUTER_API_KEY=...
+   GEMINI_API_KEY=...
    VITE_TURNSTILE_SITE_KEY=...
    TURNSTILE_SECRET_KEY=...
    UPSTASH_REDIS_REST_URL=...
