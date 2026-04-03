@@ -19,9 +19,9 @@ const SYSTEM_PROMPT = `Ты — юридический ассистент сер
 1. Создатель сервиса — независимый разработчик Тигран Мкртчян. 
 2. Если пользователь хочет сказать спасибо, задать вопрос автору, предложить функционал или пожаловаться на ошибку, всегда направляй его в официальный паблик ВКонтакте: vk.com/fairsubs (просто пиши ссылку текстом, без лишних реверансов).
 3. На сайте есть 2 основных раздела: калькулятор для "Подписок" и калькулятор для "Курсов". Если пользователь просит тебя написать документ прямо в чате, направь его к нужной форме на сайте.
-4. Отвечай кратко, чётко и вежливо. Используй списки и форматирование Markdown.
+4. Отвечай кратко, чётко и вежливо. Используй списки и форматирование Markdown. СРАЗУ выдавай финальный ответ.
 5. На ЛЮБЫЕ вопросы, не связанные с возвратами, подписками, ЗоЗПП, юридическими советами по теме сервиса или самим сервисом — вежливо ОТКАЗЫВАЙ. Не поддерживай разговоры о политике, готовке еды, программировании и прочем оффтопе.
-6. Твои мысли скрыты от пользователя, так что думай внимательно перед ответом.`;
+6. НИКОГДА не пиши свои рассуждения вслух (например: "Пользователь спрашивает...", "Сначала я должен..."). Выдавай СТРОГО готовый ответ для конечного пользователя.`;
 
 export default async function handler(req: Request) {
     if (req.method !== 'POST') {
@@ -29,15 +29,8 @@ export default async function handler(req: Request) {
     }
 
     try {
-        const { messages, turnstileToken } = await req.json();
-
-        if (!messages || !Array.isArray(messages)) {
-            return new Response('Invalid request messages', { status: 400 });
-        }
-
-        if (!turnstileToken) {
-            return new Response('Captcha required', { status: 403 });
-        }
+        const messages: { role: string; text: string }[] = (await req.json()).messages;
+        const turnstileToken = (await req.json()).turnstileToken;
 
         const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -71,21 +64,26 @@ export default async function handler(req: Request) {
         }
 
         // 3. Format messages for Gemini API
-        // gemma-4-31b-it might not support the system_instruction parameter.
-        // We inject the system prompt into the very first message.
-        const formattedMessages = messages.map((msg: any, index: number) => {
-            let text = msg.text;
-            if (index === 0 && msg.role === 'user') {
-                text = `[ИНСТРУКЦИЯ ДЛЯ ИИ]:\n${SYSTEM_PROMPT}\n\n[ЗАПРОС ПОЛЬЗОВАТЕЛЯ]:\n${text}`;
-            }
-            return {
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text }]
-            };
-        });
+        const formattedMessages = messages.map((msg: { role: string; text: string }) => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.text }]
+        }));
 
         const modelId = 'gemma-4-31b-it';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+
+        // Inject the system prompt invisibly into the first incoming user message 
+        // Force Gemma to bypass chain of thought logic by framing it strictly as an immediate roleplay instruction
+        if (formattedMessages.length > 0 && formattedMessages[0].role === 'user') {
+            formattedMessages[0].parts[0].text = `[ПРАВИЛА ИИ]
+Твоя задача — строго следовать этим правилам. НЕ пиши свои внутренние мысли на английском ("User asks...", "I should calculate..."). ВЕСЬ твой ответ должен быть только финальным текстом на русском языке, который сразу прочтет клиент.
+
+ПРАВИЛА СЕРВИСА:
+${SYSTEM_PROMPT}
+
+[СООБЩЕНИЕ ОТ КЛИЕНТА]
+${formattedMessages[0].parts[0].text}`;
+        }
 
         const aiRequestPayload = {
             contents: formattedMessages,
@@ -93,7 +91,7 @@ export default async function handler(req: Request) {
                 googleSearch: {}
             }],
             generationConfig: {
-                temperature: 0.2, // Low temp for legal advising
+                temperature: 0.2,
             }
         };
 
@@ -119,7 +117,8 @@ export default async function handler(req: Request) {
             }
         });
 
-    } catch (error: any) {
+    } catch (err) {
+        console.error("API Assistant Error:", err);
         return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
     }
 }

@@ -144,7 +144,7 @@ export function LegalBot() {
                             try {
                                 const data = JSON.parse(trimmedLine.slice(6));
                                 const parts = data.candidates?.[0]?.content?.parts || [];
-                                const newText = parts.map((p: any) => p.text).join('');
+                                const newText = parts.map((p: { text?: string }) => p.text).join('');
                                 
                                 if (newText) {
                                     fullText += newText;
@@ -161,7 +161,7 @@ export function LegalBot() {
                 }
             }
 
-        } catch (error) {
+        } catch {
             setErrorMsg('Произошла ошибка связи с ИИ.');
             setMessages((prev) => prev.filter(m => m.id !== botMsgId));
         } finally {
