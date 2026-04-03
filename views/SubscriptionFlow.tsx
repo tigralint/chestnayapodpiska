@@ -5,9 +5,11 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { ToneToggle } from '../components/ui/ToneToggle';
 import { ClaimResultPanel } from '../components/ui/ClaimResultPanel';
 import { ApiErrorBanner } from '../components/ui/ApiErrorBanner';
+import { DatePicker } from '../components/ui/DatePicker';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { Link } from 'react-router-dom';
 import { SEO } from '../components/ui/SEO';
-import { useClaimFlow, REASONS } from '../hooks/useClaimFlow';
+import { useClaimFlow, REASONS, CUSTOM_REASON_LABEL, CUSTOM_REASON_VALUE } from '../hooks/useClaimFlow';
 
 export default function SubscriptionFlow() {
   const {
@@ -17,8 +19,15 @@ export default function SubscriptionFlow() {
     clearFieldError, handleCopy,
     handleSubmit, handleDownloadWord,
     isReasonOpen, setIsReasonOpen,
-    turnstileRef
+    turnstileRef,
+    isCustomReason, isRefusal
   } = useClaimFlow();
+
+  /** All dropdown options: preset reasons + custom */
+  const allReasons = [...REASONS, CUSTOM_REASON_LABEL];
+
+  /** Display text for current selection in the dropdown trigger */
+  const reasonDisplayText = isCustomReason ? CUSTOM_REASON_LABEL : data.reason;
 
   return (
     <div className="flex flex-col h-full px-4 sm:px-6 pb-12">
@@ -77,17 +86,14 @@ export default function SubscriptionFlow() {
                 </div>
                 {fieldErrors.amount && <p className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.amount}</p>}
               </div>
-              <div className="flex-1 group">
-                <label htmlFor="dateInput" className="block text-sm font-semibold text-slate-300 mb-3 ml-1 group-focus-within:text-accent-cyan transition-colors">Дата списания</label>
-                <input
-                  id="dateInput"
-                  type="date"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-[17px] text-white focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 focus:bg-white/10 outline-none transition-all shadow-inner color-scheme-dark focus:scale-[1.01]"
-                  style={{ colorScheme: 'dark' }}
-                  value={data.date}
-                  onChange={e => setData({ ...data, date: e.target.value })}
-                />
-              </div>
+
+              {/* Custom Date Picker */}
+              <DatePicker
+                id="dateInput"
+                label="Дата списания"
+                value={data.date}
+                onChange={date => setData({ ...data, date })}
+              />
             </div>
 
             {/* Reason Dropdown with Keyboard Navigation */}
@@ -98,7 +104,7 @@ export default function SubscriptionFlow() {
                   <Info className="w-4 h-4 text-slate-400 hover:text-accent-cyan transition-colors" />
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-4 real-glass-panel rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 shadow-xl z-50 text-xs text-slate-300 font-normal border border-white/20">
                     <span className="text-white font-bold mb-1 block">Основание для возврата (ст. 32 ЗоЗПП)</span>
-                    Если вы забыли отключить автопродление, но фактически не пользовались сервисом в новом периоде, закон в большинстве случаев на вашей стороне. Выбирайте вариант, максимально близкий к вашей ситуации.
+                    Если вы забыли отключить автопродление, но фактически не пользовались сервисом в новом периоде, закон в большинстве случаев на вашей стороне. Выбирайте вариант, максимально близкий к вашей ситуации, или опишите свою причину.
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white/20"></div>
                   </div>
                 </div>
@@ -114,11 +120,16 @@ export default function SubscriptionFlow() {
                   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
                     e.preventDefault();
                     if (!isReasonOpen) setIsReasonOpen(true);
-                    const currentIdx = REASONS.indexOf(data.reason);
+                    const currentIdx = allReasons.indexOf(reasonDisplayText);
                     const nextIdx = e.key === 'ArrowDown'
-                      ? Math.min(currentIdx + 1, REASONS.length - 1)
+                      ? Math.min(currentIdx + 1, allReasons.length - 1)
                       : Math.max(currentIdx - 1, 0);
-                    setData({ ...data, reason: REASONS[nextIdx]! });
+                    const selected = allReasons[nextIdx]!;
+                    if (selected === CUSTOM_REASON_LABEL) {
+                      setData({ ...data, reason: CUSTOM_REASON_VALUE });
+                    } else {
+                      setData({ ...data, reason: selected, customReason: undefined });
+                    }
                   } else if (e.key === 'Escape' && isReasonOpen) {
                     e.preventDefault();
                     setIsReasonOpen(false);
@@ -128,7 +139,7 @@ export default function SubscriptionFlow() {
                   }
                 }}
               >
-                <span className="truncate pr-4">{data.reason}</span>
+                <span className="truncate pr-4">{reasonDisplayText}</span>
                 <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 shrink-0 ${isReasonOpen ? 'rotate-180 text-accent-cyan' : ''}`} />
               </button>
               {isReasonOpen && <div className="fixed inset-0 z-40" onClick={() => setIsReasonOpen(false)}></div>}
@@ -137,21 +148,62 @@ export default function SubscriptionFlow() {
                 aria-labelledby="reason-label"
                 className={`absolute z-50 w-full mt-2 real-glass-panel rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300 origin-top ${isReasonOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}
               >
-                {REASONS.map((reason, idx) => (
-                  <button
-                    key={idx}
-                    id={`reason-option-${idx}`}
-                    type="button"
-                    role="option"
-                    aria-selected={data.reason === reason}
-                    className={`w-full text-left px-5 py-4 cursor-pointer transition-colors border-b border-white/5 last:border-0 ${data.reason === reason ? 'bg-accent-cyan/20 text-accent-cyan font-bold' : 'text-slate-200 hover:bg-white/10 hover:text-white'}`}
-                    onClick={() => { setData({ ...data, reason }); setIsReasonOpen(false); }}
-                  >
-                    {reason}
-                  </button>
-                ))}
+                {allReasons.map((reason, idx) => {
+                  const isCustomOption = reason === CUSTOM_REASON_LABEL;
+                  const isSelected = isCustomOption ? isCustomReason : data.reason === reason;
+
+                  return (
+                    <button
+                      key={idx}
+                      id={`reason-option-${idx}`}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      className={`w-full text-left px-5 py-4 cursor-pointer transition-colors border-b border-white/5 last:border-0 ${isSelected ? 'bg-accent-cyan/20 text-accent-cyan font-bold' : 'text-slate-200 hover:bg-white/10 hover:text-white'} ${isCustomOption ? 'border-t border-white/10' : ''}`}
+                      onClick={() => {
+                        if (isCustomOption) {
+                          setData({ ...data, reason: CUSTOM_REASON_VALUE });
+                        } else {
+                          setData({ ...data, reason, customReason: undefined });
+                        }
+                        setIsReasonOpen(false);
+                      }}
+                    >
+                      {isCustomOption && <span className="mr-2 text-accent-cyan">✏️</span>}
+                      {reason}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Custom Reason Textarea — shown when "Другое" is selected */}
+            {isCustomReason && (
+              <div className="group animate-slide-up">
+                <label htmlFor="customReasonInput" className={`block text-sm font-semibold mb-3 ml-1 transition-colors ${fieldErrors.customReason ? 'text-red-400' : 'text-slate-300 group-focus-within:text-accent-cyan'}`}>
+                  Опишите свою причину
+                </label>
+                <textarea
+                  id="customReasonInput"
+                  placeholder="Например: Мне не пришло уведомление о списании, я не пользовался сервисом с момента подписки..."
+                  maxLength={500}
+                  rows={3}
+                  className={`w-full bg-white/5 rounded-2xl px-5 py-4 text-[17px] text-white outline-none transition-all shadow-inner placeholder-slate-600 resize-none focus:scale-[1.005] focus:bg-white/10 ${fieldErrors.customReason ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50'}`}
+                  value={data.customReason || ''}
+                  onChange={e => { setData({ ...data, customReason: e.target.value }); clearFieldError('customReason'); }}
+                />
+                <div className="flex justify-between mt-1.5 px-2">
+                  {fieldErrors.customReason ? (
+                    <p className="text-red-400 text-xs animate-fade-in font-medium">{fieldErrors.customReason}</p>
+                  ) : (
+                    <p className="text-slate-500 text-xs">ИИ оценит причину и решит, можно ли составить претензию</p>
+                  )}
+                  <span className={`text-xs ${(data.customReason?.length || 0) > 450 ? 'text-amber-400' : 'text-slate-500'}`}>
+                    {data.customReason?.length || 0}/500
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Tone Toggle */}
             <ToneToggle
@@ -194,6 +246,10 @@ export default function SubscriptionFlow() {
                   </>
                 )}
               </button>
+              <p className="text-center mt-3 text-xs text-slate-400 font-medium">
+                Нажимая на кнопку, вы принимаете условия{' '}
+                <Link to="/terms" className="text-accent-cyan hover:underline transition-colors">Пользовательского соглашения</Link>
+              </p>
             </div>
           </div>
         </div>
@@ -208,6 +264,7 @@ export default function SubscriptionFlow() {
           theme="cyan"
           loadingTitle="Синтез правовой позиции"
           loadingSubtitle="Формирование документа..."
+          isRefusal={isRefusal}
         />
 
       </div>

@@ -7,6 +7,7 @@ import { ClaimResultPanel } from '../components/ui/ClaimResultPanel';
 import { FprToggle } from '../components/ui/FprToggle';
 import { ApiErrorBanner } from '../components/ui/ApiErrorBanner';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { Link } from 'react-router-dom';
 import { SEO } from '../components/ui/SEO';
 import { useCourseFlow } from '../hooks/useCourseFlow';
 
@@ -179,6 +180,10 @@ export default function CourseFlow() {
                   </>
                 )}
               </button>
+              <p className="text-center mt-3 text-xs text-slate-400 font-medium">
+                Нажимая на кнопку, вы принимаете условия{' '}
+                <Link to="/terms" className="text-accent-purple hover:underline transition-colors">Пользовательского соглашения</Link>
+              </p>
             </div>
           </div>
         </div>

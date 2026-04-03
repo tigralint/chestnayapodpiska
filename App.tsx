@@ -13,6 +13,7 @@ const GuidesView = React.lazy(() => import('./views/GuidesView'));
 const SimulatorView = React.lazy(() => import('./views/SimulatorView'));
 const RadarView = React.lazy(() => import('./views/RadarView'));
 const FaqView = React.lazy(() => import('./views/FaqView'));
+const TermsView = React.lazy(() => import('./views/TermsView'));
 const NotFound = React.lazy(() => import('./views/NotFound'));
 
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
@@ -22,6 +23,7 @@ import { ToastContainer } from './components/ui/ToastContainer';
 import { useAppContext } from './context/AppContext';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { LegalBot } from './components/ui/LegalBot';
 
 export default function App() {
   const location = useLocation();
@@ -52,6 +54,7 @@ export default function App() {
 
       <Analytics />
       <SpeedInsights />
+      <LegalBot />
 
       <ErrorBoundary>
         <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">
@@ -69,6 +72,7 @@ export default function App() {
                 <Route path="/simulator" element={<ErrorBoundary><SimulatorView /></ErrorBoundary>} />
                 <Route path="/radar" element={<ErrorBoundary><RadarView /></ErrorBoundary>} />
                 <Route path="/faq" element={<ErrorBoundary><FaqView /></ErrorBoundary>} />
+                <Route path="/terms" element={<ErrorBoundary><TermsView /></ErrorBoundary>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

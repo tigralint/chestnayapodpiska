@@ -189,6 +189,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         console.error('[tgWebhook] editMessageText error:', e);
                     }
                 }
+            } else if (data && data.startsWith('reset_limit_')) {
+                // Логика сброса лимитов для IP
+                const ip = data.replace('reset_limit_', '');
+
+                // Ключи Upstash Ratelimit зависят от алгоритма, но обычно это: "@upstash/ratelimit:{alg}:{identifier}" или подобное.
+                // Самый надежный вариант - найти все ключи, содержащие идентификатор "chat_{ip}" и удалить их.
+                let cursor = '0';
+                do {
+                    const scanRes = await redis.scan(cursor, { match: `*chat_${ip}*`, count: 100 });
+                    cursor = scanRes[0];
+                    const keys = scanRes[1];
+                    if (keys.length > 0) {
+                        await redis.del(...keys);
+                    }
+                } while (cursor !== '0');
+
+                try {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ callback_query_id: callbackQuery.id, text: `Лимиты для ${ip} сброшены!` })
+                    });
+                } catch (e) {
+                    console.error('[tgWebhook] answerCallbackQuery error:', e);
+                }
+
+                if (message && message.chat && message.message_id) {
+                    try {
+                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: message.chat.id,
+                                message_id: message.message_id,
+                                text: (message?.text || `Заявка от ${ip}`) + `\n\n✅ Лимиты успешно сброшены модератором!`,
+                                reply_markup: { inline_keyboard: [] }
+                            })
+                        });
+                    } catch (e) {
+                        console.error('[tgWebhook] editMessageText error:', e);
+                    }
+                }
             }
         }
         

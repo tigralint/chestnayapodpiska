@@ -33,6 +33,16 @@ async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promi
     signal,
   });
 
+  const modelUsed = response.headers.get('X-AI-Model');
+  if (modelUsed) {
+    console.log('%c[Claim Generator AI] Activated Model: ' + modelUsed, 'color: #10b981; font-weight: bold; background: #064e3b; padding: 4px 8px; border-radius: 4px;');
+  }
+
+  const skippedModels = response.headers.get('X-AI-Skip-Reasons');
+  if (skippedModels) {
+    console.warn('[Claim Generator AI] Models skipped before success:', skippedModels);
+  }
+
   const contentType = response.headers.get('content-type');
 
   if (!contentType || !contentType.includes('application/json')) {
@@ -63,7 +73,14 @@ async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promi
     throw new ApiError(500, 'Модель не вернула текст. Попробуйте повторить.');
   }
 
-  return cleanMarkdown(result.text);
+  // Preserve the [ОТКАЗ] refusal marker before cleaning markdown
+  // (removeMarkdown strips square brackets which would destroy the marker)
+  const REFUSAL_PREFIX = '[ОТКАЗ]';
+  const hasRefusal = result.text.trimStart().startsWith(REFUSAL_PREFIX);
+  const rawText = hasRefusal ? result.text.trimStart().slice(REFUSAL_PREFIX.length) : result.text;
+  const cleaned = cleanMarkdown(rawText);
+
+  return hasRefusal ? `${REFUSAL_PREFIX} ${cleaned}` : cleaned;
 }
 
 /** Thin wrapper for subscription claims */

@@ -1,14 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { buildSubscriptionPrompt, buildCoursePrompt } from './promptBuilder.js';
+import { buildSubscriptionPrompt, buildCoursePrompt, buildCustomReasonPrompt } from './promptBuilder.js';
 
 interface TurnstileVerifyResponse {
     success: boolean;
     'error-codes'?: string[];
 }
 
-interface OpenRouterResponse {
-    choices?: { message?: { content?: string } }[];
-    error?: { message?: string };
+interface GeminiResponse {
+    candidates?: {
+        content?: { parts?: { text?: string; thought?: boolean }[] };
+        finishReason?: string;
+    }[];
+    promptFeedback?: { blockReason?: string };
+    error?: { message?: string; code?: number };
 }
 
 import { z } from 'zod';
@@ -18,6 +22,7 @@ export const claimSchema = z.object({
     amount: z.string().max(50, 'Сумма слишком длинная'),
     date: z.string().max(50, 'Дата слишком длинная'),
     reason: z.string().max(1000, 'Причина слишком длинная'),
+    customReason: z.string().max(500, 'Причина слишком длинная').optional(),
     tone: z.enum(['soft', 'hard']),
     turnstileToken: z.string().min(1, 'Токен капчи обязателен'),
 });
@@ -63,6 +68,76 @@ const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_RED
       }) 
     : null;
 
+// --- Gemini API Helper ---
+// Calls a Gemini-compatible model and returns extracted text, or an error/quota signal.
+interface GeminiCallResult {
+    text?: string;
+    error?: string;
+    quotaExhausted?: boolean;
+}
+
+async function callGeminiModel(
+    modelId: string,
+    prompt: string,
+    apiKey: string,
+): Promise<GeminiCallResult> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+
+    const aiResponse = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.1 },
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+            ],
+        }),
+        signal: AbortSignal.timeout(60_000),
+    });
+
+    const aiJson = await aiResponse.json() as GeminiResponse;
+
+    // Detect quota exhaustion (429 RESOURCE_EXHAUSTED) → signal to try fallback model
+    if (aiJson.error) {
+        if (aiJson.error.code === 429) {
+            return { quotaExhausted: true };
+        }
+        return { error: `[${modelId}] API Error: ${JSON.stringify(aiJson.error)}` };
+    }
+
+    // Safety blocks
+    if (aiJson.promptFeedback?.blockReason) {
+        return { error: `[${modelId}] Safety block (prompt): ${aiJson.promptFeedback.blockReason}` };
+    }
+
+    const candidate = aiJson.candidates?.[0];
+    if (candidate?.finishReason === 'SAFETY') {
+        return { error: `[${modelId}] Safety block (candidate): ${JSON.stringify(candidate)}` };
+    }
+
+    // Extract answer text, filtering out thinking parts (thought=true)
+    // Both Gemini 3 and Gemma 4 models may return thinking parts
+    const parts = candidate?.content?.parts ?? [];
+    const answerParts = parts.filter(p => !p.thought && p.text);
+    let text = answerParts.map(p => p.text).join('') || undefined;
+
+    // Gemma 4 (31B) may emit empty or non-empty <|channel>thought ... <channel|> tags
+    // even with thinking disabled. Strip them as a safety fallback.
+    if (text) {
+        text = text.replace(/<\|channel>thought[\s\S]*?<channel\|>\n?/gi, '').trim() || undefined;
+    }
+
+    if (!text) {
+        return { error: `[${modelId}] Empty response: ${JSON.stringify(aiJson)}` };
+    }
+
+    return { text };
+}
+
 export default async function handler(
     request: VercelRequest,
     response: VercelResponse,
@@ -92,10 +167,10 @@ export default async function handler(
         }
     }
 
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
 
-    if (!OPENROUTER_API_KEY) {
+    if (!GEMINI_API_KEY) {
         return response.status(500).json({ error: 'Сервер не настроен (API ключ отсутствует).' });
     }
 
@@ -156,8 +231,15 @@ export default async function handler(
             const serviceName = sanitizeInput(subData.serviceName);
             const amount = sanitizeInput(String(subData.amount), 20);
             const date = sanitizeInput(String(subData.date), 20);
-            const reason = sanitizeInput(subData.reason);
-            prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, subData.tone);
+
+            // Custom reason uses a separate prompt with AI validation
+            if (subData.reason === 'custom' && subData.customReason) {
+                const customReason = sanitizeInput(subData.customReason, 500);
+                prompt = buildCustomReasonPrompt(serviceName, amount, date, customReason, subData.tone);
+            } else {
+                const reason = sanitizeInput(subData.reason);
+                prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, subData.tone);
+            }
         } else {
             const courseD = validData as CourseData;
             const courseName = sanitizeInput(courseD.courseName);
@@ -167,32 +249,49 @@ export default async function handler(
             prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, courseD.tone);
         }
 
-        const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                "model": "arcee-ai/trinity-large-preview:free",
-                "messages": [{ "role": "user", "content": prompt }],
-                "temperature": 0.1,
-            }),
-            signal: AbortSignal.timeout(30_000),
-        });
+        // --- Model Cascade: Primary → Fallback ---
+        const MODELS = [
+            'gemini-3.1-flash-lite-preview',
+            'gemini-3-flash-preview',
+            'gemini-2.5-flash',
+            'gemma-4-31b-it' // Gemma 4 used as ultimate fallback (supports systemInstruction via Gemini API)
+        ];
 
-        const aiJson = await aiResponse.json() as OpenRouterResponse;
-        const text = aiJson.choices?.[0]?.message?.content;
+        let finalResultText = null;
+        let finalModelId = '';
+        const skipReasons: string[] = [];
 
-        if (!text) {
-            // Log details server-side only — never expose OpenRouter internals to client
-            console.error('OpenRouter Error:', JSON.stringify(aiJson));
-            // Return 422 instead of 502 so the client doesn't retry the request
-            // (retrying fails anyway because the Turnstile token is already consumed)
-            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
+        for (const modelId of MODELS) {
+            console.log(`[AI Claim Gen] Attempting generation with ${modelId}...`);
+            const result = await callGeminiModel(modelId, prompt, GEMINI_API_KEY);
+            
+            if (result.text) {
+                finalResultText = result.text;
+                finalModelId = modelId;
+                break; // Found a working model, exit loop
+            }
+            if (result.quotaExhausted) {
+                console.warn(`[AI Claim Gen] ${modelId} quota exhausted, falling back to next model.`);
+                skipReasons.push(`${modelId}:429_QUOTA`);
+                continue;
+            }
+            if (result.error) {
+                console.error(`[AI Claim Gen] ${modelId} generalized error:`, result.error);
+                skipReasons.push(`${modelId}:ERROR`);
+                continue; // Try next model even on general errors to maximize availability
+            }
         }
 
-        return response.status(200).json({ text });
+        if (!finalResultText) {
+            return response.status(422).json({ error: 'Все нейросети временно перегружены. Пожалуйста, повторите попытку позже.' });
+        }
+
+        // Attach X-AI-Model header to the response
+        response.setHeader('X-AI-Model', finalModelId);
+        if (skipReasons.length > 0) {
+            response.setHeader('X-AI-Skip-Reasons', skipReasons.join(', '));
+        }
+        return response.status(200).json({ text: finalResultText, _modelId: finalModelId, _skipReasons: skipReasons });
 
     } catch (error: unknown) {
         console.error(JSON.stringify({

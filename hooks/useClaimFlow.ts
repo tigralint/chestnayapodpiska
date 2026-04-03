@@ -13,6 +13,13 @@ export const REASONS = [
     'Списание произошло без предупреждения'
 ];
 
+/** Sentinel value for "custom reason" dropdown option */
+export const CUSTOM_REASON_VALUE = 'custom';
+export const CUSTOM_REASON_LABEL = 'Другое (своя причина)';
+
+/** Marker the AI prepends to signal an invalid reason */
+export const REFUSAL_MARKER = '[ОТКАЗ]';
+
 export function useClaimFlow() {
     const { service } = useParams<{ service?: string }>();
     const prefilledService = service ? decodeURIComponent(service) : '';
@@ -36,12 +43,25 @@ export function useClaimFlow() {
             if (!d.serviceName.trim()) errors.serviceName = 'Укажите название сервиса';
             if (!d.amount) errors.amount = 'Укажите сумму списания';
             else if (Number(d.amount) <= 0) errors.amount = 'Сумма должна быть больше 0';
+            // Validate custom reason when "Другое" is selected
+            if (d.reason === CUSTOM_REASON_VALUE && (!d.customReason || !d.customReason.trim())) {
+                errors.customReason = 'Опишите причину возврата';
+            }
             return errors;
         }
     );
 
     const [isReasonOpen, setIsReasonOpen] = useState(false);
     const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
+
+    /** True when the AI returned a [ОТКАЗ] refusal instead of a claim */
+    const isRefusal = result.startsWith(REFUSAL_MARKER);
+
+    /** Text to display — strip the [ОТКАЗ] marker */
+    const displayResult = isRefusal ? result.slice(REFUSAL_MARKER.length).trim() : result;
+
+    /** Whether the custom reason textarea should be shown */
+    const isCustomReason = data.reason === CUSTOM_REASON_VALUE;
 
     const handleSubmit = () => {
         handleGenerate(() => turnstileRef.current?.reset());
@@ -62,11 +82,12 @@ export function useClaimFlow() {
 
     return {
         data, setData,
-        isGenerating, result, copied,
+        isGenerating, result: displayResult, copied,
         fieldErrors, apiError,
         clearFieldError, handleCopy,
         handleSubmit, handleDownloadWord,
         isReasonOpen, setIsReasonOpen,
-        turnstileRef, prefilledService
+        turnstileRef, prefilledService,
+        isCustomReason, isRefusal
     };
 }
