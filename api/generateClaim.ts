@@ -7,7 +7,11 @@ interface TurnstileVerifyResponse {
 }
 
 interface GeminiResponse {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
+    candidates?: {
+        content?: { parts?: { text?: string }[] };
+        finishReason?: string;
+    }[];
+    promptFeedback?: { blockReason?: string };
     error?: { message?: string; code?: number };
 }
 
@@ -176,16 +180,42 @@ export default async function handler(
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: { temperature: 0.1 },
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+                ],
             }),
-            signal: AbortSignal.timeout(30_000),
+            signal: AbortSignal.timeout(60_000),
         });
 
         const aiJson = await aiResponse.json() as GeminiResponse;
-        const text = aiJson.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        // Check for API-level errors (invalid key, quota exceeded, etc.)
+        if (aiJson.error) {
+            console.error('Gemini API Error:', JSON.stringify(aiJson.error));
+            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
+        }
+
+        // Check for safety blocks at prompt level
+        if (aiJson.promptFeedback?.blockReason) {
+            console.error('Gemini Safety Block (prompt):', aiJson.promptFeedback.blockReason);
+            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
+        }
+
+        // Check for safety blocks at candidate level
+        const candidate = aiJson.candidates?.[0];
+        if (candidate?.finishReason === 'SAFETY') {
+            console.error('Gemini Safety Block (candidate):', JSON.stringify(candidate));
+            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
+        }
+
+        const text = candidate?.content?.parts?.[0]?.text;
 
         if (!text) {
             // Log details server-side only — never expose Gemini internals to client
-            console.error('Gemini API Error:', JSON.stringify(aiJson));
+            console.error('Gemini Empty Response:', JSON.stringify(aiJson));
             // Return 422 instead of 502 so the client doesn't retry the request
             // (retrying fails anyway because the Turnstile token is already consumed)
             return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
