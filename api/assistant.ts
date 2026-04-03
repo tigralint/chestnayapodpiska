@@ -70,34 +70,65 @@ export default async function handler(req: Request) {
             parts: [{ text: msg.text }]
         }));
 
-        const modelId = 'gemma-4-26b-a4b-it';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+        // --- Model Cascade ---
+        const MODELS = [
+            'gemini-3.1-flash-lite-preview',
+            'gemma-3-27b-it'
+        ];
 
-        const aiRequestPayload = {
-            systemInstruction: {
-                parts: [{ text: SYSTEM_PROMPT }]
-            },
-            contents: formattedMessages,
-            tools: [{
-                googleSearch: {}
-            }],
-            generationConfig: {
-                temperature: 0.2,
+        let aiResponse: globalThis.Response | null = null;
+        let finalModelId = '';
+
+        for (const modelId of MODELS) {
+            console.log(`[Assistant] Attempting generation with ${modelId}...`);
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+            
+            const aiRequestPayload: any = {
+                systemInstruction: {
+                    parts: [{ text: SYSTEM_PROMPT }]
+                },
+                contents: formattedMessages,
+                generationConfig: {
+                    temperature: 0.2, // Need reliable legal answers
+                }
+            };
+
+            // STRICT RULE: Gemma models do not support tools. Only attach internet access tools to non-Gemma models.
+            if (!modelId.includes('gemma')) {
+                aiRequestPayload.tools = [{ googleSearch: {} }];
             }
-        };
 
-        const aiResponse = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(aiRequestPayload)
-        });
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(aiRequestPayload)
+            });
 
-        if (!aiResponse.ok) {
-            const errText = await aiResponse.text();
-            return new Response(JSON.stringify({ error: 'AI Error: ' + errText }), { status: 500 });
+            if (res.ok) {
+                aiResponse = res;
+                finalModelId = modelId;
+                break; // Connection established & stream opened successfully
+            } else {
+                const errText = await res.text().catch(() => 'Unknown error text');
+                // 429 is rate limit / quota exhausted. 5xx is internal Google errors.
+                if (res.status === 429 || res.status >= 500) {
+                    console.warn(`[Assistant] ${modelId} failed (${res.status}), trying next.`);
+                    continue;
+                } else {
+                    // For other errors like 400 Bad Request, log it but keep trying just in case.
+                    console.error(`[Assistant] ${modelId} error: ${errText}`);
+                    continue;
+                }
+            }
         }
+
+        if (!aiResponse || !aiResponse.ok) {
+            return new Response(JSON.stringify({ error: 'Все нейросети Google сейчас перегружены. Пожалуйста, попробуйте отправить вопрос позже.' }), { status: 503 });
+        }
+
+        console.log(`[Assistant] Successfully streaming response using ${finalModelId}`);
 
         // Return SSE stream directly to the client
         return new Response(aiResponse.body, {

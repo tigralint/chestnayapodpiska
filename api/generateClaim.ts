@@ -244,30 +244,38 @@ export default async function handler(
         }
 
         // --- Model Cascade: Primary → Fallback ---
-        // Primary: Gemini 3.1 Flash Lite (fast, 500 req/day free tier)
-        // Fallback: Gemma 4 26B MoE (thinking model, used when primary quota is exhausted)
-        const PRIMARY_MODEL = 'gemini-3.1-flash-lite-preview';
-        const FALLBACK_MODEL = 'gemma-4-26b-it';
+        const MODELS = [
+            'gemini-3.1-flash-lite-preview',
+            'gemini-3-flash-preview',
+            'gemini-2.5-flash',
+            'gemma-3-27b-it' // Gemma used as ultimate fallback
+        ];
 
-        const result = await callGeminiModel(PRIMARY_MODEL, prompt, GEMINI_API_KEY);
+        let finalResultText = null;
 
-        if (result.quotaExhausted) {
-            console.warn(`[AI] Primary model ${PRIMARY_MODEL} quota exhausted, falling back to ${FALLBACK_MODEL}`);
-            const fallbackResult = await callGeminiModel(FALLBACK_MODEL, prompt, GEMINI_API_KEY);
-
-            if (fallbackResult.error) {
-                console.error('Fallback model error:', fallbackResult.error);
-                return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
+        for (const modelId of MODELS) {
+            console.log(`[AI Claim Gen] Attempting generation with ${modelId}...`);
+            const result = await callGeminiModel(modelId, prompt, GEMINI_API_KEY);
+            
+            if (result.text) {
+                finalResultText = result.text;
+                break; // Found a working model, exit loop
             }
-            return response.status(200).json({ text: fallbackResult.text });
+            if (result.quotaExhausted) {
+                console.warn(`[AI Claim Gen] ${modelId} quota exhausted, falling back to next model.`);
+                continue;
+            }
+            if (result.error) {
+                console.error(`[AI Claim Gen] ${modelId} generalized error:`, result.error);
+                continue; // Try next model even on general errors to maximize availability
+            }
         }
 
-        if (result.error) {
-            console.error('Primary model error:', result.error);
-            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
+        if (!finalResultText) {
+            return response.status(422).json({ error: 'Все нейросети временно перегружены. Пожалуйста, повторите попытку позже.' });
         }
 
-        return response.status(200).json({ text: result.text });
+        return response.status(200).json({ text: finalResultText });
 
     } catch (error: unknown) {
         console.error(JSON.stringify({
