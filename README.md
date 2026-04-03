@@ -72,7 +72,7 @@
 | **State**      | **Zustand** с `persist` middleware (хранение состояния формы без БД на клиенте)    |
 | **Backend**    | **Vercel Serverless Functions** (Node.js)                                          |
 | **Database**   | **Upstash Redis** (высокопроизводительный Rate Limiting и база для Радара)         |
-| **AI Движок**  | **Google Gemini API** (модель Gemma 4 31B) + Кастомный `PromptBuilder`                    |
+| **AI Движок**  | **Google Gemini API** (каскад: Gemini 3.1 Flash Lite → Gemma 4 26B) + `PromptBuilder`  |
 | **PWA**        | Полная поддержка Offline-режима и установки на рабочий стол через `vite-plugin-pwa` |
 | **Linter**     | **ESLint 9** (Flat Config) + **Prettier**                                          |
 | **Тесты**      | **Vitest** + React Testing Library (133 теста, полное покрытие логики API)         |

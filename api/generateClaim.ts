@@ -67,6 +67,70 @@ const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_RED
       }) 
     : null;
 
+// --- Gemini API Helper ---
+// Calls a Gemini-compatible model and returns extracted text, or an error/quota signal.
+interface GeminiCallResult {
+    text?: string;
+    error?: string;
+    quotaExhausted?: boolean;
+}
+
+async function callGeminiModel(
+    modelId: string,
+    prompt: string,
+    apiKey: string,
+): Promise<GeminiCallResult> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+
+    const aiResponse = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.1 },
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+            ],
+        }),
+        signal: AbortSignal.timeout(60_000),
+    });
+
+    const aiJson = await aiResponse.json() as GeminiResponse;
+
+    // Detect quota exhaustion (429 RESOURCE_EXHAUSTED) → signal to try fallback model
+    if (aiJson.error) {
+        if (aiJson.error.code === 429) {
+            return { quotaExhausted: true };
+        }
+        return { error: `[${modelId}] API Error: ${JSON.stringify(aiJson.error)}` };
+    }
+
+    // Safety blocks
+    if (aiJson.promptFeedback?.blockReason) {
+        return { error: `[${modelId}] Safety block (prompt): ${aiJson.promptFeedback.blockReason}` };
+    }
+
+    const candidate = aiJson.candidates?.[0];
+    if (candidate?.finishReason === 'SAFETY') {
+        return { error: `[${modelId}] Safety block (candidate): ${JSON.stringify(candidate)}` };
+    }
+
+    // Extract answer text, filtering out thinking parts (thought=true)
+    // Both Gemini 3 and Gemma 4 models may return thinking parts
+    const parts = candidate?.content?.parts ?? [];
+    const answerParts = parts.filter(p => !p.thought && p.text);
+    const text = answerParts.map(p => p.text).join('') || undefined;
+
+    if (!text) {
+        return { error: `[${modelId}] Empty response: ${JSON.stringify(aiJson)}` };
+    }
+
+    return { text };
+}
+
 export default async function handler(
     request: VercelRequest,
     response: VercelResponse,
@@ -171,65 +235,31 @@ export default async function handler(
             prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, courseD.tone);
         }
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${GEMINI_API_KEY}`;
-        const aiResponse = await fetch(geminiUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.1,
-                    thinkingConfig: { thinkingBudget: 0 },
-                },
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-                ],
-            }),
-            signal: AbortSignal.timeout(60_000),
-        });
+        // --- Model Cascade: Primary → Fallback ---
+        // Primary: Gemini 3.1 Flash Lite (fast, 500 req/day free tier)
+        // Fallback: Gemma 4 26B MoE (thinking model, used when primary quota is exhausted)
+        const PRIMARY_MODEL = 'gemini-3.1-flash-lite-preview';
+        const FALLBACK_MODEL = 'gemma-4-26b-it';
 
-        const aiJson = await aiResponse.json() as GeminiResponse;
+        const result = await callGeminiModel(PRIMARY_MODEL, prompt, GEMINI_API_KEY);
 
-        // Check for API-level errors (invalid key, quota exceeded, etc.)
-        if (aiJson.error) {
-            console.error('Gemini API Error:', JSON.stringify(aiJson.error));
+        if (result.quotaExhausted) {
+            console.warn(`[AI] Primary model ${PRIMARY_MODEL} quota exhausted, falling back to ${FALLBACK_MODEL}`);
+            const fallbackResult = await callGeminiModel(FALLBACK_MODEL, prompt, GEMINI_API_KEY);
+
+            if (fallbackResult.error) {
+                console.error('Fallback model error:', fallbackResult.error);
+                return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
+            }
+            return response.status(200).json({ text: fallbackResult.text });
+        }
+
+        if (result.error) {
+            console.error('Primary model error:', result.error);
             return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
         }
 
-        // Check for safety blocks at prompt level
-        if (aiJson.promptFeedback?.blockReason) {
-            console.error('Gemini Safety Block (prompt):', aiJson.promptFeedback.blockReason);
-            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
-        }
-
-        // Check for safety blocks at candidate level
-        const candidate = aiJson.candidates?.[0];
-        if (candidate?.finishReason === 'SAFETY') {
-            console.error('Gemini Safety Block (candidate):', JSON.stringify(candidate));
-            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
-        }
-
-        // Gemma 4 is a thinking model — response may contain multiple parts:
-        // parts with thought=true (reasoning) and parts without (actual answer).
-        // Filter out thinking parts and extract only the answer text.
-        const parts = candidate?.content?.parts ?? [];
-        const answerParts = parts.filter(p => !p.thought && p.text);
-        const text = answerParts.map(p => p.text).join('') || undefined;
-
-        if (!text) {
-            // Log details server-side only — never expose Gemini internals to client
-            console.error('Gemini Empty Response:', JSON.stringify(aiJson));
-            // Return 422 instead of 502 so the client doesn't retry the request
-            // (retrying fails anyway because the Turnstile token is already consumed)
-            return response.status(422).json({ error: 'Не удалось сгенерировать текст. Попробуйте позже.' });
-        }
-
-        return response.status(200).json({ text });
+        return response.status(200).json({ text: result.text });
 
     } catch (error: unknown) {
         console.error(JSON.stringify({
