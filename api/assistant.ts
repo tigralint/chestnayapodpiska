@@ -29,8 +29,9 @@ export default async function handler(req: Request) {
     }
 
     try {
-        const messages: { role: string; text: string }[] = (await req.json()).messages;
-        const turnstileToken = (await req.json()).turnstileToken;
+        const body = await req.json();
+        const messages: { role: string; text: string }[] = body.messages;
+        const turnstileToken = body.turnstileToken;
 
         const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -64,26 +65,29 @@ export default async function handler(req: Request) {
         }
 
         // 3. Format messages for Gemini API
-        const formattedMessages = messages.map((msg: { role: string; text: string }) => ({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.text }]
-        }));
-
-        const modelId = 'gemma-4-31b-it';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
-
-        // Inject the system prompt invisibly into the first incoming user message 
-        // Force Gemma to bypass chain of thought logic by framing it strictly as an immediate roleplay instruction
-        if (formattedMessages.length > 0 && formattedMessages[0].role === 'user') {
-            formattedMessages[0].parts[0].text = `[ПРАВИЛА ИИ]
+        const formattedMessages = messages.map((msg: { role: string; text: string }, index: number) => {
+            let itemText = msg.text;
+            
+            // Force Gemma to bypass chain of thought logic by framing it strictly as an immediate roleplay instruction
+            if (index === 0 && msg.role === 'user') {
+                itemText = `[ПРАВИЛА ИИ]
 Твоя задача — строго следовать этим правилам. НЕ пиши свои внутренние мысли на английском ("User asks...", "I should calculate..."). ВЕСЬ твой ответ должен быть только финальным текстом на русском языке, который сразу прочтет клиент.
 
 ПРАВИЛА СЕРВИСА:
 ${SYSTEM_PROMPT}
 
 [СООБЩЕНИЕ ОТ КЛИЕНТА]
-${formattedMessages[0].parts[0].text}`;
-        }
+${itemText}`;
+            }
+
+            return {
+                role: msg.role === 'user' ? 'user' : 'model',
+                parts: [{ text: itemText }]
+            };
+        });
+
+        const modelId = 'gemma-4-31b-it';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
         const aiRequestPayload = {
             contents: formattedMessages,
