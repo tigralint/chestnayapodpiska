@@ -78,24 +78,35 @@ export default async function handler(req: Request) {
 
         let aiResponse: globalThis.Response | null = null;
         let finalModelId = '';
-        let lastErrorText = 'Все нейросети Google сейчас перегружены.';
+        let lastErrorText = '';
 
         for (const modelId of MODELS) {
             console.log(`[Assistant] Attempting generation with ${modelId}...`);
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
+            // Make a deep copy of formattedMessages so prompt injection on Gemma doesn't pollute next loop
+            const localContents = formattedMessages.map(m => ({
+                role: m.role,
+                parts: [{ text: m.parts[0]?.text || '' }]
+            }));
+
             const aiRequestPayload: any = {
-                systemInstruction: {
-                    parts: [{ text: SYSTEM_PROMPT }]
-                },
-                contents: formattedMessages,
+                contents: localContents,
                 generationConfig: {
                     temperature: 0.2, // Need reliable legal answers
                 }
             };
 
-            // STRICT RULE: Gemma models do not support tools. Only attach internet access tools to non-Gemma models.
-            if (!modelId.includes('gemma')) {
+            // STRICT RULE: Gemma models do NOT support systemInstruction or tools.
+            if (modelId.includes('gemma')) {
+                const firstMsg = localContents[0];
+                if (firstMsg && firstMsg.parts && firstMsg.parts[0]) {
+                    // Inject system prompt directly into the first message context
+                    firstMsg.parts[0].text = `[ПРАВИЛА ИИ]\n${SYSTEM_PROMPT}\n\n[СООБЩЕНИЕ ПОЛЬЗОВАТЕЛЯ]:\n${firstMsg.parts[0].text || ''}`;
+                }
+            } else {
+                // Gemini models fully support these Native API features
+                aiRequestPayload.systemInstruction = { parts: [{ text: SYSTEM_PROMPT }] };
                 aiRequestPayload.tools = [{ googleSearch: {} }];
             }
 
@@ -113,7 +124,8 @@ export default async function handler(req: Request) {
                 break; // Connection established & stream opened successfully
             } else {
                 const errText = await res.text().catch(() => 'Unknown error text');
-                lastErrorText = `[${modelId} error ${res.status}]: ${errText}`;
+                lastErrorText += `[${modelId} error ${res.status}]: ${errText} | `;
+                
                 // 429 is rate limit / quota exhausted. 5xx is internal Google errors.
                 if (res.status === 429 || res.status >= 500) {
                     console.warn(`[Assistant] ${modelId} failed (${res.status}), trying next.`);
@@ -127,7 +139,7 @@ export default async function handler(req: Request) {
         }
 
         if (!aiResponse || !aiResponse.ok) {
-            return new Response(JSON.stringify({ error: lastErrorText }), { status: 503 });
+            return new Response(JSON.stringify({ error: `Детали ошибки API: ${lastErrorText}` }), { status: 503 });
         }
 
         console.log(`[Assistant] Successfully streaming response using ${finalModelId}`);
@@ -138,6 +150,7 @@ export default async function handler(req: Request) {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache',
                 'Connection': 'keep-alive',
+                'X-AI-Model': finalModelId,
             }
         });
 

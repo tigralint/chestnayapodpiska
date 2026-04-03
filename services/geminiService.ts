@@ -33,6 +33,11 @@ async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promi
     signal,
   });
 
+  const modelUsed = response.headers.get('X-AI-Model');
+  if (modelUsed) {
+    console.log('%c[Claim Generator AI] Activated Model: ' + modelUsed, 'color: #10b981; font-weight: bold; background: #064e3b; padding: 4px 8px; border-radius: 4px;');
+  }
+
   const contentType = response.headers.get('content-type');
 
   if (!contentType || !contentType.includes('application/json')) {

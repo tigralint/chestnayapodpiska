@@ -252,6 +252,7 @@ export default async function handler(
         ];
 
         let finalResultText = null;
+        let finalModelId = '';
 
         for (const modelId of MODELS) {
             console.log(`[AI Claim Gen] Attempting generation with ${modelId}...`);
@@ -259,6 +260,7 @@ export default async function handler(
             
             if (result.text) {
                 finalResultText = result.text;
+                finalModelId = modelId;
                 break; // Found a working model, exit loop
             }
             if (result.quotaExhausted) {
@@ -275,7 +277,9 @@ export default async function handler(
             return response.status(422).json({ error: 'Все нейросети временно перегружены. Пожалуйста, повторите попытку позже.' });
         }
 
-        return response.status(200).json({ text: finalResultText });
+        // Attach X-AI-Model header to the response
+        response.setHeader('X-AI-Model', finalModelId);
+        return response.status(200).json({ text: finalResultText, _modelId: finalModelId });
 
     } catch (error: unknown) {
         console.error(JSON.stringify({

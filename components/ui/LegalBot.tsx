@@ -173,6 +173,11 @@ export function LegalBot() {
                 throw new Error('No readable stream');
             }
 
+            const usedModel = response.headers.get('X-AI-Model');
+            if (usedModel) {
+                console.log('%c[LegalBot AI] Activated Model: ' + usedModel, 'color: #0ea5e9; font-weight: bold; background: #0f172a; padding: 4px 8px; border-radius: 4px;');
+            }
+
             const reader = response.body.getReader();
             const decoder = new TextDecoder('utf-8');
             let done = false;
