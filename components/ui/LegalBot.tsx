@@ -177,6 +177,11 @@ export function LegalBot() {
             if (usedModel) {
                 console.log('%c[LegalBot AI] Activated Model: ' + usedModel, 'color: #0ea5e9; font-weight: bold; background: #0f172a; padding: 4px 8px; border-radius: 4px;');
             }
+            
+            const skippedModels = response.headers.get('X-AI-Skip-Reasons');
+            if (skippedModels) {
+                console.warn('[LegalBot AI] Models skipped before success:', skippedModels);
+            }
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder('utf-8');
@@ -222,6 +227,15 @@ export function LegalBot() {
             setMessages((prev) => prev.filter(m => m.id !== botMsgId));
         } finally {
             setIsLoading(false);
+            // Refresh limits in real time after every message attempt (success or error)
+            fetch('/api/chatStatus')
+                .then(r => r.json())
+                .then(d => {
+                    if (d && typeof d.remaining === 'number') {
+                        setLimits({ remaining: d.remaining, limit: d.limit || 10 });
+                    }
+                })
+                .catch(console.error);
         }
     };
 
@@ -373,8 +387,13 @@ export function LegalBot() {
                             <Turnstile 
                                 siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'} // Test fallback
                                 onSuccess={(token) => setCaptchaToken(token)}
-                                onError={() => setErrorMsg('Не удалось загрузить капчу')}
-                                options={{ action: 'chat', theme: 'dark' }}
+                                onExpire={() => setCaptchaToken('')} // Clear stale token instantly
+                                onError={() => setErrorMsg('Ошибка при проверке капчи. Обновите страницу.')}
+                                options={{ 
+                                    action: 'chat', 
+                                    theme: 'dark',
+                                    refreshExpired: 'auto' // Crucial: Auto-refresh without user interaction 
+                                }}
                             />
                         </div>
                     </div>

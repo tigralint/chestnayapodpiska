@@ -79,6 +79,7 @@ export default async function handler(req: Request) {
         let aiResponse: globalThis.Response | null = null;
         let finalModelId = '';
         let lastErrorText = '';
+        const skipReasons: string[] = []; // Track why models failed
 
         for (const modelId of MODELS) {
             console.log(`[Assistant] Attempting generation with ${modelId}...`);
@@ -124,6 +125,17 @@ export default async function handler(req: Request) {
                 break; // Connection established & stream opened successfully
             } else {
                 const errText = await res.text().catch(() => 'Unknown error text');
+                
+                // Keep the raw error message safe for the header
+                let cleanErr = 'Unknown';
+                try {
+                    const parsed = JSON.parse(errText);
+                    cleanErr = parsed.error?.status || parsed.error?.code || 'Error';
+                } catch {
+                    cleanErr = `HTTP_${res.status}`;
+                }
+                
+                skipReasons.push(`${modelId}:${cleanErr}`);
                 lastErrorText += `[${modelId} error ${res.status}]: ${errText} | `;
                 
                 // 429 is rate limit / quota exhausted. 5xx is internal Google errors.
@@ -151,6 +163,7 @@ export default async function handler(req: Request) {
                 'Cache-Control': 'no-cache',
                 'Connection': 'keep-alive',
                 'X-AI-Model': finalModelId,
+                'X-AI-Skip-Reasons': skipReasons.join(', ')
             }
         });
 

@@ -253,6 +253,7 @@ export default async function handler(
 
         let finalResultText = null;
         let finalModelId = '';
+        const skipReasons: string[] = [];
 
         for (const modelId of MODELS) {
             console.log(`[AI Claim Gen] Attempting generation with ${modelId}...`);
@@ -265,10 +266,12 @@ export default async function handler(
             }
             if (result.quotaExhausted) {
                 console.warn(`[AI Claim Gen] ${modelId} quota exhausted, falling back to next model.`);
+                skipReasons.push(`${modelId}:429_QUOTA`);
                 continue;
             }
             if (result.error) {
                 console.error(`[AI Claim Gen] ${modelId} generalized error:`, result.error);
+                skipReasons.push(`${modelId}:ERROR`);
                 continue; // Try next model even on general errors to maximize availability
             }
         }
@@ -279,7 +282,10 @@ export default async function handler(
 
         // Attach X-AI-Model header to the response
         response.setHeader('X-AI-Model', finalModelId);
-        return response.status(200).json({ text: finalResultText, _modelId: finalModelId });
+        if (skipReasons.length > 0) {
+            response.setHeader('X-AI-Skip-Reasons', skipReasons.join(', '));
+        }
+        return response.status(200).json({ text: finalResultText, _modelId: finalModelId, _skipReasons: skipReasons });
 
     } catch (error: unknown) {
         console.error(JSON.stringify({

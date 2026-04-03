@@ -38,6 +38,11 @@ async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promi
     console.log('%c[Claim Generator AI] Activated Model: ' + modelUsed, 'color: #10b981; font-weight: bold; background: #064e3b; padding: 4px 8px; border-radius: 4px;');
   }
 
+  const skippedModels = response.headers.get('X-AI-Skip-Reasons');
+  if (skippedModels) {
+    console.warn('[Claim Generator AI] Models skipped before success:', skippedModels);
+  }
+
   const contentType = response.headers.get('content-type');
 
   if (!contentType || !contentType.includes('application/json')) {
