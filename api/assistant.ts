@@ -78,11 +78,12 @@ export default async function handler(req: Request) {
 
         let aiResponse: globalThis.Response | null = null;
         let finalModelId = '';
+        let lastErrorText = 'Все нейросети Google сейчас перегружены.';
 
         for (const modelId of MODELS) {
             console.log(`[Assistant] Attempting generation with ${modelId}...`);
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
-            
+
             const aiRequestPayload: any = {
                 systemInstruction: {
                     parts: [{ text: SYSTEM_PROMPT }]
@@ -112,6 +113,7 @@ export default async function handler(req: Request) {
                 break; // Connection established & stream opened successfully
             } else {
                 const errText = await res.text().catch(() => 'Unknown error text');
+                lastErrorText = `[${modelId} error ${res.status}]: ${errText}`;
                 // 429 is rate limit / quota exhausted. 5xx is internal Google errors.
                 if (res.status === 429 || res.status >= 500) {
                     console.warn(`[Assistant] ${modelId} failed (${res.status}), trying next.`);
@@ -125,7 +127,7 @@ export default async function handler(req: Request) {
         }
 
         if (!aiResponse || !aiResponse.ok) {
-            return new Response(JSON.stringify({ error: 'Все нейросети Google сейчас перегружены. Пожалуйста, попробуйте отправить вопрос позже.' }), { status: 503 });
+            return new Response(JSON.stringify({ error: lastErrorText }), { status: 503 });
         }
 
         console.log(`[Assistant] Successfully streaming response using ${finalModelId}`);
