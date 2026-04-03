@@ -23,6 +23,7 @@ import { ToastContainer } from './components/ui/ToastContainer';
 import { useAppContext } from './context/AppContext';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { LegalBot } from './components/ui/LegalBot';
 
 export default function App() {
   const location = useLocation();
@@ -53,6 +54,7 @@ export default function App() {
 
       <Analytics />
       <SpeedInsights />
+      <LegalBot />
 
       <ErrorBoundary>
         <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">
