@@ -113,9 +113,11 @@ export function LegalBot() {
         }
     };
 
-    // Strip <think> tags from text
+    // Strip <think> and <|channel>thought tags from text (support various reasoning models)
     const cleanText = (text: string) => {
-        return text.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
+        let cleaned = text.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '');
+        cleaned = cleaned.replace(/<\|channel>thought[\s\S]*?(<channel\|>|$)/gi, '');
+        return cleaned.trim();
     };
 
     // Remove markdown links like [Text](URL) returning just Text inside Grounding contexts
@@ -217,17 +219,22 @@ export function LegalBot() {
         <div className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-50">
             {/* The Chat Window */}
             {isOpen && (
-                <div className="mb-4 w-[calc(100vw-2rem)] md:w-96 max-w-sm h-[500px] max-h-[70vh] flex flex-col real-glass-panel rounded-3xl overflow-hidden shadow-2xl shadow-cyan-500/10 animate-slide-up origin-bottom-right">
+                <div className="mb-4 w-[calc(100vw-2rem)] md:w-96 max-w-sm h-[500px] max-h-[70vh] flex flex-col bg-slate-950/40 backdrop-blur-3xl border border-white/5 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(6,182,212,0.15)] animate-slide-up origin-bottom-right ring-1 ring-white/10">
                     
                     {/* Header */}
-                    <div className="flex bg-white/5 border-b border-white/10 p-4 items-center justify-between">
+                    <div className="flex bg-gradient-to-r from-accent-cyan/10 to-transparent border-b border-white/5 px-5 py-4 items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-accent-cyan/20 flex items-center justify-center text-accent-cyan">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-accent-cyan/20 to-blue-500/10 border border-accent-cyan/20 flex items-center justify-center text-accent-cyan shadow-[0_0_15px_rgba(34,211,238,0.2)]">
                                 <BotIcon />
                             </div>
                             <div>
-                                <h3 className="font-bold text-white text-sm">Юрист-Ассистент</h3>
-                                <p className="text-xs text-slate-400">{limits ? `Запросов: ${limits.remaining}/${limits.limit}` : 'Онлайн'}</p>
+                                <h3 className="font-bold text-white text-[15px] tracking-wide text-shadow-neon">Юрист-Ассистент</h3>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
+                                    <p className="text-[11px] text-emerald-400/90 font-medium">
+                                        {limits ? `Доступно запросов: ${limits.remaining}/${limits.limit}` : 'Система онлайн'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -251,11 +258,15 @@ export function LegalBot() {
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                         {messages.length === 0 && (
                             <div className="text-center text-slate-400 mt-10 text-sm">
-                                <BotIcon />
-                                <p className="mt-3">Привет! Я юридический ИИ-ассистент.</p>
-                                <p className="mt-1">Задайте мне вопрос о возврате за курсы или подписки.</p>
+                                <div className="p-3 bg-white/5 rounded-2xl inline-block mt-3 border border-white/5">
+                                    <BotIcon />
+                                </div>
+                                <p className="mt-3 text-white font-medium text-[15px]">Юридический ИИ-ассистент</p>
+                                <p className="mt-1.5 opacity-70">Задайте мне вопрос о возврате за курсы или скрытые подписки.</p>
                                 {limits && (
-                                    <p className="mt-4 text-xs text-amber-300/80">Доступно: {limits.remaining} запросов</p>
+                                    <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300">
+                                        <span className="text-[11px] font-medium tracking-wide uppercase">Осталось запросов: {limits.remaining}</span>
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -267,12 +278,16 @@ export function LegalBot() {
                             // While generating, it could be empty
                             if (!isUser && !cleanTextValue && isLoading) {
                                 return (
-                                    <div key={msg.id} className="flex gap-2">
-                                        <div className="w-8 h-8 shrink-0 rounded-full bg-accent-cyan/10 flex items-center justify-center text-accent-cyan">
+                                    <div className="flex gap-2 isolate">
+                                        <div className="w-8 h-8 shrink-0 rounded-full bg-accent-cyan/10 flex items-center justify-center text-accent-cyan shadow-[0_0_10px_rgba(34,211,238,0.1)]">
                                             <BotIcon />
                                         </div>
-                                        <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-none p-3 text-sm text-slate-200">
-                                            <span className="animate-pulse">Думает...</span>
+                                        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/5 rounded-2xl rounded-tl-sm p-3.5 text-[13px] text-slate-200 shadow-md">
+                                            <div className="flex gap-1 items-center h-4">
+                                                <span className="w-1.5 h-1.5 bg-accent-cyan/60 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                                <span className="w-1.5 h-1.5 bg-accent-cyan/60 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                                <span className="w-1.5 h-1.5 bg-accent-cyan/60 rounded-full animate-bounce"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -284,14 +299,14 @@ export function LegalBot() {
                             return (
                                 <div key={msg.id} className={`flex gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                                     {!isUser && (
-                                        <div className="w-8 h-8 shrink-0 rounded-full bg-accent-cyan/10 flex items-center justify-center text-accent-cyan mt-1">
+                                        <div className="w-8 h-8 shrink-0 rounded-full bg-accent-cyan/10 flex items-center justify-center text-accent-cyan mt-1 shadow-[0_0_10px_rgba(34,211,238,0.1)]">
                                             <BotIcon />
                                         </div>
                                     )}
-                                    <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${
+                                    <div className={`max-w-[85%] rounded-2xl p-3.5 text-[13px] sm:text-sm shadow-md ${
                                         isUser 
-                                            ? 'bg-accent-cyan text-slate-900 rounded-tr-none' 
-                                            : 'bg-white/5 border border-white/10 text-slate-200 rounded-tl-none prose prose-invert prose-sm prose-p:leading-relaxed prose-a:text-accent-cyan'
+                                            ? 'bg-gradient-to-br from-accent-cyan to-cyan-400 text-slate-900 rounded-tr-sm shadow-cyan-500/20' 
+                                            : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/5 text-slate-200 rounded-tl-sm shadow-black/20 prose prose-invert prose-sm prose-p:leading-relaxed prose-a:text-accent-cyan'
                                     }`}>
                                         {isUser ? (
                                             <span className="whitespace-pre-wrap">{cleanTextValue}</span>
@@ -324,20 +339,20 @@ export function LegalBot() {
                     )}
 
                     {/* Input Area */}
-                    <div className="p-3 border-t border-white/10 bg-black/20">
+                    <div className="p-3 border-t border-white/5 bg-slate-950/60 backdrop-blur-md">
                         <form onSubmit={handleSubmit} className="flex gap-2 relative">
                             <input
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 disabled={isLoading}
-                                placeholder={isLoading ? "Ассистент печатает..." : "Спросить юриста..."}
-                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-accent-cyan transition-colors disabled:opacity-50"
+                                placeholder={isLoading ? "Ассистент печатает..." : "Опишите вашу ситуацию..."}
+                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-accent-cyan/50 focus:bg-white/10 transition-all disabled:opacity-50 shadow-inner"
                             />
                             <button
                                 type="submit"
                                 disabled={isLoading || !input.trim() || !captchaToken}
-                                className="bg-accent-cyan text-slate-900 w-10 flex items-center justify-center rounded-xl hover:bg-cyan-400 disabled:opacity-50 transition-colors"
+                                className="bg-gradient-to-br from-accent-cyan to-cyan-400 text-slate-900 w-[50px] flex items-center justify-center rounded-xl hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:hover:shadow-none transition-all duration-300"
                             >
                                 <SendIcon />
                             </button>
