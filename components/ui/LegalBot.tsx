@@ -135,6 +135,46 @@ export function LegalBot() {
     // Remove markdown links like [Text](URL) returning just Text inside Grounding contexts
     // But react-markdown handles standard links nicely.
 
+    const handleImageFile = (file: File) => {
+        // Resize to max 1024px and convert to base64
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+                const MAX = 1024;
+                let w = img.width, h = img.height;
+                if (w > MAX || h > MAX) {
+                    if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                    else { w = Math.round(w * MAX / h); h = MAX; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                setPendingImage(dataUrl);
+            };
+            img.src = reader.result as string;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (!item) continue;
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) handleImageFile(file);
+                // Prevent defaulting text paste behavior if we pasted an image
+                // Although usually image paste doesn't add text, just to be safe:
+                e.preventDefault();
+                return;
+            }
+        }
+    };
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         
@@ -413,27 +453,7 @@ export function LegalBot() {
                                 className="hidden"
                                 onChange={(e) => {
                                     const file = e.target.files?.[0];
-                                    if (!file) return;
-                                    // Resize to max 1024px and convert to base64
-                                    const reader = new FileReader();
-                                    reader.onload = () => {
-                                        const img = new Image();
-                                        img.onload = () => {
-                                            const MAX = 1024;
-                                            let w = img.width, h = img.height;
-                                            if (w > MAX || h > MAX) {
-                                                if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-                                                else { w = Math.round(w * MAX / h); h = MAX; }
-                                            }
-                                            const canvas = document.createElement('canvas');
-                                            canvas.width = w; canvas.height = h;
-                                            canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-                                            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                                            setPendingImage(dataUrl);
-                                        };
-                                        img.src = reader.result as string;
-                                    };
-                                    reader.readAsDataURL(file);
+                                    if (file) handleImageFile(file);
                                     e.target.value = ''; // reset so same file can be re-selected
                                 }}
                             />
@@ -450,8 +470,9 @@ export function LegalBot() {
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                disabled={isLoading}
-                                placeholder={isLoading ? "Ассистент печатает..." : "Опишите вашу ситуацию..."}
+                                onPaste={handlePaste}
+                                disabled={isLoading || !captchaToken}
+                                placeholder={isLoading ? "Ассистент печатает..." : (!captchaToken ? "Проверка защиты от ботов..." : "Опишите вашу ситуацию...")}
                                 className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-accent-cyan/50 focus:bg-white/10 transition-all disabled:opacity-50 shadow-inner"
                             />
                             <button
@@ -463,8 +484,8 @@ export function LegalBot() {
                             </button>
                         </form>
                         
-                        {/* Hidden Turnstile for Bot Protection */}
-                        <div className="hidden">
+                        {/* Turnstile for Bot Protection (visible if requires interaction/refresh) */}
+                        <div className={captchaToken ? "hidden" : "mt-3 flex justify-center w-full"}>
                             <Turnstile 
                                 siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'} // Test fallback
                                 onSuccess={(token) => setCaptchaToken(token)}
@@ -473,7 +494,7 @@ export function LegalBot() {
                                 options={{ 
                                     action: 'chat', 
                                     theme: 'dark',
-                                    refreshExpired: 'auto' // Crucial: Auto-refresh without user interaction 
+                                    refreshExpired: 'manual' // User clicks to refresh if expired
                                 }}
                             />
                         </div>
