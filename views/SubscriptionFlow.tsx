@@ -251,7 +251,7 @@ export default function SubscriptionFlow() {
                   </>
                 )}
               </button>
-              <p className="text-center mt-3 text-xs text-slate-400 font-medium">
+              <p className="relative z-10 text-center mt-3 text-xs text-slate-400 font-medium">
                 Нажимая на кнопку, вы принимаете условия{' '}
                 <Link to="/terms" className="text-accent-cyan hover:underline transition-colors">Пользовательского соглашения</Link>
               </p>
