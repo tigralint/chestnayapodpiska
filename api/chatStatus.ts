@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // We use the same configuration as api/assistant.ts
         const ratelimit = new Ratelimit({
             redis,
-            limiter: Ratelimit.slidingWindow(10, '1 d'),
+            limiter: Ratelimit.slidingWindow(15, '1 d'),
         });
 
         // Use getRemaining to just peek without incrementing the counter

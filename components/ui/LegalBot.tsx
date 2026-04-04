@@ -8,6 +8,7 @@ type Message = {
     role: 'user' | 'model';
     text: string;
     id: string;
+    imagePreview?: string; // data URL for display and API payload
 };
 
 // SVG Icons
@@ -27,6 +28,10 @@ const SendIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
 );
 
+const ImageIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+);
+
 export function LegalBot() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -36,8 +41,10 @@ export function LegalBot() {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [limits, setLimits] = useState<{ remaining: number; limit: number } | null>(null);
     const [isRequestingLimit, setIsRequestingLimit] = useState(false);
+    const [pendingImage, setPendingImage] = useState<string | null>(null);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     
     // Prefix for localStorage
     const STORAGE_KEY = 'chestnayapodpiska_chat_history';
@@ -83,7 +90,7 @@ export function LegalBot() {
                 .then(r => r.json())
                 .then(d => {
                     if (d && typeof d.remaining === 'number') {
-                        setLimits({ remaining: d.remaining, limit: d.limit || 10 });
+                        setLimits({ remaining: d.remaining, limit: d.limit || 15 });
                     }
                 })
                 .catch(console.error);
@@ -131,7 +138,7 @@ export function LegalBot() {
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         
-        if (!input.trim() || isLoading) return;
+        if ((!input.trim() && !pendingImage) || isLoading) return;
 
         // Turnstile check
         if (!captchaToken) {
@@ -139,11 +146,17 @@ export function LegalBot() {
             return;
         }
 
-        const userMsg: Message = { role: 'user', text: input.trim(), id: Date.now().toString() };
+        const userMsg: Message = {
+            role: 'user',
+            text: input.trim(),
+            id: Date.now().toString(),
+            ...(pendingImage ? { imagePreview: pendingImage } : {})
+        };
         const newHistory = [...messages, userMsg];
         
         setMessages(newHistory);
         setInput('');
+        setPendingImage(null);
         setIsLoading(true);
         setErrorMsg(null);
 
@@ -158,9 +171,11 @@ export function LegalBot() {
                 body: JSON.stringify({
                     // CRITICAL: Gemma 4 docs require 'No Thinking Content in History'.
                     // Strip thinking tags from previous model responses before sending.
+                    // Include image base64 for user messages that have an attached image.
                     messages: newHistory.map(m => ({
-                        ...m,
-                        text: m.role === 'model' ? cleanText(m.text) : m.text
+                        role: m.role,
+                        text: m.role === 'model' ? cleanText(m.text) : m.text,
+                        ...(m.imagePreview ? { image: m.imagePreview.split(',')[1] } : {})
                     })),
                     turnstileToken: captchaToken
                 })
@@ -240,7 +255,7 @@ export function LegalBot() {
                 .then(r => r.json())
                 .then(d => {
                     if (d && typeof d.remaining === 'number') {
-                        setLimits({ remaining: d.remaining, limit: d.limit || 10 });
+                        setLimits({ remaining: d.remaining, limit: d.limit || 15 });
                     }
                 })
                 .catch(console.error);
@@ -340,6 +355,9 @@ export function LegalBot() {
                                             ? 'bg-gradient-to-br from-accent-cyan to-cyan-400 text-slate-900 rounded-tr-sm shadow-cyan-500/20' 
                                             : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/5 text-slate-200 rounded-tl-sm shadow-black/20 prose prose-invert prose-sm prose-p:leading-relaxed prose-a:text-accent-cyan'
                                     }`}>
+                                        {isUser && msg.imagePreview && (
+                                            <img src={msg.imagePreview} alt="Прикреплённое изображение" className="rounded-lg mb-2 max-h-32 w-auto" />
+                                        )}
                                         {isUser ? (
                                             <span className="whitespace-pre-wrap">{cleanTextValue}</span>
                                         ) : (
@@ -372,7 +390,62 @@ export function LegalBot() {
 
                     {/* Input Area */}
                     <div className="p-3 border-t border-white/5 bg-slate-950/60 backdrop-blur-md">
+                        {/* Image Preview Strip */}
+                        {pendingImage && (
+                            <div className="flex items-center gap-2 mb-2 p-2 bg-white/5 rounded-xl border border-white/10">
+                                <img src={pendingImage} alt="Preview" className="h-12 w-12 object-cover rounded-lg" />
+                                <span className="text-xs text-slate-400 flex-1 truncate">Изображение прикреплено</span>
+                                <button
+                                    onClick={() => setPendingImage(null)}
+                                    className="text-slate-400 hover:text-rose-400 transition-colors p-1"
+                                    title="Убрать изображение"
+                                >
+                                    <XIcon />
+                                </button>
+                            </div>
+                        )}
                         <form onSubmit={handleSubmit} className="flex gap-2 relative">
+                            {/* Hidden file input */}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    // Resize to max 1024px and convert to base64
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                        const img = new Image();
+                                        img.onload = () => {
+                                            const MAX = 1024;
+                                            let w = img.width, h = img.height;
+                                            if (w > MAX || h > MAX) {
+                                                if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                                                else { w = Math.round(w * MAX / h); h = MAX; }
+                                            }
+                                            const canvas = document.createElement('canvas');
+                                            canvas.width = w; canvas.height = h;
+                                            canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+                                            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                                            setPendingImage(dataUrl);
+                                        };
+                                        img.src = reader.result as string;
+                                    };
+                                    reader.readAsDataURL(file);
+                                    e.target.value = ''; // reset so same file can be re-selected
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isLoading}
+                                className="text-slate-400 hover:text-accent-cyan transition-colors p-2 disabled:opacity-50"
+                                title="Прикрепить изображение"
+                            >
+                                <ImageIcon />
+                            </button>
                             <input
                                 type="text"
                                 value={input}
@@ -383,7 +456,7 @@ export function LegalBot() {
                             />
                             <button
                                 type="submit"
-                                disabled={isLoading || !input.trim() || !captchaToken}
+                                disabled={isLoading || (!input.trim() && !pendingImage) || !captchaToken}
                                 className="bg-gradient-to-br from-accent-cyan to-cyan-400 text-slate-900 w-[50px] flex items-center justify-center rounded-xl hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:hover:shadow-none transition-all duration-300"
                             >
                                 <SendIcon />
