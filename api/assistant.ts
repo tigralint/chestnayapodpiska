@@ -72,8 +72,10 @@ export default async function handler(req: Request) {
         }));
 
         // --- Model Cascade ---
+        // Gemma 4 31B is the primary model (via Gemini API, uses same API key)
+        // Gemma 3 27B remains as ultimate fallback
         const MODELS = [
-            'gemini-3.1-flash-lite-preview',
+            'gemma-4-31b-it',
             'gemma-3-27b-it'
         ];
 
@@ -96,19 +98,14 @@ export default async function handler(req: Request) {
                 contents: localContents,
                 generationConfig: {
                     temperature: 0.2, // Need reliable legal answers
-                }
+                },
+                // Gemma 4 supports systemInstruction natively through the Gemini API.
+                // Gemma 3 also works with systemInstruction through the same API.
+                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
             };
 
-            // STRICT RULE: Gemma models do NOT support systemInstruction or tools.
-            if (modelId.includes('gemma')) {
-                const firstMsg = localContents[0];
-                if (firstMsg && firstMsg.parts && firstMsg.parts[0]) {
-                    // Inject system prompt directly into the first message context
-                    firstMsg.parts[0].text = `[ПРАВИЛА ИИ]\n${SYSTEM_PROMPT}\n\n[СООБЩЕНИЕ ПОЛЬЗОВАТЕЛЯ]:\n${firstMsg.parts[0].text || ''}`;
-                }
-            } else {
-                // Gemini models fully support these Native API features
-                aiRequestPayload.systemInstruction = { parts: [{ text: SYSTEM_PROMPT }] };
+            // Only Gemini models support tools (googleSearch). Gemma does not.
+            if (!modelId.includes('gemma')) {
                 aiRequestPayload.tools = [{ googleSearch: {} }];
             }
 

@@ -123,7 +123,13 @@ async function callGeminiModel(
     // Both Gemini 3 and Gemma 4 models may return thinking parts
     const parts = candidate?.content?.parts ?? [];
     const answerParts = parts.filter(p => !p.thought && p.text);
-    const text = answerParts.map(p => p.text).join('') || undefined;
+    let text = answerParts.map(p => p.text).join('') || undefined;
+
+    // Gemma 4 (31B) may emit empty or non-empty <|channel>thought ... <channel|> tags
+    // even with thinking disabled. Strip them as a safety fallback.
+    if (text) {
+        text = text.replace(/<\|channel>thought[\s\S]*?<channel\|>\n?/gi, '').trim() || undefined;
+    }
 
     if (!text) {
         return { error: `[${modelId}] Empty response: ${JSON.stringify(aiJson)}` };
@@ -248,7 +254,7 @@ export default async function handler(
             'gemini-3.1-flash-lite-preview',
             'gemini-3-flash-preview',
             'gemini-2.5-flash',
-            'gemma-3-27b-it' // Gemma used as ultimate fallback
+            'gemma-4-31b-it' // Gemma 4 used as ultimate fallback (supports systemInstruction via Gemini API)
         ];
 
         let finalResultText = null;

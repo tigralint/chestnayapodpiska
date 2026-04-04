@@ -156,7 +156,12 @@ export function LegalBot() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    messages: newHistory,
+                    // CRITICAL: Gemma 4 docs require 'No Thinking Content in History'.
+                    // Strip thinking tags from previous model responses before sending.
+                    messages: newHistory.map(m => ({
+                        ...m,
+                        text: m.role === 'model' ? cleanText(m.text) : m.text
+                    })),
                     turnstileToken: captchaToken
                 })
             });
@@ -205,7 +210,10 @@ export function LegalBot() {
                             try {
                                 const data = JSON.parse(trimmedLine.slice(6));
                                 const parts = data.candidates?.[0]?.content?.parts || [];
-                                const newText = parts.map((p: { text?: string }) => p.text).join('');
+                                // Gemma 4: Filter out thinking parts (thought=true) from SSE stream.
+                                // Only show the final answer to the user.
+                                const answerParts = parts.filter((p: { text?: string; thought?: boolean }) => !p.thought);
+                                const newText = answerParts.map((p: { text?: string }) => p.text).join('');
                                 
                                 if (newText) {
                                     fullText += newText;
