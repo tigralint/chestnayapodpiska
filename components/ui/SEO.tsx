@@ -15,7 +15,7 @@ export function SEO({
     title,
     description,
     type = 'website',
-    image = `${SITE_URL}/logo.png`,
+    image = `${SITE_URL}/logo.webp`,
     url = SITE_URL,
     jsonLd,
 }: SEOProps) {

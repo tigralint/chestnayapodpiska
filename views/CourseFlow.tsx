@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { FileText, Info } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -20,6 +20,11 @@ export default function CourseFlow() {
     handleSubmit, handleDownloadWord,
     calculatedRefund, turnstileRef
   } = useCourseFlow();
+
+  // Prefetch heavy docx library in the background so it's ready when the user clicks 'Download'
+  useEffect(() => {
+    import('docx').catch(() => {});
+  }, []);
 
   return (
     <div className="flex flex-col h-full px-4 sm:px-6 pb-12">

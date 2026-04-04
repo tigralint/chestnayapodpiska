@@ -86,19 +86,26 @@ export function DatePicker({ value, onChange, id, label }: DatePickerProps) {
         ? `${parsed.day.toString().padStart(2, '0')}.${(parsed.month + 1).toString().padStart(2, '0')}.${parsed.year}`
         : '';
 
-    // On mobile, render native input
+    // On mobile, render pixel-perfect fake button with invisible native input overlaid
     if (isMobile) {
         return (
             <div className="flex-1 group">
                 {label && <label htmlFor={id} className="block text-sm font-semibold text-slate-300 mb-3 ml-1 group-focus-within:text-accent-cyan transition-colors">{label}</label>}
-                <input
-                    id={id}
-                    type="date"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-[17px] text-white focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 focus:bg-white/10 outline-none transition-all shadow-inner color-scheme-dark focus:scale-[1.01]"
-                    style={{ colorScheme: 'dark' }}
-                    value={value}
-                    onChange={e => onChange(e.target.value)}
-                />
+                <div className="relative w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-[17px] text-white shadow-inner flex justify-between items-center transition-all focus-within:ring-2 focus-within:ring-accent-cyan/50 focus-within:border-accent-cyan/50 focus-within:bg-white/10 focus-within:scale-[1.01] overflow-hidden">
+                    <span>{displayValue || 'Выберите дату'}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
+                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" />
+                    </svg>
+                    
+                    {/* Invisible native input to trigger iOS Native Date Picker Wheel */}
+                    <input
+                        id={id}
+                        type="date"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        value={value}
+                        onChange={e => onChange(e.target.value)}
+                    />
+                </div>
             </div>
         );
     }

@@ -101,33 +101,33 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
     // Placeholder
 
     return (
-        <GlassCard className="hidden lg:flex flex-col flex-grow border-white/5 p-10 opacity-50 select-none relative overflow-hidden shadow-2xl shimmer">
+        <GlassCard className="hidden lg:flex flex-col flex-grow border-white/5 p-10 opacity-50 select-none relative overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent"></div>
 
             {/* Header Skeleton */}
             <div className="flex flex-col items-end space-y-3 mb-12">
-                <div className="w-48 h-3 bg-slate-600/40 rounded-full animate-pulse-slow" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-32 h-3 bg-slate-600/40 rounded-full animate-pulse-slow" style={{ animationDelay: '100ms' }}></div>
-                <div className="w-40 h-3 bg-slate-600/40 rounded-full animate-pulse-slow" style={{ animationDelay: '200ms' }}></div>
+                <div className="w-48 h-3 bg-slate-600/40 rounded-full"></div>
+                <div className="w-32 h-3 bg-slate-600/40 rounded-full"></div>
+                <div className="w-40 h-3 bg-slate-600/40 rounded-full"></div>
             </div>
 
             {/* Title Skeleton */}
-            <div className="w-64 h-5 bg-slate-500/50 rounded-full mx-auto mb-12 animate-pulse-slow" style={{ animationDelay: '300ms' }}></div>
+            <div className="w-64 h-5 bg-slate-500/50 rounded-full mx-auto mb-12"></div>
 
             {/* Body Skeleton */}
             <div className="space-y-5 mb-auto flex flex-col items-start w-full">
-                <div className="w-full h-3 bg-slate-600/30 rounded-full animate-pulse-slow" style={{ animationDelay: '400ms' }}></div>
-                <div className="w-[95%] h-3 bg-slate-600/30 rounded-full animate-pulse-slow" style={{ animationDelay: '500ms' }}></div>
-                <div className="w-[90%] h-3 bg-slate-600/30 rounded-full animate-pulse-slow" style={{ animationDelay: '600ms' }}></div>
-                <div className="w-[75%] h-3 bg-slate-600/30 rounded-full animate-pulse-slow" style={{ animationDelay: '700ms' }}></div>
-                <div className="w-full h-3 bg-slate-600/30 rounded-full mt-8 animate-pulse-slow" style={{ animationDelay: '800ms' }}></div>
-                <div className="w-[85%] h-3 bg-slate-600/30 rounded-full animate-pulse-slow" style={{ animationDelay: '900ms' }}></div>
+                <div className="w-full h-3 bg-slate-600/30 rounded-full"></div>
+                <div className="w-[95%] h-3 bg-slate-600/30 rounded-full"></div>
+                <div className="w-[90%] h-3 bg-slate-600/30 rounded-full"></div>
+                <div className="w-[75%] h-3 bg-slate-600/30 rounded-full"></div>
+                <div className="w-full h-3 bg-slate-600/30 rounded-full mt-8"></div>
+                <div className="w-[85%] h-3 bg-slate-600/30 rounded-full"></div>
             </div>
 
             {/* Footer Skeleton */}
             <div className="flex justify-between mt-12 pt-8 border-t border-white/5">
-                <div className="w-32 h-3 bg-slate-600/40 rounded-full animate-pulse-slow" style={{ animationDelay: '1000ms' }}></div>
-                <div className="w-40 h-3 bg-slate-600/40 rounded-full animate-pulse-slow" style={{ animationDelay: '1100ms' }}></div>
+                <div className="w-32 h-3 bg-slate-600/40 rounded-full"></div>
+                <div className="w-40 h-3 bg-slate-600/40 rounded-full"></div>
             </div>
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

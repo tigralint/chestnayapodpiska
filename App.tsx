@@ -18,7 +18,6 @@ const NotFound = React.lazy(() => import('./views/NotFound'));
 
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { PwaPrompt } from './components/ui/PwaPrompt';
-import { CanvasBackground } from './components/ui/CanvasBackground';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { useAppContext } from './context/AppContext';
 import { Analytics } from "@vercel/analytics/react";
@@ -38,8 +37,22 @@ export default function App() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen relative text-slate-100 overflow-x-hidden z-0">
-      <CanvasBackground />
+    <div className="min-h-[100dvh] relative text-slate-100 overflow-x-hidden z-0">
+      {/* Static abstract ambient gradients */}
+      <div 
+          className="fixed inset-0 w-full h-full pointer-events-none -z-10" 
+          aria-hidden="true"
+          style={{
+              backgroundColor: '#05050A',
+              backgroundImage: `
+                  radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 60%),
+                  radial-gradient(circle at 80% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 65%),
+                  radial-gradient(circle at 30% 80%, rgba(0, 242, 254, 0.08) 0%, transparent 60%),
+                  radial-gradient(circle at 70% 60%, rgba(236, 72, 153, 0.05) 0%, transparent 60%),
+                  radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.04) 0%, transparent 70%)
+              `
+          }}
+      />
 
       <AppHeader />
 
@@ -57,7 +70,7 @@ export default function App() {
       <LegalBot />
 
       <ErrorBoundary>
-        <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">
+        <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-[100dvh] pt-4 md:pt-32 pb-28 md:pb-24">
           {/* Key forces React to unmount and remount the view, ensuring entry animations play every time */}
           <div key={location.pathname} className="h-full w-full view-enter">
             <Suspense fallback={<LoadingSpinner />}>

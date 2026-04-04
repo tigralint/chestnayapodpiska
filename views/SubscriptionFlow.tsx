@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { FileText, ChevronDown, Info } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -22,6 +22,11 @@ export default function SubscriptionFlow() {
     turnstileRef,
     isCustomReason, isRefusal
   } = useClaimFlow();
+
+  // Prefetch heavy docx library in the background so it's ready when the user clicks 'Download'
+  useEffect(() => {
+    import('docx').catch(() => {});
+  }, []);
 
   /** All dropdown options: preset reasons + custom */
   const allReasons = [...REASONS, CUSTOM_REASON_LABEL];

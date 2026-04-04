@@ -92,6 +92,7 @@ export default async function handler(req: Request) {
 
         // 3. Format messages for Gemini API (supports text + inline images for Gemma 4 vision)
         const formattedMessages = messages.map((msg: { role: string; text: string; image?: string }) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const parts: any[] = [{ text: msg.text }];
             // If the message includes a base64 image, add it as inlineData for Gemma 4 vision
             if (msg.image) {
@@ -131,6 +132,7 @@ export default async function handler(req: Request) {
             }).join('\n\n');
 
             dynamicPrompt += `\n\n===== РЕЛЕВАНТНЫЕ ПОШАГОВЫЕ ИНСТРУКЦИИ (из базы знаний) =====\nИспользуй эти данные для точного ответа. Цитируй конкретные шаги и дарк-паттерны:\n\n${guidesContext}`;
+            // eslint-disable-next-line no-console
             console.log(`[RAG] Injected ${relevantGuides.length} guide(s): ${relevantGuides.map((g: Guide) => g.service).join(', ')}`);
         }
 
@@ -148,15 +150,18 @@ export default async function handler(req: Request) {
         const skipReasons: string[] = []; // Track why models failed
 
         for (const modelId of MODELS) {
+            // eslint-disable-next-line no-console
             console.log(`[Assistant] Attempting generation with ${modelId}...`);
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
             // Make a deep copy of formattedMessages
             const localContents = formattedMessages.map(m => ({
                 role: m.role,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 parts: m.parts.map((p: any) => ({ ...p }))
             }));
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const aiRequestPayload: any = {
                 contents: localContents,
                 generationConfig: {
@@ -217,6 +222,7 @@ export default async function handler(req: Request) {
             return new Response(JSON.stringify({ error: `Детали ошибки API: ${lastErrorText}` }), { status: 503 });
         }
 
+        // eslint-disable-next-line no-console
         console.log(`[Assistant] Successfully streaming response using ${finalModelId}`);
 
         // Return SSE stream directly to the client

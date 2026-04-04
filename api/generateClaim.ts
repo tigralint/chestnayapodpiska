@@ -262,6 +262,7 @@ export default async function handler(
         const skipReasons: string[] = [];
 
         for (const modelId of MODELS) {
+            // eslint-disable-next-line no-console
             console.log(`[AI Claim Gen] Attempting generation with ${modelId}...`);
             const result = await callGeminiModel(modelId, prompt, GEMINI_API_KEY);
             

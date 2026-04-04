@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/logo.png" width="160" alt="Честная Подписка Лого" />
+  <img src="./public/logo.webp" width="160" alt="Честная Подписка Лого" />
   <h1>🛡️ Честная Подписка <br/> <sup>(Honest Subscription)</sup></h1>
   
   <p><strong>Бесплатный правовой навигатор и генератор претензий для защиты прав потребителей в цифровой среде.</strong></p>

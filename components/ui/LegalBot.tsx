@@ -96,6 +96,7 @@ export function LegalBot() {
                 })
                 .catch(console.error);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const handleClearChat = () => {
@@ -236,6 +237,7 @@ export function LegalBot() {
 
             const usedModel = response.headers.get('X-AI-Model');
             if (usedModel) {
+                // eslint-disable-next-line no-console
                 console.log('%c[LegalBot AI] Activated Model: ' + usedModel, 'color: #0ea5e9; font-weight: bold; background: #0f172a; padding: 4px 8px; border-radius: 4px;');
             }
             
@@ -308,7 +310,7 @@ export function LegalBot() {
     };
 
     return (
-        <div className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-50">
+        <div className="fixed bottom-28 md:bottom-8 right-4 md:right-8 z-50">
             {/* The Chat Window */}
             {isOpen && (
                 <div className="mb-4 w-[calc(100vw-2rem)] md:w-96 max-w-sm h-[500px] max-h-[70vh] flex flex-col bg-slate-950/40 backdrop-blur-3xl border border-white/5 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(6,182,212,0.15)] animate-slide-up origin-bottom-right ring-1 ring-white/10">
