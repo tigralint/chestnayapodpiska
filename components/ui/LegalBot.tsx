@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, FormEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Turnstile } from '@marsidev/react-turnstile';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import { stripHtml } from 'string-strip-html';
 
 type Message = {
@@ -45,6 +45,7 @@ export function LegalBot() {
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const turnstileRef = useRef<TurnstileInstance>(null);
     
     // Prefix for localStorage
     const STORAGE_KEY = 'chestnayapodpiska_chat_history';
@@ -289,6 +290,10 @@ export function LegalBot() {
             setErrorMsg('Произошла ошибка связи с ИИ.');
             setMessages((prev) => prev.filter(m => m.id !== botMsgId));
         } finally {
+            // Always reset Turnstile after a request to prepare a fresh token for the next message
+            setCaptchaToken('');
+            turnstileRef.current?.reset();
+
             setIsLoading(false);
             // Refresh limits in real time after every message attempt (success or error)
             fetch('/api/chatStatus')
@@ -487,6 +492,7 @@ export function LegalBot() {
                         {/* Turnstile for Bot Protection (visible if requires interaction/refresh) */}
                         <div className={captchaToken ? "hidden" : "mt-3 flex justify-center w-full"}>
                             <Turnstile 
+                                ref={turnstileRef}
                                 siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'} // Test fallback
                                 onSuccess={(token) => setCaptchaToken(token)}
                                 onExpire={() => setCaptchaToken('')} // Clear stale token instantly
