@@ -272,8 +272,9 @@ export default async function handler(req: Request) {
         return new Response(aiResponse.body, {
             headers: {
                 'Content-Type': 'text/event-stream',
-                'Cache-Control': 'no-cache',
+                'Cache-Control': 'no-cache, no-transform',
                 'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no',
                 'X-AI-Model': finalModelId,
                 'X-AI-Skip-Reasons': skipReasons.join(', ')
             }
