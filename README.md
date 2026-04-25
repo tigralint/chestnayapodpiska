@@ -89,12 +89,18 @@
 ## 🛡 Безопасность и надежность
 
 Мы уделяем огромное внимание защите серверных мощностей и данных:
+- **Telegram Webhook Authentication**: Верификация входящих запросов через `X-Telegram-Bot-Api-Secret-Token`.
+- **IP-хэширование (SHA-256)**: IP-адреса пользователей хэшируются перед передачей в любые системы мониторинга.
+- **API-ключи в заголовках**: Все ключи (Gemini API) передаются через защищённые HTTP-заголовки, а не URL-параметры.
 - **Cloudflare Turnstile**: Интегрированная невидимая капча для защиты API от ботов.
 - **Serverless Rate Limiting**: Жёсткие лимиты на базе Redis, предотвращающие перерасход бюджета на AI.
-- **Input Sanitization**: Многоуровневая очистка пользовательского ввода для предотвращения Prompt Injection.
+- **Input Sanitization**: Многоуровневая очистка пользовательского ввода (Zod + sanitizeInput) для предотвращения Prompt Injection.
 - **Strict CSP & CORS**: Заголовки `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` настроены в `vercel.json`.
 - **Defensive API**: Защищенный парсинг `res.json().catch()` во всех сетевых сервисах, предотвращающий падения при нестабильном ответе сервера.
 - **Graceful Degradation**: Тщательно проработанные Error Boundaries и fallback-интерфейсы.
+- **Structured JSON Logging**: Все серверные логи в формате JSON для безопасного мониторинга.
+
+> Подробнее: [SECURITY.md](.github/SECURITY.md) | [Политика конфиденциальности](https://chestnayapodpiska.vercel.app/privacy)
 
 ---
 

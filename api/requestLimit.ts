@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { hashIp } from '../utils/hashIp';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -18,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(500).json({ error: 'Telegram misconfigured.' });
         }
 
-        const messageText = `🤖 <b>Запрос Лимитов Чат-Бота!</b>\n\n🌐 <b>IP:</b> <code>${ip}</code>\n\nПользователь исчерпал лимит в 15 запросов/сут и просит добавить еще.\nОдобрить сброс лимитов для этого IP?`;
+        const messageText = `🤖 <b>Запрос Лимитов Чат-Бота!</b>\n\n🌐 <b>IP Hash:</b> <code>${hashIp(ip)}</code>\n\nПользователь исчерпал лимит в 15 запросов/сут и просит добавить еще.\nОдобрить сброс лимитов для этого IP?`;
 
         await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',

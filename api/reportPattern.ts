@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
+import { hashIp } from '../utils/hashIp';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
@@ -97,7 +98,7 @@ export default async function handler(
 📝 <b>Описание:</b> ${description}
 
 👤 <b>Контакты:</b> ${contactInfo}
-🌐 <b>IP:</b> ${clientIp}`;
+🌐 <b>IP Hash:</b> <code>${hashIp(clientIp)}</code>`;
 
         const tgResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',

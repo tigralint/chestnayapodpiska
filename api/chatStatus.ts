@@ -31,7 +31,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ 
             remaining: limitRes.remaining,
             limit: limitRes.limit,
-            ip: ip
         });
 
     } catch (error) {

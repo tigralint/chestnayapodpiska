@@ -61,11 +61,11 @@ import { Redis } from '@upstash/redis';
 
 // --- Redis Rate Limiter (60 req/hour per IP) ---
 // Instantiate only if credentials are present, falling back gracefully locally if not set
-const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
+const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     ? new Ratelimit({
         redis: Redis.fromEnv(),
         limiter: Ratelimit.slidingWindow(60, "1 h"),
-      }) 
+    })
     : null;
 
 // --- Gemini API Helper ---
@@ -76,25 +76,35 @@ interface GeminiCallResult {
     quotaExhausted?: boolean;
 }
 
+interface GeminiSafetySetting {
+    category: string;
+    threshold: string;
+}
+
 async function callGeminiModel(
     modelId: string,
     prompt: string,
     apiKey: string,
 ): Promise<GeminiCallResult> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
+
+    const safetySettings: GeminiSafetySetting[] = [
+        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+    ];
 
     const aiResponse = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+        },
         body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { temperature: 0.1 },
-            safetySettings: [
-                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-            ],
+            safetySettings,
         }),
         signal: AbortSignal.timeout(60_000),
     });
@@ -263,21 +273,21 @@ export default async function handler(
 
         for (const modelId of MODELS) {
             // eslint-disable-next-line no-console
-            console.log(`[AI Claim Gen] Attempting generation with ${modelId}...`);
+            console.log(JSON.stringify({ event: 'claim_attempt', model: modelId }));
             const result = await callGeminiModel(modelId, prompt, GEMINI_API_KEY);
-            
+
             if (result.text) {
                 finalResultText = result.text;
                 finalModelId = modelId;
                 break; // Found a working model, exit loop
             }
             if (result.quotaExhausted) {
-                console.warn(`[AI Claim Gen] ${modelId} quota exhausted, falling back to next model.`);
+                console.warn(JSON.stringify({ event: 'claim_quota_exhausted', model: modelId }));
                 skipReasons.push(`${modelId}:429_QUOTA`);
                 continue;
             }
             if (result.error) {
-                console.error(`[AI Claim Gen] ${modelId} generalized error:`, result.error);
+                console.error(JSON.stringify({ event: 'claim_model_error', model: modelId, error: result.error }));
                 skipReasons.push(`${modelId}:ERROR`);
                 continue; // Try next model even on general errors to maximize availability
             }

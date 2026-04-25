@@ -3,7 +3,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/(claim|course|guides|simulator|radar|faq|terms)(.*)",
+      "source": "/(claim|course|guides|simulator|radar|faq|terms|privacy)(.*)",
       "destination": "/index.html"
     },
     {

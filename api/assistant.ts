@@ -7,6 +7,25 @@ import { Redis } from '@upstash/redis';
 import { GUIDES_DB } from '../data/guides';
 import type { Guide } from '../types';
 
+/** Gemini API type definitions — eliminates `any` across the file */
+interface GeminiPart {
+    text?: string;
+    inlineData?: { mimeType: string; data: string };
+    thought?: boolean;
+}
+
+interface GeminiContent {
+    role: string;
+    parts: GeminiPart[];
+}
+
+interface GeminiRequestPayload {
+    contents: GeminiContent[];
+    generationConfig: { temperature: number };
+    systemInstruction?: { parts: { text: string }[] };
+    tools?: { googleSearch: Record<string, never> }[];
+}
+
 const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     ? new Ratelimit({
         redis: Redis.fromEnv(),
@@ -14,7 +33,7 @@ const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_RED
     })
     : null;
 
-const SYSTEM_PROMPT = `Ты — юридический ассистент сервиса «Честная Подписка» (chestnayapodpiska.ru).
+const SYSTEM_PROMPT = `Ты — юридический ассистент сервиса «Честная Подписка» (chestnayapodpiska.vercel.app).
 Твоя задача — консультировать пользователей сугубо по вопросам возврата средств за платные подписки и онлайн-курсы на территории РФ (применяя ГК РФ и Закон о защите прав потребителей).
 
 О СОЗДАТЕЛЕ И ПРОЕКТЕ:
@@ -91,9 +110,8 @@ export default async function handler(req: Request) {
         }
 
         // 3. Format messages for Gemini API (supports text + inline images for Gemma 4 vision)
-        const formattedMessages = messages.map((msg: { role: string; text: string; image?: string }) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const parts: any[] = [{ text: msg.text }];
+        const formattedMessages: GeminiContent[] = messages.map((msg: { role: string; text: string; image?: string }) => {
+            const parts: GeminiPart[] = [{ text: msg.text }];
             // If the message includes a base64 image, add it as inlineData for Gemma 4 vision
             if (msg.image) {
                 parts.unshift({
@@ -133,7 +151,7 @@ export default async function handler(req: Request) {
 
             dynamicPrompt += `\n\n===== РЕЛЕВАНТНЫЕ ПОШАГОВЫЕ ИНСТРУКЦИИ (из базы знаний) =====\nИспользуй эти данные для точного ответа. Цитируй конкретные шаги и дарк-паттерны:\n\n${guidesContext}`;
             // eslint-disable-next-line no-console
-            console.log(`[RAG] Injected ${relevantGuides.length} guide(s): ${relevantGuides.map((g: Guide) => g.service).join(', ')}`);
+            console.log(JSON.stringify({ event: 'rag_injection', guideCount: relevantGuides.length, guides: relevantGuides.map((g: Guide) => g.service) }));
         }
 
         // --- Model Cascade ---
@@ -151,18 +169,16 @@ export default async function handler(req: Request) {
 
         for (const modelId of MODELS) {
             // eslint-disable-next-line no-console
-            console.log(`[Assistant] Attempting generation with ${modelId}...`);
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+            console.log(JSON.stringify({ event: 'assistant_attempt', model: modelId }));
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse`;
 
             // Make a deep copy of formattedMessages
-            const localContents = formattedMessages.map(m => ({
+            const localContents: GeminiContent[] = formattedMessages.map(m => ({
                 role: m.role,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                parts: m.parts.map((p: any) => ({ ...p }))
+                parts: m.parts.map((p: GeminiPart) => ({ ...p }))
             }));
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const aiRequestPayload: any = {
+            const aiRequestPayload: GeminiRequestPayload = {
                 contents: localContents,
                 generationConfig: {
                     temperature: 0.2, // Need reliable legal answers
@@ -183,6 +199,7 @@ export default async function handler(req: Request) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-goog-api-key': GEMINI_API_KEY,
                 },
                 body: JSON.stringify(aiRequestPayload)
             });
@@ -223,7 +240,7 @@ export default async function handler(req: Request) {
         }
 
         // eslint-disable-next-line no-console
-        console.log(`[Assistant] Successfully streaming response using ${finalModelId}`);
+        console.log(JSON.stringify({ event: 'assistant_success', model: finalModelId, skipped: skipReasons }));
 
         // Return SSE stream directly to the client
         return new Response(aiResponse.body, {

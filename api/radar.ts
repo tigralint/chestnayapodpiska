@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
+import { hashIp } from '../utils/hashIp';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { RadarAlertResponse, RadarStoredData, AlertCategory, AlertSeverity } from '../types';
@@ -138,7 +139,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
             // Telegram Notification
             if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-                const messageText = `📡 <b>Радар: Новый сигнал! (Ожидает модерации)</b>\n\n📌 <b>Сервис:</b> ${sanitizedData.serviceName}\n🏙 <b>Город:</b> ${sanitizedData.city}\n💸 <b>Сумма:</b> ${sanitizedData.amount ? sanitizedData.amount + ' ₽' : 'Не указана'}\n🏷 <b>Категория:</b> ${getCategoryName(sanitizedData.category)}\n\n📝 <b>Сюжет:</b> ${sanitizedData.description}\n\n🌐 <b>IP:</b> ${clientIp}`;
+                const messageText = `📡 <b>Радар: Новый сигнал! (Ожидает модерации)</b>\n\n📌 <b>Сервис:</b> ${sanitizedData.serviceName}\n🏙 <b>Город:</b> ${sanitizedData.city}\n💸 <b>Сумма:</b> ${sanitizedData.amount ? sanitizedData.amount + ' ₽' : 'Не указана'}\n🏷 <b>Категория:</b> ${getCategoryName(sanitizedData.category)}\n\n📝 <b>Сюжет:</b> ${sanitizedData.description}\n\n🌐 <b>IP Hash:</b> <code>${hashIp(clientIp)}</code>`;
 
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',

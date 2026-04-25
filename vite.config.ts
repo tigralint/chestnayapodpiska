@@ -33,13 +33,25 @@ export default defineConfig({
             src: '/logo.webp',
             sizes: '192x192',
             type: 'image/webp',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/logo.webp',
+            sizes: '192x192',
+            type: 'image/webp',
+            purpose: 'maskable'
           },
           {
             src: '/logo.webp',
             sizes: '512x512',
             type: 'image/webp',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/logo.webp',
+            sizes: '512x512',
+            type: 'image/webp',
+            purpose: 'maskable'
           }
         ]
       },

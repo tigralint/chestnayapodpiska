@@ -32,6 +32,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
+    // Verify webhook authenticity via secret token set during webhook registration
+    const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (webhookSecret) {
+        const receivedToken = req.headers['x-telegram-bot-api-secret-token'] as string;
+        if (receivedToken !== webhookSecret) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+    }
+
     if (!redis) {
         return res.status(500).json({ error: 'Redis is not configured' });
     }
