@@ -11,6 +11,8 @@ export type Message = {
 
 const STORAGE_KEY = 'chestnayapodpiska_chat_history';
 const EXPIRY_HOURS = 24;
+/** Maximum dimension (width or height) for image resize before sending to AI */
+const IMAGE_RESIZE_MAX_PX = 1024;
 
 /**
  * Core logic for the LegalBot chat interface.
@@ -30,6 +32,8 @@ export function useLegalBot() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const turnstileRef = useRef<TurnstileInstance>(null);
+    /** AbortController for the current streaming fetch — prevents resource leaks */
+    const abortRef = useRef<AbortController | null>(null);
 
     // Load history on mount
     useEffect(() => {
@@ -43,9 +47,14 @@ export function useLegalBot() {
                     localStorage.removeItem(STORAGE_KEY);
                 }
             }
-        } catch (e) {
-            console.error('Failed to parse chat history', e);
+        } catch (e: unknown) {
+            if (import.meta.env.DEV) console.error('Failed to parse chat history', e);
         }
+    }, []);
+
+    // Cleanup: abort any in-flight request on unmount
+    useEffect(() => {
+        return () => { abortRef.current?.abort(); };
     }, []);
 
     // Scroll to bottom + save to localStorage when messages change
@@ -73,8 +82,9 @@ export function useLegalBot() {
                         setLimits({ remaining: d.remaining, limit: d.limit || 15 });
                     }
                 })
-                .catch(console.error);
+                .catch(() => { /* silently ignore fetch errors */ });
         }
+        // Intentionally depends only on isOpen – re-fetch limits when chat panel opens/closes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
@@ -103,8 +113,8 @@ export function useLegalBot() {
             } else {
                 alert('Ошибка при отправке заявки.');
             }
-        } catch (e) {
-            console.error(e);
+        } catch (e: unknown) {
+            if (import.meta.env.DEV) console.error(e);
         } finally {
             setIsRequestingLimit(false);
         }
@@ -115,7 +125,7 @@ export function useLegalBot() {
         reader.onload = () => {
             const img = new Image();
             img.onload = () => {
-                const MAX = 1024;
+                const MAX = IMAGE_RESIZE_MAX_PX;
                 let w = img.width, h = img.height;
                 if (w > MAX || h > MAX) {
                     if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
@@ -123,7 +133,9 @@ export function useLegalBot() {
                 }
                 const canvas = document.createElement('canvas');
                 canvas.width = w; canvas.height = h;
-                canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+                const ctx = canvas.getContext('2d');
+                if (!ctx) { if (import.meta.env.DEV) console.error('Failed to get canvas 2d context'); return; }
+                ctx.drawImage(img, 0, 0, w, h);
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 setPendingImage(dataUrl);
             };
@@ -155,7 +167,7 @@ export function useLegalBot() {
                     setLimits({ remaining: d.remaining, limit: d.limit || 15 });
                 }
             })
-            .catch(console.error);
+            .catch(() => { /* silently ignore fetch errors */ });
     };
 
     const handleSubmit = async (e: FormEvent) => {
@@ -182,10 +194,15 @@ export function useLegalBot() {
         setIsLoading(true);
         setErrorMsg(null);
 
-        const botMsgId = (Date.now() + 1).toString();
+        const botMsgId = crypto.randomUUID();
         setMessages((prev) => [...prev, { role: 'model', text: '', id: botMsgId }]);
 
         try {
+            // Abort any previous in-flight request
+            abortRef.current?.abort();
+            const controller = new AbortController();
+            abortRef.current = controller;
+
             const response = await fetch('/api/assistant', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -196,7 +213,8 @@ export function useLegalBot() {
                         ...(m.imagePreview ? { image: m.imagePreview.split(',')[1] } : {})
                     })),
                     turnstileToken: captchaToken
-                })
+                }),
+                signal: controller.signal,
             });
 
             if (!response.ok) {
@@ -211,15 +229,15 @@ export function useLegalBot() {
                 throw new Error('No readable stream');
             }
 
-            const usedModel = response.headers.get('X-AI-Model');
-            if (usedModel) {
-                // eslint-disable-next-line no-console
-                console.log('%c[LegalBot AI] Activated Model: ' + usedModel, 'color: #0ea5e9; font-weight: bold; background: #0f172a; padding: 4px 8px; border-radius: 4px;');
-            }
-
-            const skippedModels = response.headers.get('X-AI-Skip-Reasons');
-            if (skippedModels) {
-                console.warn('[LegalBot AI] Models skipped before success:', skippedModels);
+            if (import.meta.env.DEV) {
+                const usedModel = response.headers.get('X-AI-Model');
+                if (usedModel) {
+                    console.warn('%c[LegalBot AI] Activated Model: ' + usedModel, 'color: #0ea5e9; font-weight: bold; background: #0f172a; padding: 4px 8px; border-radius: 4px;');
+                }
+                const skippedModels = response.headers.get('X-AI-Skip-Reasons');
+                if (skippedModels) {
+                    console.warn('[LegalBot AI] Models skipped before success:', skippedModels);
+                }
             }
 
             const reader = response.body.getReader();
@@ -251,19 +269,24 @@ export function useLegalBot() {
                                         prev.map(m => m.id === botMsgId ? { ...m, text: fullText } : m)
                                     );
                                 }
-                            } catch (e) {
-                                console.warn('JSON Parse inner error', e, trimmedLine);
+                            } catch (e: unknown) {
+                                if (import.meta.env.DEV) console.warn('JSON Parse inner error', e, trimmedLine);
                             }
                         }
                     }
                 }
             }
 
-        } catch {
-            setErrorMsg('Произошла ошибка связи с ИИ.');
+        } catch (e: unknown) {
+            // Don't show error for intentionally aborted requests
+            if (e instanceof DOMException && e.name === 'AbortError') {
+                // Silently ignore — user sent a new message or component unmounted
+            } else {
+                setErrorMsg('Произошла ошибка связи с ИИ.');
+            }
             setMessages((prev) => prev.filter(m => m.id !== botMsgId));
         } finally {
-            setCaptchaToken('');
+            setCaptchaToken(null);
             turnstileRef.current?.reset();
             setIsLoading(false);
             refreshLimits();

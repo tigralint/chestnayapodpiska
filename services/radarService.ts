@@ -1,5 +1,17 @@
 import { RadarReport, RadarAlertResponse } from '../types';
 
+/** Runtime type guard for RadarAlertResponse[] */
+function isRadarAlertArray(data: unknown): data is RadarAlertResponse[] {
+    return Array.isArray(data) && data.every(
+        (item) => typeof item === 'object' && item !== null && 'id' in item && 'severity' in item
+    );
+}
+
+/** Runtime type guard for submit response */
+function isSubmitResponse(data: unknown): data is { success: boolean; id?: string } {
+    return typeof data === 'object' && data !== null && 'success' in data;
+}
+
 export const RadarService = {
     async getAlerts(category?: string, limit: number = 20): Promise<RadarAlertResponse[]> {
         const url = new URL('/api/radar', window.location.origin);
@@ -10,9 +22,9 @@ export const RadarService = {
             headers: { 'Content-Type': 'application/json' }
         });
         if (!res.ok) throw new Error('Не удалось загрузить данные');
-        return res.json().catch(() => {
-            throw new Error('Сервер вернул некорректный ответ');
-        });
+        const data: unknown = await res.json().catch(() => { throw new Error('Сервер вернул некорректный ответ'); });
+        if (!isRadarAlertArray(data)) throw new Error('Некорректный формат данных');
+        return data;
     },
 
     async submitAlert(data: RadarReport): Promise<{ success: boolean; id?: string }> {
@@ -25,8 +37,9 @@ export const RadarService = {
             const errData = await res.json().catch(() => ({}));
             throw new Error(errData.error || 'Server error');
         }
-        return res.json().catch(() => {
-            throw new Error('Сервер вернул некорректный ответ');
-        });
+        const result: unknown = await res.json().catch(() => { throw new Error('Сервер вернул некорректный ответ'); });
+        if (!isSubmitResponse(result)) throw new Error('Некорректный формат ответа');
+        return result;
     }
 };
+

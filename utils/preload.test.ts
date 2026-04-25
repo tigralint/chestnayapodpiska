@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+﻿import { describe, it, expect, vi } from 'vitest';
 import { preloadRoute } from './preload';
 
 // Mock the dynamic imports
@@ -21,7 +21,7 @@ describe('preloadRoute', () => {
     });
 
     it('should not preload the same route twice (idempotency)', () => {
-        // Call twice — should not throw or cause issues
+        // Call twice – should not throw or cause issues
         preloadRoute('/claim');
         preloadRoute('/claim');
     });

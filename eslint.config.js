@@ -30,7 +30,7 @@ export default [
                 varsIgnorePattern: '^_',
             }],
             '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/no-non-null-assertion': 'off',
+            '@typescript-eslint/no-non-null-assertion': 'error',
             ...reactHooksPlugin.configs.recommended.rules,
             'no-undef': 'off',
             'no-unused-vars': 'off',

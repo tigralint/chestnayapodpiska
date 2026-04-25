@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock docx library — constructors need to be actual classes
+// Mock docx library – constructors need to be actual classes
 class MockParagraph { constructor(public opts: unknown) {} }
 class MockTextRun { constructor(public opts: unknown) {} }
 class MockDocument { constructor(public opts: unknown) {} }

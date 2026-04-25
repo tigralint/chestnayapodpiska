@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { Award } from '../icons';
 
 interface SimulatorResultPanelProps {
@@ -24,7 +24,7 @@ export function SimulatorResultPanel({ reset }: SimulatorResultPanelProps) {
 
                     <div className="bg-white/5 p-6 rounded-2xl border border-white/10 mb-8 text-left shadow-inner">
                         <p className="text-sm text-slate-400 leading-relaxed italic">
-                            <span className="text-accent-cyan font-bold block mb-1 not-italic">Важно знать:</span> Манипулятивные техники (дарк-паттерны) ограничивают ваше право на свободный выбор. Помните, что доступность отмены и прозрачность условий — признаки добросовестного сервиса. В спорных ситуациях закон о защите прав потребителей помогает восстановить справедливость.
+                            <span className="text-accent-cyan font-bold block mb-1 not-italic">Важно знать:</span> Манипулятивные техники (дарк-паттерны) ограничивают ваше право на свободный выбор. Помните, что доступность отмены и прозрачность условий – признаки добросовестного сервиса. В спорных ситуациях закон о защите прав потребителей помогает восстановить справедливость.
                         </p>
                     </div>
 

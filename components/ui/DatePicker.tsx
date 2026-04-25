@@ -31,7 +31,7 @@ function formatDate(year: number, month: number, day: number): string {
 
 function parseDate(iso: string): { year: number; month: number; day: number } {
     const [y, m, d] = iso.split('-').map(Number);
-    return { year: y!, month: m! - 1, day: d! };
+    return { year: y ?? 2026, month: (m ?? 1) - 1, day: d ?? 1 };
 }
 
 /** Use native date picker on mobile (< 768px) for better UX */
@@ -49,7 +49,7 @@ function useIsMobile() {
 export function DatePicker({ value, onChange, id, label }: DatePickerProps) {
     const isMobile = useIsMobile();
     const [isOpen, setIsOpen] = useState(false);
-    const parsed = parseDate(value || new Date().toISOString().split('T')[0]!);
+    const parsed = parseDate(value || (new Date().toISOString().split('T')[0] ?? ''));
     const [viewYear, setViewYear] = useState(parsed.year);
     const [viewMonth, setViewMonth] = useState(parsed.month);
     const containerRef = useRef<HTMLDivElement>(null);

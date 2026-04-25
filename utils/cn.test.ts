@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+﻿import { describe, it, expect } from 'vitest';
 import { cn } from './cn';
 
-describe('cn — class name merger', () => {
+describe('cn – class name merger', () => {
     it('should merge simple class names', () => {
         expect(cn('foo', 'bar')).toBe('foo bar');
     });

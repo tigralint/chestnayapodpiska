@@ -3,11 +3,11 @@ import { z } from 'zod';
 import { hashIp } from '../utils/hashIp';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-
-interface TurnstileVerifyResponse {
-    success: boolean;
-    'error-codes'?: string[];
-}
+import { escapeHtml } from '../utils/escapeHtml';
+import { getClientIp } from '../utils/getClientIp';
+import type { TurnstileVerifyResponse } from '../utils/turnstile';
+import { TURNSTILE_TIMEOUT_MS } from '../utils/turnstile';
+import { sanitizeForStorage } from '../utils/sanitize';
 
 export const reportSchema = z.object({
     serviceName: z.string().min(1, 'Укажите название сервиса').max(100, 'Слишком длинное название'),
@@ -18,12 +18,7 @@ export const reportSchema = z.object({
 
 export type ReportData = z.infer<typeof reportSchema>;
 
-function sanitizeInput(input: string, maxLength = 2000): string {
-    return input
-        .slice(0, maxLength)
-        .replace(/<\/?[a-z_][a-z0-9_]*>/gi, '') // Strip XML/HTML tags
-        .trim();
-}
+
 
 const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     ? new Ratelimit({
@@ -40,16 +35,16 @@ export default async function handler(
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const clientIp = (request.headers['x-vercel-forwarded-for'] as string)?.split(',')[0]?.trim()
-        ?? (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-        ?? request.socket?.remoteAddress
-        ?? 'unknown';
+    const clientIp = getClientIp(request);
 
     if (ratelimit) {
         const { success } = await ratelimit.limit(clientIp);
         if (!success) {
             return response.status(429).json({ error: 'Слишком много запросов. Попробуйте попозже.' });
         }
+    } else if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production') {
+        console.error(JSON.stringify({ event: 'reportPattern_ratelimit_missing', critical: true }));
+        return response.status(500).json({ error: 'Сервис временно недоступен.' });
     }
 
     const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
@@ -79,7 +74,7 @@ export default async function handler(
         const turnstileCheck = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
             body: formData,
-            signal: AbortSignal.timeout(8_000),
+            signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
         });
 
         const turnstileRes = await turnstileCheck.json() as TurnstileVerifyResponse;
@@ -88,16 +83,16 @@ export default async function handler(
         }
 
         // Send to Telegram
-        const serviceName = sanitizeInput(validData.serviceName, 100);
-        const description = sanitizeInput(validData.description, 2000);
-        const contactInfo = validData.contactInfo ? sanitizeInput(validData.contactInfo, 200) : 'Не указан';
+        const serviceName = sanitizeForStorage(validData.serviceName, 100);
+        const description = sanitizeForStorage(validData.description);
+        const contactInfo = validData.contactInfo ? sanitizeForStorage(validData.contactInfo, 200) : 'Не указан';
 
         const messageText = `🚨 <b>Новая уловка!</b>
 
-📌 <b>Сервис:</b> ${serviceName}
-📝 <b>Описание:</b> ${description}
+📌 <b>Сервис:</b> ${escapeHtml(serviceName)}
+📝 <b>Описание:</b> ${escapeHtml(description)}
 
-👤 <b>Контакты:</b> ${contactInfo}
+👤 <b>Контакты:</b> ${escapeHtml(contactInfo)}
 🌐 <b>IP Hash:</b> <code>${hashIp(clientIp)}</code>`;
 
         const tgResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -114,7 +109,8 @@ export default async function handler(
         });
 
         if (!tgResponse.ok) {
-            console.error('Telegram API error:', await tgResponse.text());
+            const tgErrText = await tgResponse.text().catch(() => 'Unknown');
+            console.error(JSON.stringify({ event: 'reportPattern_tg_error', status: tgResponse.status, body: tgErrText }));
             return response.status(500).json({ error: 'Не удалось отправить сообщение в Telegram. Попробуйте позже.' });
         }
 
@@ -125,7 +121,7 @@ export default async function handler(
             event: 'reportPattern_error',
             ip: clientIp,
             error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
+            ...(process.env.VERCEL_ENV !== 'production' && { stack: error instanceof Error ? error.stack : undefined }),
             timestamp: new Date().toISOString(),
         }));
         return response.status(500).json({ error: 'Внутренняя ошибка сервера. Попробуйте позже.' });

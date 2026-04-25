@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { MapPin, Radio, AlertCircle, X, CheckCircle } from '../components/icons';
 import { ALERTS_SEED } from '../data/radar-seed';
@@ -8,6 +8,7 @@ import { ViewHeader } from '../components/layout/ViewHeader';
 import { useRadar } from '../hooks/useRadar';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import { AlertCategory, RadarReport } from '../types';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 export default function RadarView() {
   const { alerts, loading, error, categoryFilter, setCategoryFilter, submitReport } = useRadar();
@@ -24,6 +25,10 @@ export default function RadarView() {
     turnstileToken: undefined
   });
   const turnstileRef = useRef<TurnstileInstance | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const closeModal = useCallback(() => setShowModal(false), []);
+  useFocusTrap(modalRef, showModal, closeModal);
 
   const displayAlerts = alerts.length > 0 ? alerts : (loading ? [] : ALERTS_SEED);
 
@@ -42,7 +47,7 @@ export default function RadarView() {
            setTimeout(() => setModalState('form'), 500);
        }, 2000);
     } catch(err: unknown) {
-       console.error(err);
+       if (import.meta.env.DEV) console.error(err);
        const message = err instanceof Error ? err.message : 'Ошибка отправки';
        alert(message === 'Server error' ? "Ошибка отправки." : message);
     } finally {
@@ -109,7 +114,7 @@ export default function RadarView() {
 
           {/* Alerts Feed */}
           <div className="lg:col-span-2 space-y-4">
-            {error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl mb-4 text-center">{error} — показаны старые записи</div>}
+            {error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl mb-4 text-center">{error} – показаны старые записи</div>}
             
             {loading && alerts.length === 0 ? (
                // Skeletons
@@ -176,9 +181,9 @@ export default function RadarView() {
       {/* Form Modal */}
       {showModal && createPortal(
           <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 animate-fade-in py-10">
-             <div className="absolute inset-0 bg-[#05050A]/95" onClick={() => setShowModal(false)}></div>
-             <div className="w-full max-w-lg bg-[#0a0f1c] rounded-[2.5rem] p-8 relative z-10 border border-accent-purple/30 shadow-[0_0_50px_rgba(168,85,247,0.15)] max-h-[95vh] overflow-y-auto custom-scrollbar">
-               <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+             <div className="absolute inset-0 bg-[#05050A]/95" onClick={closeModal}></div>
+             <div ref={modalRef} className="w-full max-w-lg bg-[#0a0f1c] rounded-[2.5rem] p-8 relative z-10 border border-accent-purple/30 shadow-[0_0_50px_rgba(168,85,247,0.15)] max-h-[95vh] overflow-y-auto custom-scrollbar">
+               <button onClick={closeModal} className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors" aria-label="Закрыть модальное окно"><X className="w-5 h-5" /></button>
                
                {modalState === 'form' ? (
                  <form onSubmit={handleSubmit} className="flex flex-col gap-4">

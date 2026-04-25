@@ -129,7 +129,7 @@ export default function SubscriptionFlow() {
                     const nextIdx = e.key === 'ArrowDown'
                       ? Math.min(currentIdx + 1, allReasons.length - 1)
                       : Math.max(currentIdx - 1, 0);
-                    const selected = allReasons[nextIdx]!;
+                    const selected = allReasons[nextIdx] ?? '';
                     if (selected === CUSTOM_REASON_LABEL) {
                       setData({ ...data, reason: CUSTOM_REASON_VALUE });
                     } else {
@@ -182,7 +182,7 @@ export default function SubscriptionFlow() {
               </div>
             </div>
 
-            {/* Custom Reason Textarea — shown when "Другое" is selected */}
+            {/* Custom Reason Textarea – shown when "Другое" is selected */}
             {isCustomReason && (
               <div className="group animate-slide-up">
                 <label htmlFor="customReasonInput" className={`block text-sm font-semibold mb-3 ml-1 transition-colors ${fieldErrors.customReason ? 'text-red-400' : 'text-slate-300 group-focus-within:text-accent-cyan'}`}>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+﻿import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, GraduationCap, ArrowRight, BookOpen, Gamepad, Radio } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
@@ -43,7 +43,7 @@ export default function Dashboard() {
   return (
     <div className="w-full flex flex-col items-center">
       <SEO
-        title="Честная Подписка — Верните свои деньги"
+        title="Честная Подписка – Верните свои деньги"
         description="Бесплатный ИИ-сервис для генерации юридически грамотных претензий на возврат средств за подписки и онлайн-курсы."
         jsonLd={appJsonLd}
       />

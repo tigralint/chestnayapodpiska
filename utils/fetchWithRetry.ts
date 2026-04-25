@@ -51,7 +51,7 @@ export async function fetchWithRetry(url: string, options: RequestInit, retryOpt
             }
 
             attempt++;
-            console.warn(`[API] fetchWithRetry attempt ${attempt}/${maxRetries} failed:`, error instanceof Error ? error.message : error);
+            if (import.meta.env.DEV) console.warn(`[API] fetchWithRetry attempt ${attempt}/${maxRetries} failed:`, error instanceof Error ? error.message : error);
 
             if (attempt >= maxRetries) {
                 throw new ApiError(503, 'Удаленный сервер перегружен (ошибка 429/500). Попробуйте сгенерировать претензию через минуту.');

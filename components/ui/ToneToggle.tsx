@@ -1,4 +1,4 @@
-import { Tone } from '../../types';
+﻿import { Tone } from '../../types';
 import { Info } from '../icons';
 
 const TONE_THEMES = {
@@ -32,9 +32,9 @@ export function ToneToggle({ tone, onToneChange, theme, softPreview, hardPreview
                     <Info className="w-4 h-4 text-slate-400 hover:text-white transition-colors" />
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-4 real-glass-panel rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-300 shadow-xl z-50 text-xs text-slate-300 font-normal border border-white/20">
                         <span className="text-white font-bold mb-1 block">Заявление или Претензия?</span>
-                        <span className="text-white font-semibold">Заявление (мягко)</span> — вежливая просьба о возврате, хорошо работает для адекватных сервисов.
+                        <span className="text-white font-semibold">Заявление (мягко)</span> – вежливая просьба о возврате, хорошо работает для адекватных сервисов.
                         <br/><br/>
-                        <span className="text-white font-semibold">Претензия (жестко)</span> — официальное досудебное требование со ссылками на КоАП и ЗоЗПП. Применяйте, если вам уже отказали или проигнорировали.
+                        <span className="text-white font-semibold">Претензия (жестко)</span> – официальное досудебное требование со ссылками на КоАП и ЗоЗПП. Применяйте, если вам уже отказали или проигнорировали.
                         <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white/20"></div>
                     </div>
                 </div>

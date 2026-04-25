@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+﻿import { describe, it, expect } from 'vitest';
 import { fuzzyMatch } from './fuzzyMatch';
 
 describe('fuzzyMatch', () => {
@@ -26,7 +26,7 @@ describe('fuzzyMatch', () => {
     });
 
     it('matches with up to 2 typos for longer queries', () => {
-        // "скилбкос" vs "скилбокс" — 2 edits, query.length > 4
+        // "скилбкос" vs "скилбокс" – 2 edits, query.length > 4
         expect(fuzzyMatch('скилбкос', 'скилбокс')).toBe(true);
     });
 

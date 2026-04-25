@@ -1,5 +1,20 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { hashIp } from '../utils/hashIp';
+import { getClientIp } from '../utils/getClientIp';
+import { escapeHtml } from '../utils/escapeHtml';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+/** TTL for hash→IP mapping in Redis (24 hours) */
+const IP_MAPPING_TTL_SECONDS = 24 * 60 * 60;
+
+// Rate limit: 5 requests per hour per IP (prevent Telegram spam)
+const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+    ? new Ratelimit({
+        redis: Redis.fromEnv(),
+        limiter: Ratelimit.slidingWindow(5, '1 h'),
+    })
+    : null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -7,10 +22,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const ip = (req.headers['x-vercel-forwarded-for'] as string)?.split(',')[0]?.trim()
-            ?? (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-            ?? req.socket?.remoteAddress
-            ?? 'unknown';
+        const ip = getClientIp(req);
+
+        // Rate limiting — fail-closed in production
+        if (ratelimit) {
+            const { success } = await ratelimit.limit(`requestLimit_${ip}`);
+            if (!success) {
+                return res.status(429).json({ error: 'Слишком много запросов. Попробуйте позже.' });
+            }
+        } else if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production') {
+            console.error(JSON.stringify({ event: 'requestLimit_ratelimit_missing', critical: true }));
+            return res.status(500).json({ error: 'Сервис временно недоступен.' });
+        }
+
+        const ipHash = hashIp(ip);
+
+        // Store hash→IP mapping in Redis so tgWebhook can look it up without exposing raw IP in callback_data
+        const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
+        if (redis) {
+            await redis.set(`limit_request:${ipHash}`, ip, { ex: IP_MAPPING_TTL_SECONDS });
+        }
 
         const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
@@ -19,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(500).json({ error: 'Telegram misconfigured.' });
         }
 
-        const messageText = `🤖 <b>Запрос Лимитов Чат-Бота!</b>\n\n🌐 <b>IP Hash:</b> <code>${hashIp(ip)}</code>\n\nПользователь исчерпал лимит в 15 запросов/сут и просит добавить еще.\nОдобрить сброс лимитов для этого IP?`;
+        const messageText = `🤖 <b>Запрос Лимитов Чат-Бота!</b>\n\n🌐 <b>IP Hash:</b> <code>${escapeHtml(ipHash)}</code>\n\nПользователь исчерпал лимит в 15 запросов/сут и просит добавить еще.\nОдобрить сброс лимитов для этого IP?`;
 
         await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
@@ -30,16 +61,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 parse_mode: 'HTML',
                 reply_markup: {
                     inline_keyboard: [[
-                        { text: "✅ Одобрить и Сбросить Лимит", callback_data: `reset_limit_${ip}` }
+                        { text: "✅ Одобрить и Сбросить Лимит", callback_data: `reset_limit_${ipHash}` }
                     ]]
                 }
-            })
+            }),
+            signal: AbortSignal.timeout(10_000),
         });
 
         return res.status(200).json({ success: true });
 
-    } catch (error) {
-        console.error('Request limit error:', error);
+    } catch (error: unknown) {
+        console.error(JSON.stringify({ event: 'requestLimit_error', error: error instanceof Error ? error.message : String(error) }));
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 }

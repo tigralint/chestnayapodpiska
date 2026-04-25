@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 export interface Level {
     id: number;
@@ -262,7 +262,7 @@ export const LEVELS: Level[] = [
         id: 9,
         title: "Ложный крестик",
         description: "Закройте рекламный баннер.",
-        learningText: "Дарк-паттерн «Fake Close»: Огромный крестик в углу — это часть картинки-ссылки. Настоящая кнопка закрытия спрятана в тексте.",
+        learningText: "Дарк-паттерн «Fake Close»: Огромный крестик в углу – это часть картинки-ссылки. Настоящая кнопка закрытия спрятана в тексте.",
         renderMockUI: (onHit, onMiss) => (
             <div className="w-full max-w-[320px] sm:max-w-sm mx-auto bg-black/80 rounded-3xl overflow-hidden shadow-2xl h-full flex flex-col font-sans relative p-4 justify-center items-center">
                 <div className="absolute inset-0 z-0" onClick={onMiss}></div>

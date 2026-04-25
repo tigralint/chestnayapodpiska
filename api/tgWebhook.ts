@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Redis } from '@upstash/redis';
 import type { RadarStoredData } from '../types';
+import { escapeHtml } from '../utils/escapeHtml';
 
 /** Subset of Telegram Bot API types used by this webhook */
 interface TelegramMessage {
@@ -20,7 +21,24 @@ interface TelegramUpdate {
     callback_query?: TelegramCallbackQuery;
 }
 
+/** Timeout for all outgoing Telegram API requests (ms) */
+const TG_TIMEOUT_MS = 10_000;
+
+/** Validates that a string looks like an IPv4/IPv6 address or 'unknown' (prevents SCAN injection) */
+function isValidIpLike(value: string): boolean {
+    // IPv4, IPv6, or 'unknown' — reject wildcards and glob patterns
+    return /^[\da-fA-F.:]+$/.test(value) || value === 'unknown';
+}
+
 const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
+
+function logError(event: string, error: unknown) {
+    console.error(JSON.stringify({
+        event: `tgWebhook_${event}`,
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString(),
+    }));
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Проверка работоспособности по GET-запросу в браузере
@@ -33,12 +51,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Verify webhook authenticity via secret token set during webhook registration
+    // FAIL-CLOSED: if secret is not configured, reject all requests
     const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-    if (webhookSecret) {
-        const receivedToken = req.headers['x-telegram-bot-api-secret-token'] as string;
-        if (receivedToken !== webhookSecret) {
-            return res.status(403).json({ error: 'Forbidden' });
-        }
+    if (!webhookSecret) {
+        console.error(JSON.stringify({ event: 'tgWebhook_secret_missing', critical: true }));
+        return res.status(500).json({ error: 'Webhook secret not configured' });
+    }
+    const receivedToken = req.headers['x-telegram-bot-api-secret-token'] as string;
+    if (receivedToken !== webhookSecret) {
+        return res.status(403).json({ error: 'Forbidden' });
     }
 
     if (!redis) {
@@ -64,12 +85,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                         method: 'POST',
                         body: JSON.stringify({ chat_id: message.chat.id, text: "На радаре пока пусто." }),
-                        headers: { 'Content-Type': 'application/json' }
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                     });
                 } else {
                     for (const item of items) {
                         const alert = item as RadarStoredData;
-                        const text = `📌 <b>${alert.serviceName}</b> (${alert.city})\n📝 ${alert.description}`;
+                        const text = `📌 <b>${escapeHtml(alert.serviceName)}</b> (${escapeHtml(alert.city)})\n📝 ${escapeHtml(alert.description)}`;
                         await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                             method: 'POST',
                             body: JSON.stringify({
@@ -80,7 +102,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                                     inline_keyboard: [[{ text: '🗑 Удалить с сайта', callback_data: `delradar_${alert.id}` }]]
                                 }
                             }),
-                            headers: { 'Content-Type': 'application/json' }
+                            headers: { 'Content-Type': 'application/json' },
+                            signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                         });
                     }
                 }
@@ -110,7 +133,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             callback_query_id: callbackQuery.id,
                             text: 'Заявка не найдена или уже была обработана.',
                             show_alert: true
-                        })
+                        }),
+                        signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                     });
                 } else {
                     const originalText = message?.text || 'Заявка с Радара';
@@ -135,10 +159,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             body: JSON.stringify({
                                 callback_query_id: callbackQuery.id,
                                 text: isApprove ? 'Одобрено!' : 'Отклонено!'
-                            })
+                            }),
+                            signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                         });
-                    } catch (e) {
-                        console.error('Answer callback error:', e);
+                    } catch (e: unknown) {
+                        logError('answerCallback', e);
                     }
 
                     // 2. Меняем текст сообщения и удаляем кнопки
@@ -152,11 +177,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                                     message_id: message.message_id,
                                     text: newText,
                                     reply_markup: { inline_keyboard: [] }
-                                })
+                                }),
+                                signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                             });
-                            if (!editRes.ok) console.error('TG Edit Error:', await editRes.text());
-                        } catch (e) {
-                            console.error('Edit Message error:', e);
+                            if (!editRes.ok) logError('editMessage', await editRes.text());
+                        } catch (e: unknown) {
+                            logError('editMessage', e);
                         }
                     }
                 }
@@ -176,10 +202,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ callback_query_id: callbackQuery.id, text: 'Удалено навсегда!' })
+                        body: JSON.stringify({ callback_query_id: callbackQuery.id, text: 'Удалено навсегда!' }),
+                        signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                     });
-                } catch (e) {
-                    console.error('[tgWebhook] answerCallbackQuery error:', e);
+                } catch (e: unknown) {
+                    logError('answerCallback', e);
                 }
 
                 if (message && message.chat && message.message_id) {
@@ -192,36 +219,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                                 message_id: message.message_id,
                                 text: (message?.text || 'Заявка с Радара') + '\n\n🗑 Удалено с сайта.',
                                 reply_markup: { inline_keyboard: [] }
-                            })
+                            }),
+                            signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                         });
-                    } catch (e) {
-                        console.error('[tgWebhook] editMessageText error:', e);
+                    } catch (e: unknown) {
+                        logError('editMessage', e);
                     }
                 }
             } else if (data && data.startsWith('reset_limit_')) {
-                // Логика сброса лимитов для IP
-                const ip = data.replace('reset_limit_', '');
+                // Логика сброса лимитов для IP (hash received from requestLimit.ts)
+                const ipHash = data.replace('reset_limit_', '');
 
-                // Ключи Upstash Ratelimit зависят от алгоритма, но обычно это: "@upstash/ratelimit:{alg}:{identifier}" или подобное.
-                // Самый надежный вариант - найти все ключи, содержащие идентификатор "chat_{ip}" и удалить их.
-                let cursor = '0';
-                do {
-                    const scanRes = await redis.scan(cursor, { match: `*chat_${ip}*`, count: 100 });
-                    cursor = scanRes[0];
-                    const keys = scanRes[1];
-                    if (keys.length > 0) {
-                        await redis.del(...keys);
-                    }
-                } while (cursor !== '0');
+                // Look up real IP from the hash→IP mapping stored in Redis
+                const realIp = await redis.get(`limit_request:${ipHash}`) as string | null;
+
+                if (realIp && isValidIpLike(realIp)) {
+                    // Ключи Upstash Ratelimit зависят от алгоритма, но обычно это: "@upstash/ratelimit:{alg}:{identifier}" или подобное.
+                    // Самый надежный вариант - найти все ключи, содержащие идентификатор "chat_{ip}" и удалить их.
+                    let cursor = '0';
+                    do {
+                        const scanRes = await redis.scan(cursor, { match: `*chat_${realIp}*`, count: 100 });
+                        cursor = scanRes[0];
+                        const keys = scanRes[1];
+                        if (keys.length > 0) {
+                            await redis.del(...keys);
+                        }
+                    } while (cursor !== '0');
+
+                    // Clean up the mapping key
+                    await redis.del(`limit_request:${ipHash}`);
+                }
 
                 try {
                     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ callback_query_id: callbackQuery.id, text: `Лимиты для ${ip} сброшены!` })
+                        body: JSON.stringify({ callback_query_id: callbackQuery.id, text: realIp ? `Лимиты сброшены!` : 'IP не найден (ссылка устарела).' }),
+                        signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                     });
-                } catch (e) {
-                    console.error('[tgWebhook] answerCallbackQuery error:', e);
+                } catch (e: unknown) {
+                    logError('answerCallback', e);
                 }
 
                 if (message && message.chat && message.message_id) {
@@ -232,20 +269,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             body: JSON.stringify({
                                 chat_id: message.chat.id,
                                 message_id: message.message_id,
-                                text: (message?.text || `Заявка от ${ip}`) + `\n\n✅ Лимиты успешно сброшены модератором!`,
+                                text: (message?.text || 'Запрос лимитов') + (realIp ? `\n\n✅ Лимиты успешно сброшены модератором!` : '\n\n⚠️ IP не найден (ссылка устарела).'),
                                 reply_markup: { inline_keyboard: [] }
-                            })
+                            }),
+                            signal: AbortSignal.timeout(TG_TIMEOUT_MS),
                         });
-                    } catch (e) {
-                        console.error('[tgWebhook] editMessageText error:', e);
+                    } catch (e: unknown) {
+                        logError('editMessage', e);
                     }
                 }
             }
         }
         
         return res.status(200).json({ ok: true });
-    } catch (error) {
-        console.error('Webhook processing error:', error);
+    } catch (error: unknown) {
+        logError('handler', error);
         return res.status(200).json({ ok: false, error: 'Webhook error handled safely' }); 
     }
 }

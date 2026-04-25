@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Plus, X, CheckCircle, FileText, ExternalLink, Search } from '../components/icons';
@@ -36,7 +35,9 @@ export default function GuidesView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Filtering and Search State
+  const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState('');
+  const [deferredQuery, setDeferredQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'subscription' | 'course'>('all');
 
   // Form State
@@ -89,7 +90,7 @@ export default function GuidesView() {
       }, 2500);
 
     } catch (error: unknown) {
-       console.error(error);
+       if (import.meta.env.DEV) console.error(error);
        const message = error instanceof Error ? error.message : 'Ошибка отправки';
        alert(message === 'Server error' ? "Не удалось отправить форму. Пожалуйста, попробуйте позже." : message);
     } finally {
@@ -102,13 +103,13 @@ export default function GuidesView() {
   const filteredGuides = useMemo(() => {
     return GUIDES_DB.filter(g => {
         if (activeTab !== 'all' && g.type !== activeTab) return false;
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
+        if (deferredQuery) {
+            const query = deferredQuery.toLowerCase();
             return g.service.toLowerCase().includes(query) || g.aliases.some(a => a.toLowerCase().includes(query));
         }
         return true;
     });
-  }, [searchQuery, activeTab]);
+  }, [deferredQuery, activeTab]);
 
   const guidesJsonLd = useMemo(() => ({
     '@context': 'https://schema.org',
@@ -132,19 +133,20 @@ export default function GuidesView() {
       />
       <div className="max-w-6xl mx-auto w-full">
 
-        <div className="md:hidden flex items-center mb-6 mt-2 opacity-0 animate-fade-in" style={{ animationDelay: '50ms' }}>
-          <button onClick={() => navigate('/')} className="p-2 -ml-2 text-white bg-white/10 rounded-full mr-4 active:scale-95 transition-transform" aria-label="Вернуться на главную">
-            <ChevronLeft />
+        <div className="mb-8 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
+          <button
+            onClick={() => navigate('/')}
+            className="md:text-slate-400 md:hover:text-white md:font-semibold text-sm flex items-center transition-colors mb-4 md:mb-6 p-2 md:p-0 -ml-2 md:ml-0 text-white bg-white/10 md:bg-transparent rounded-full md:rounded-none active:scale-95 md:active:scale-100"
+            aria-label="Вернуться на главную"
+          >
+            <ChevronLeft className="w-5 h-5 md:mr-1" />
+            <span className="hidden md:inline">Вернуться</span>
           </button>
-          <h1 className="text-2xl font-bold text-white">База знаний</h1>
-        </div>
-
-        <div className="hidden md:block mb-8 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
-          <button onClick={() => navigate('/')} className="text-slate-400 hover:text-white font-semibold text-sm flex items-center transition-colors mb-6 active:scale-95">
-            <ChevronLeft className="w-5 h-5 mr-1" /> Вернуться
-          </button>
-          <h1 className="text-4xl font-extrabold text-white mb-3 tracking-tight">Навигатор по отпискам</h1>
-          <p className="text-slate-400 text-lg">Компании прячут кнопки отмены. Мы нашли все короткие пути сквозь дарк-паттерны.</p>
+          <h1 className="text-2xl md:text-4xl font-bold md:font-extrabold text-white md:mb-3 tracking-tight">
+            <span className="md:hidden">База знаний</span>
+            <span className="hidden md:inline">Навигатор по отпискам</span>
+          </h1>
+          <p className="hidden md:block text-slate-400 text-lg">Компании прячут кнопки отмены. Мы нашли все короткие пути сквозь дарк-паттерны.</p>
         </div>
 
         {/* --- SEARCH AND FILTERS --- */}
@@ -157,7 +159,11 @@ export default function GuidesView() {
                  type="text"
                  placeholder="Название сервиса (например, Яндекс или Skillbox)..."
                  value={searchQuery}
-                 onChange={(e) => setSearchQuery(e.target.value)}
+                 onChange={(e) => {
+                   const val = e.target.value;
+                   setSearchQuery(val);
+                   startTransition(() => setDeferredQuery(val));
+                 }}
                  className="block w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50 transition-all font-medium text-base sm:text-lg"
               />
            </div>
@@ -185,7 +191,7 @@ export default function GuidesView() {
         </div>
 
         {/* --- GRID OF CARDS --- */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-8 w-full">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-8 w-full transition-opacity duration-200 ${isPending ? 'opacity-60' : ''}`}>
 
           {/* Add Pattern Button (First Item) */}
           {(!searchQuery && activeTab === 'all') && (
@@ -239,7 +245,7 @@ export default function GuidesView() {
               onClick={() => setSelectedGuideId(null)}
             ></div>
 
-            {/* Modal Panel — full height on mobile, max-h on desktop */}
+            {/* Modal Panel – full height on mobile, max-h on desktop */}
             <div ref={guideModalRef} className="relative w-full max-w-2xl bg-[#0a0f1c] border border-white/10 rounded-t-[2rem] md:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] animate-pop-in flex flex-col max-h-[95vh] md:max-h-[90vh] overflow-hidden">
 
               {/* Header */}

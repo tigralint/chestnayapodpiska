@@ -4,11 +4,14 @@ import { hashIp } from '../utils/hashIp';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { RadarAlertResponse, RadarStoredData, AlertCategory, AlertSeverity } from '../types';
+import { escapeHtml } from '../utils/escapeHtml';
+import { getClientIp } from '../utils/getClientIp';
+import type { TurnstileVerifyResponse } from '../utils/turnstile';
+import { TURNSTILE_TIMEOUT_MS } from '../utils/turnstile';
+import { sanitizeForStorage } from '../utils/sanitize';
 
-interface TurnstileVerifyResponse {
-    success: boolean;
-    'error-codes'?: string[];
-}
+/** TTL for pending radar reports in Redis (7 days) */
+const PENDING_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export const radarReportSchema = z.object({
     serviceName: z.string().min(1, 'Укажите название сервиса').max(100),
@@ -19,9 +22,7 @@ export const radarReportSchema = z.object({
     turnstileToken: z.string().min(1, 'Токен обязателен'),
 });
 
-function sanitize(str: string): string {
-    return str.replace(/<\/?[a-z_][a-z0-9_]*>/gi, '').trim();
-}
+
 
 function getCategoryName(category: AlertCategory): string {
     const map: Record<AlertCategory, string> = {
@@ -50,8 +51,20 @@ const ratelimit = redis ? new Ratelimit({
 export default async function handler(request: VercelRequest, response: VercelResponse) {
     if (request.method === 'GET') {
         if (!redis) return response.status(500).json({ error: 'Redis is not configured' });
+
+        // Rate limit GET requests to prevent abuse (100 req/hour per IP)
+        if (ratelimit) {
+            const clientIp = getClientIp(request);
+            const { success } = await ratelimit.limit(`radar_get_${clientIp}`);
+            if (!success) return response.status(429).json({ error: 'Слишком много запросов.' });
+        } else if (process.env.VERCEL_ENV === 'production') {
+            console.error(JSON.stringify({ event: 'radar_get_ratelimit_missing', critical: true }));
+            return response.status(500).json({ error: 'Сервис временно недоступен.' });
+        }
+
         try {
-            const limit = parseInt(request.query.limit as string) || 20;
+            const MAX_LIMIT = 50;
+            const limit = Math.min(parseInt(request.query.limit as string) || 20, MAX_LIMIT);
             const category = request.query.category as string;
             
             let items = await redis.zrange('radar:alerts', 0, 100, { rev: true }) as RadarStoredData[];
@@ -78,21 +91,21 @@ export default async function handler(request: VercelRequest, response: VercelRe
             });
             
             return response.status(200).json(results);
-        } catch (e) {
-            console.error(e);
+        } catch (e: unknown) {
+            console.error(JSON.stringify({ event: 'radar_get_error', error: e instanceof Error ? e.message : String(e) }));
             return response.status(500).json({ error: 'DB read error' });
         }
     }
 
     if (request.method === 'POST') {
-        const clientIp = (request.headers['x-vercel-forwarded-for'] as string)?.split(',')[0]?.trim()
-            ?? (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-            ?? request.socket?.remoteAddress
-            ?? 'unknown';
+        const clientIp = getClientIp(request);
 
         if (ratelimit) {
             const { success } = await ratelimit.limit(clientIp);
             if (!success) return response.status(429).json({ error: 'Слишком много запросов.' });
+        } else if (process.env.VERCEL_ENV === 'production') {
+            console.error(JSON.stringify({ event: 'radar_ratelimit_missing', critical: true }));
+            return response.status(500).json({ error: 'Сервис временно недоступен.' });
         }
 
         const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
@@ -117,7 +130,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
             formData.append('secret', TURNSTILE_SECRET_KEY);
             formData.append('response', data.turnstileToken);
             const turnstileCheck = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-                method: 'POST', body: formData, signal: AbortSignal.timeout(8000)
+                method: 'POST', body: formData, signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS)
             });
             const turnstileRes = await turnstileCheck.json() as TurnstileVerifyResponse;
             if (!turnstileRes.success) return response.status(403).json({ error: 'Captcha failed.' });
@@ -128,18 +141,18 @@ export default async function handler(request: VercelRequest, response: VercelRe
             const sanitizedData = {
                 id: reportId,
                 timestamp: ts,
-                serviceName: sanitize(data.serviceName),
-                city: sanitize(data.city),
+                serviceName: sanitizeForStorage(data.serviceName, 100),
+                city: sanitizeForStorage(data.city, 100),
                 amount: data.amount,
-                description: sanitize(data.description),
+                description: sanitizeForStorage(data.description),
                 category: data.category
             };
 
-            await redis.set(`radar:pending:${reportId}`, JSON.stringify(sanitizedData), { ex: 604800 }); // Store for 7 days
+            await redis.set(`radar:pending:${reportId}`, JSON.stringify(sanitizedData), { ex: PENDING_TTL_SECONDS });
 
             // Telegram Notification
             if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-                const messageText = `📡 <b>Радар: Новый сигнал! (Ожидает модерации)</b>\n\n📌 <b>Сервис:</b> ${sanitizedData.serviceName}\n🏙 <b>Город:</b> ${sanitizedData.city}\n💸 <b>Сумма:</b> ${sanitizedData.amount ? sanitizedData.amount + ' ₽' : 'Не указана'}\n🏷 <b>Категория:</b> ${getCategoryName(sanitizedData.category)}\n\n📝 <b>Сюжет:</b> ${sanitizedData.description}\n\n🌐 <b>IP Hash:</b> <code>${hashIp(clientIp)}</code>`;
+                const messageText = `📡 <b>Радар: Новый сигнал! (Ожидает модерации)</b>\n\n📌 <b>Сервис:</b> ${escapeHtml(sanitizedData.serviceName)}\n🏙 <b>Город:</b> ${escapeHtml(sanitizedData.city)}\n💸 <b>Сумма:</b> ${sanitizedData.amount ? sanitizedData.amount + ' ₽' : 'Не указана'}\n🏷 <b>Категория:</b> ${getCategoryName(sanitizedData.category)}\n\n📝 <b>Сюжет:</b> ${escapeHtml(sanitizedData.description)}\n\n🌐 <b>IP Hash:</b> <code>${hashIp(clientIp)}</code>`;
 
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
@@ -158,13 +171,13 @@ export default async function handler(request: VercelRequest, response: VercelRe
                         }
                     }),
                     signal: AbortSignal.timeout(10000),
-                }).catch(e => console.error('TG Error:', e));
+                }).catch((e: unknown) => console.error(JSON.stringify({ event: 'radar_tg_error', error: e instanceof Error ? e.message : String(e) })));
             }
 
             return response.status(200).json({ success: true, id: reportId });
 
-        } catch (e) {
-            console.error(e);
+        } catch (e: unknown) {
+            console.error(JSON.stringify({ event: 'radar_post_error', error: e instanceof Error ? e.message : String(e), timestamp: new Date().toISOString() }));
             return response.status(500).json({ error: 'Server error' });
         }
     }

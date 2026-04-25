@@ -118,8 +118,8 @@ export const downloadWordDoc = async (
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Error generating DOCX:", error);
+  } catch (error: unknown) {
+    if (import.meta.env.DEV) console.error("Error generating DOCX:", error);
     throw new Error("Произошла ошибка при создании файла. Пожалуйста, скопируйте текст вручную.");
   }
 };

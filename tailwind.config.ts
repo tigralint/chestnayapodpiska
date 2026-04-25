@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss';
+﻿import type { Config } from 'tailwindcss';
 
 const config: Config = {
     darkMode: 'class',
@@ -12,7 +12,7 @@ const config: Config = {
         './data/**/*.{ts,tsx}',
         './context/**/*.{ts,tsx}',
     ],
-    // safelist removed — all accent classes are now defined as literal strings in theme objects
+    // safelist removed – all accent classes are now defined as literal strings in theme objects
     // (ClaimResultPanel, ToneToggle, PageHeader) so Tailwind JIT detects them automatically.
     theme: {
         extend: {

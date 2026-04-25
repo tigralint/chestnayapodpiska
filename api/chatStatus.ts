@@ -1,6 +1,25 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { getClientIp } from '../utils/getClientIp';
+
+const hasRedis = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
+// Rate limit this endpoint to prevent abuse (100 req/hour per IP)
+const statusRateLimit = hasRedis
+    ? new Ratelimit({
+        redis: Redis.fromEnv(),
+        limiter: Ratelimit.slidingWindow(100, '1 h'),
+    })
+    : null;
+
+// Mirror chat rate limit config from api/assistant.ts (for getRemaining peek)
+const chatRateLimit = hasRedis
+    ? new Ratelimit({
+        redis: Redis.fromEnv(),
+        limiter: Ratelimit.slidingWindow(15, '1 d'),
+    })
+    : null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {
@@ -8,33 +27,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const ip = (req.headers['x-vercel-forwarded-for'] as string)?.split(',')[0]?.trim()
-            ?? (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-            ?? req.socket?.remoteAddress
-            ?? 'unknown';
+        const ip = getClientIp(req);
 
-        const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
-
-        if (!redis) {
+        if (!statusRateLimit || !chatRateLimit) {
             return res.status(500).json({ error: 'Redis is not configured' });
         }
 
-        // We use the same configuration as api/assistant.ts
-        const ratelimit = new Ratelimit({
-            redis,
-            limiter: Ratelimit.slidingWindow(15, '1 d'),
-        });
+        const { success: rateLimitOk } = await statusRateLimit.limit(`chatStatus_${ip}`);
+        if (!rateLimitOk) {
+            return res.status(429).json({ error: 'Слишком много запросов.' });
+        }
 
         // Use getRemaining to just peek without incrementing the counter
-        const limitRes = await ratelimit.getRemaining(`chat_${ip}`);
+        const limitRes = await chatRateLimit.getRemaining(`chat_${ip}`);
         
         return res.status(200).json({ 
             remaining: limitRes.remaining,
             limit: limitRes.limit,
         });
 
-    } catch (error) {
-        console.error('Chat status error', error);
+    } catch (error: unknown) {
+        console.error(JSON.stringify({ event: 'chatStatus_error', error: error instanceof Error ? error.message : String(error) }));
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 }
+

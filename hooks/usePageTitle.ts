@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 
 const BASE_TITLE = 'ЧестнаяПодписка';
 
@@ -24,6 +24,6 @@ export function usePageTitle(pathname: string) {
         );
 
         const pageTitle = matchedKey ? ROUTE_TITLES[matchedKey] : null;
-        document.title = pageTitle ? `${pageTitle} — ${BASE_TITLE}` : BASE_TITLE;
+        document.title = pageTitle ? `${pageTitle} – ${BASE_TITLE}` : BASE_TITLE;
     }, [pathname]);
 }

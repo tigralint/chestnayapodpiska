@@ -19,7 +19,8 @@ export function useSimulator() {
         };
     }, []);
 
-    const currentLevel = LEVELS[currentLevelIdx]!;
+    // Index is always in bounds: bounded by LEVELS.length in nextLevel()
+    const currentLevel = LEVELS[currentLevelIdx] as (typeof LEVELS)[number];
     const progress = (currentLevelIdx / LEVELS.length) * 100;
 
     const nextLevel = useCallback(() => {

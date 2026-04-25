@@ -56,7 +56,17 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}']
+        globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/challenges\.cloudflare\.com\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'turnstile-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 86400 },
+            },
+          },
+        ],
       }
     })
   ],

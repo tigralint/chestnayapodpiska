@@ -6,7 +6,7 @@ import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { usePageTitle } from './hooks/usePageTitle';
 import Dashboard from './views/Dashboard';
 
-// Lazy-loaded views — each gets its own chunk, loaded on demand
+// Lazy-loaded views – each gets its own chunk, loaded on demand
 const SubscriptionFlow = React.lazy(() => import('./views/SubscriptionFlow'));
 const CourseFlow = React.lazy(() => import('./views/CourseFlow'));
 const GuidesView = React.lazy(() => import('./views/GuidesView'));
@@ -23,7 +23,7 @@ import { ToastContainer } from './components/ui/ToastContainer';
 import { useAppContext } from './context/AppContext';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { LegalBot } from './components/ui/LegalBot';
+const LegalBot = React.lazy(() => import('./components/ui/LegalBot').then(m => ({ default: m.LegalBot })));
 
 export default function App() {
   const location = useLocation();
@@ -34,7 +34,7 @@ export default function App() {
 
   // Scroll to top on route change
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0 });
   }, [location.pathname]);
 
   return (
@@ -68,10 +68,10 @@ export default function App() {
 
       <Analytics />
       <SpeedInsights />
-      <LegalBot />
+      <Suspense fallback={null}><LegalBot /></Suspense>
 
       <ErrorBoundary>
-        <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-[100dvh] pt-4 md:pt-32 pb-28 md:pb-24">
+        <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-[100dvh] pt-[max(1rem,env(safe-area-inset-top))] md:pt-32 pb-28 md:pb-24">
           {/* Key forces React to unmount and remount the view, ensuring entry animations play every time */}
           <div key={location.pathname} className="h-full w-full view-enter">
             <Suspense fallback={<LoadingSpinner />}>

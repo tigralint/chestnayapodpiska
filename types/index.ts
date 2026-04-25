@@ -1,7 +1,7 @@
-/**
+﻿/**
  * Client-side type definitions.
  * 
- * NOTE: ClaimData & CourseData here represent the *form state* — turnstileToken is optional
+ * NOTE: ClaimData & CourseData here represent the *form state* – turnstileToken is optional
  * because the Turnstile widget delivers it asynchronously. The server-side Zod schemas
  * in api/generateClaim.ts enforce turnstileToken as required (.min(1)) at the *wire* level.
  * This is intentional: form state ≠ wire format.

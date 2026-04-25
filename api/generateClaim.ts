@@ -1,10 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { buildSubscriptionPrompt, buildCoursePrompt, buildCustomReasonPrompt } from './promptBuilder.js';
-
-interface TurnstileVerifyResponse {
-    success: boolean;
-    'error-codes'?: string[];
-}
+import type { TurnstileVerifyResponse } from '../utils/turnstile';
+import { TURNSTILE_TIMEOUT_MS } from '../utils/turnstile';
+import { getClientIp } from '../utils/getClientIp';
+import { sanitizeForPrompt } from '../utils/sanitize';
 
 interface GeminiResponse {
     candidates?: {
@@ -41,20 +40,7 @@ export const courseSchema = z.object({
 export type ClaimData = z.infer<typeof claimSchema>;
 export type CourseData = z.infer<typeof courseSchema>;
 
-/**
- * Strips characters that could be used for prompt injection.
- * Removes XML/HTML tags, instruction-like patterns, and bracket characters.
- */
-function sanitizeInput(input: string, maxLength = 200): string {
-    return input
-        .slice(0, maxLength)
-        .replace(/\n/g, ' ')                                      // Flatten newlines
-        .replace(/<\/?[a-z_][a-z0-9_]*>/gi, '')                    // Strip XML/HTML tags
-        .replace(/\b(SYSTEM|ASSISTANT|INSTRUCTION|IGNORE|PROMPT)\b/gi, '')  // Strip instruction keywords
-        .replace(/[{}[\]<>]/g, '')                                 // Remove brackets
-        .replace(/\s{2,}/g, ' ')                                   // Collapse multiple spaces
-        .trim();
-}
+
 
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
@@ -88,6 +74,12 @@ async function callGeminiModel(
 ): Promise<GeminiCallResult> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
 
+    /**
+     * Safety filters disabled intentionally:
+     * Legal claim generation involves language about disputes, demands, and threats of legal action
+     * which Gemini's default safety filters incorrectly flag as harassment/harmful content.
+     * Defense-in-depth is provided by: sanitizeForPrompt() + prompt structure (<user_input> tags).
+     */
     const safetySettings: GeminiSafetySetting[] = [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -158,10 +150,7 @@ export default async function handler(
 
     // Rate limiting
     // Prefer Vercel's trusted header (cannot be spoofed by client)
-    const clientIp = (request.headers['x-vercel-forwarded-for'] as string)?.split(',')[0]?.trim()
-        ?? (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-        ?? request.socket?.remoteAddress
-        ?? 'unknown';
+    const clientIp = getClientIp(request);
 
     if (ratelimit) {
         const { success } = await ratelimit.limit(clientIp);
@@ -169,11 +158,11 @@ export default async function handler(
             return response.status(429).json({ error: 'Слишком много запросов. Попробуйте через некоторое время.' });
         }
     } else {
-        console.error('CRITICAL: Upstash Redis credentials are not set. Rate limiting is missing.');
+        console.error(JSON.stringify({ event: 'claim_ratelimit_missing', critical: true }));
         if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production') {
             return response.status(500).json({ error: 'Сервис временно недоступен из-за ошибки конфигурации.' });
         } else {
-            console.warn('Allowing request only because environment is not production.');
+            console.warn(JSON.stringify({ event: 'claim_ratelimit_bypassed', env: 'non-production' }));
         }
     }
 
@@ -226,7 +215,7 @@ export default async function handler(
         const turnstileCheck = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
             body: formData,
-            signal: AbortSignal.timeout(8_000),
+            signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
         });
 
         const turnstileRes = await turnstileCheck.json() as TurnstileVerifyResponse;
@@ -238,24 +227,24 @@ export default async function handler(
         let prompt = '';
         if (type === 'subscription') {
             const subData = validData as ClaimData;
-            const serviceName = sanitizeInput(subData.serviceName);
-            const amount = sanitizeInput(String(subData.amount), 20);
-            const date = sanitizeInput(String(subData.date), 20);
+            const serviceName = sanitizeForPrompt(subData.serviceName);
+            const amount = sanitizeForPrompt(String(subData.amount), 20);
+            const date = sanitizeForPrompt(String(subData.date), 20);
 
             // Custom reason uses a separate prompt with AI validation
             if (subData.reason === 'custom' && subData.customReason) {
-                const customReason = sanitizeInput(subData.customReason, 500);
+                const customReason = sanitizeForPrompt(subData.customReason, 500);
                 prompt = buildCustomReasonPrompt(serviceName, amount, date, customReason, subData.tone);
             } else {
-                const reason = sanitizeInput(subData.reason);
+                const reason = sanitizeForPrompt(subData.reason);
                 prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, subData.tone);
             }
         } else {
             const courseD = validData as CourseData;
-            const courseName = sanitizeInput(courseD.courseName);
-            const totalCost = sanitizeInput(String(courseD.totalCost), 20);
-            const percentCompleted = sanitizeInput(String(courseD.percentCompleted), 5);
-            const refund = sanitizeInput(String(calculatedRefund), 20);
+            const courseName = sanitizeForPrompt(courseD.courseName);
+            const totalCost = sanitizeForPrompt(String(courseD.totalCost), 20);
+            const percentCompleted = sanitizeForPrompt(String(courseD.percentCompleted), 5);
+            const refund = sanitizeForPrompt(String(calculatedRefund), 20);
             prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, courseD.tone);
         }
 
@@ -310,7 +299,7 @@ export default async function handler(
             type: request.body?.type,
             ip: clientIp,
             error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
+            ...(process.env.VERCEL_ENV !== 'production' && { stack: error instanceof Error ? error.stack : undefined }),
             timestamp: new Date().toISOString(),
         }));
         return response.status(500).json({ error: 'Внутренняя ошибка сервера. Попробуйте позже.' });

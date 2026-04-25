@@ -91,7 +91,7 @@ describe('generateCourseClaim', () => {
     it('sends calculatedRefund in request body', async () => {
         mockFetch.mockResolvedValue(jsonResponse({ text: 'OK' }));
         await generateCourseClaim(mockCourseData, 35000);
-        const body = JSON.parse(mockFetch.mock.calls[0]![1]!.body as string);
+        const body = JSON.parse(mockFetch.mock.calls[0]?.[1]?.body as string);
         expect(body.calculatedRefund).toBe(35000);
         expect(body.type).toBe('course');
     });

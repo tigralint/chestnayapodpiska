@@ -29,7 +29,7 @@ export function LegalBot() {
         <div className="fixed bottom-28 md:bottom-8 right-4 md:right-8 z-50">
             {/* The Chat Window */}
             {isOpen && (
-                <div className="mb-4 w-[calc(100vw-2rem)] md:w-96 max-w-sm h-[500px] max-h-[70vh] flex flex-col bg-slate-950/40 backdrop-blur-3xl border border-white/5 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(6,182,212,0.15)] animate-slide-up origin-bottom-right ring-1 ring-white/10">
+                <div role="dialog" aria-modal="true" aria-label="Юридический ИИ-ассистент" className="mb-4 w-[calc(100vw-2rem)] md:w-96 max-w-sm h-[500px] max-h-[70vh] flex flex-col bg-slate-950/40 backdrop-blur-3xl border border-white/5 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(6,182,212,0.15)] animate-slide-up origin-bottom-right ring-1 ring-white/10">
 
                     <ChatHeader
                         limits={limits}
@@ -91,6 +91,7 @@ export function LegalBot() {
                 <button
                     onClick={() => setIsOpen(true)}
                     className="flex items-center justify-center shadow-lg shadow-cyan-500/20 transition-all duration-300 bg-accent-cyan text-slate-900 w-14 h-14 rounded-full hover:scale-110 hover:shadow-cyan-500/40"
+                    aria-label="Открыть юридический ИИ-ассистент"
                 >
                     <BotIcon />
                 </button>

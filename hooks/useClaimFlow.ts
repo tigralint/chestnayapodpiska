@@ -33,8 +33,8 @@ export function useClaimFlow() {
         {
             serviceName: prefilledService,
             amount: '',
-            date: new Date().toISOString().split('T')[0]!,
-            reason: REASONS[0]!,
+            date: new Date().toISOString().split('T')[0] ?? '',
+            reason: REASONS[0] ?? '',
             tone: 'soft'
         },
         (claimData, signal) => generateSubscriptionClaim(claimData, signal),
@@ -57,7 +57,7 @@ export function useClaimFlow() {
     /** True when the AI returned a [ОТКАЗ] refusal instead of a claim */
     const isRefusal = result.startsWith(REFUSAL_MARKER);
 
-    /** Text to display — strip the [ОТКАЗ] marker */
+    /** Text to display – strip the [ОТКАЗ] marker */
     const displayResult = isRefusal ? result.slice(REFUSAL_MARKER.length).trim() : result;
 
     /** Whether the custom reason textarea should be shown */

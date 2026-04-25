@@ -9,7 +9,7 @@
     <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178c6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
     <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646cff?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" /></a>
     <a href="https://github.com/tigralint/chestnayapodpiska/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/tigralint/chestnayapodpiska/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI" alt="CI" /></a>
-    <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Tests-185_passed-2ea44f?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" /></a>
+    <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Tests-240_passed-2ea44f?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-Dual_License-blue?style=for-the-badge" alt="License" /></a>
   </p>
 
@@ -23,7 +23,7 @@
 > 💡 **Сервис незаконно списал деньги? Онлайн-школа отказывается возвращать оплату? Кнопка отмены спрятана за семью слоями интерфейса?** <br/>
 > Корпорации тратят миллионы на UX-дизайнеров, чтобы спрятать отмену подписки. Среднестатистический пользователь часто даже не подозревает о существовании ст. 32 ЗоЗПП РФ. **Мы поможем вернуть ваше.**
 
-«Честная Подписка» — это инструмент, который за **2 минуты** сгенерирует юридически грамотную претензию на возврат денег. Инструмент полностью бесплатен, не требует регистрации и не собирает персональные данные.
+«Честная Подписка» – это инструмент, который за **2 минуты** сгенерирует юридически грамотную претензию на возврат денег. Инструмент полностью бесплатен, не требует регистрации и не собирает персональные данные.
 
 ---
 
@@ -46,6 +46,7 @@
 *   **📚 Keyword RAG**: При упоминании конкретных сервисов бот мгновенно получает доступ к пошаговым инструкциям и дарк-паттернам из внутренней базы `guides.ts`.
 *   **🌐 Grounding**: Поддержка Google Search для проверки актуальных изменений в законодательстве РФ в реальном времени.
 *   **🦾 Тональность**: Генерация документов в «Мягком» или «Жёстком» формате на основе ст. 32 ЗоЗПП и ст. 782 ГК РФ.
+*   **🔄 Model Cascade**: Многоуровневый каскад моделей (Gemini 3.1 Flash Lite → Gemini 3 Flash → Gemini 2.5 Flash → Gemma 4 31B-IT) с автоматическим fallback при 429/500 ошибках.
 
 ### 🎮 Симулятор Дарк-паттернов
 Интерактивный тренажер, обучающий пользователей распознавать уловки дизайнеров:
@@ -71,18 +72,18 @@
 | **Frontend**   | **React 19**, TypeScript, Vite                                                         |
 | **Styling**    | **Tailwind CSS**, кастомная дизайн-система с эффектами Glassmorphism и Neon Shadows  |
 | **State**      | **Zustand** с `persist` middleware (хранение состояния формы без БД на клиенте)    |
-| **Backend**    | **Vercel Serverless Functions** (Node.js)                                          |
+| **Backend**    | **Vercel Serverless Functions** (Node.js) + **Edge Runtime** (SSE streaming для ассистента) |
 | **Database**   | **Upstash Redis** (высокопроизводительный Rate Limiting и база для Радара)         |
-| **AI Движок**  | **Google Gemini API** (Gemma 4 31B-IT) + Vision + RAG + Search Grounding |
+| **AI Движок**  | **Google Gemini API** (Gemini 3.1 Flash Lite, Gemini 3 Flash, Gemini 2.5 Flash, Gemma 4 31B-IT) + Vision + RAG + Search Grounding |
 | **PWA**        | Полная поддержка Offline-режима и установки на рабочий стол через `vite-plugin-pwa` |
 | **Linter**     | **ESLint 9** (Flat Config) + **Prettier**                                          |
-| **Тесты**      | **Vitest** + React Testing Library (185 тестов, полное покрытие логики API и утилит)         |
+| **Тесты**      | **Vitest** + React Testing Library (240 тестов, 37 файлов — полное покрытие API, утилит и хуков) |
 
 > **Инженерные особенности:**
 > -   **Strongly Typed**: Весь проект написан на строгом TypeScript (`strict`, `noUncheckedIndexedAccess`) с использованием **Zod** для валидации контрактов API.
 > -   **Generic Logic**: Универсальный хук `useClaimForm<T>` обеспечивает переиспользование логики между разными типами претензий.
 > -   **Resilience**: Механизмы `AbortController` для отмены запросов и автоматические ретраи (`fetchWithRetry`) с защитным парсингом JSON для стабильности AI-генерации.
-> -   **CI/CD**: Автоматическая проверка стиля (Lint), типов (tsc), 185 тестов и production-сборка на каждый PR через GitHub Actions.
+> -   **CI/CD**: Автоматическая проверка стиля (Lint), типов (tsc), 240 тестов и production-сборка на каждый PR через GitHub Actions.
 
 ---
 
@@ -93,16 +94,14 @@
 - **IP-хэширование (SHA-256)**: IP-адреса пользователей хэшируются перед передачей в любые системы мониторинга.
 - **API-ключи в заголовках**: Все ключи (Gemini API) передаются через защищённые HTTP-заголовки, а не URL-параметры.
 - **Cloudflare Turnstile**: Интегрированная невидимая капча для защиты API от ботов.
-- **Serverless Rate Limiting**: Жёсткие лимиты на базе Redis, предотвращающие перерасход бюджета на AI.
-- **Input Sanitization**: Многоуровневая очистка пользовательского ввода (Zod + sanitizeInput) для предотвращения Prompt Injection.
-- **Strict CSP & CORS**: Заголовки `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` настроены в `vercel.json`.
-- **Defensive API**: Защищенный парсинг `res.json().catch()` во всех сетевых сервисах, предотвращающий падения при нестабильном ответе сервера.
+- **Serverless Rate Limiting**: Жёсткие лимиты на базе Redis со стратегией **fail-closed** (при сбое Redis запрос отклоняется).
+- **Input Sanitization**: Многоуровневая очистка ввода — **Zod** (schema validation) + `sanitizeForPrompt` (prompt injection) + `sanitizeForStorage` (XSS) + `escapeHtml` (Telegram HTML).
+- **Strict CSP & Security Headers**: `Content-Security-Policy` (с `worker-src`), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Permissions-Policy`, `Referrer-Policy` — настроены в `vercel.json`.
+- **Defensive API**: Защищённый парсинг `res.json().catch()` во всех сетевых сервисах, предотвращающий падения при нестабильном ответе сервера.
 - **Graceful Degradation**: Тщательно проработанные Error Boundaries и fallback-интерфейсы.
-- **Structured JSON Logging**: Все серверные логи в формате JSON для безопасного мониторинга.
+- **Structured JSON Logging**: Все серверные логи в формате JSON с фильтрацией stack traces в production.
 
 > Подробнее: [SECURITY.md](.github/SECURITY.md) | [Политика конфиденциальности](https://chestnayapodpiska.vercel.app/privacy)
-
----
 
 ---
 
@@ -114,10 +113,11 @@
 
 ## ♿ Доступность (Accessibility)
 
-- Семантическая разметка: `<nav>`, `role="main"`, `aria-current="page"`.
-- `aria-label` на всех интерактивных элементах навигации и поиска.
+- Семантическая разметка: `<nav>`, `role="main"`, `aria-current="page"`, `role="dialog"`, `aria-modal`.
+- `aria-label` на всех интерактивных элементах навигации, поиска и чата.
+- Focus trap в модальных окнах (LegalBot) с корректной клавиатурной навигацией.
 - Skip-to-content ссылка (`Перейти к содержимому`) для клавиатурной навигации.
-- `prefers-reduced-motion` — глобальное отключение анимаций для пользователей с вестибулярными расстройствами.
+- `prefers-reduced-motion` – глобальное отключение анимаций для пользователей с вестибулярными расстройствами.
 
 ---
 
@@ -138,6 +138,9 @@
    TURNSTILE_SECRET_KEY=...
    UPSTASH_REDIS_REST_URL=...
    UPSTASH_REDIS_REST_TOKEN=...
+   TELEGRAM_BOT_TOKEN=...
+   TELEGRAM_ADMIN_CHAT_ID=...
+   TELEGRAM_WEBHOOK_SECRET=...
    ```
 
 3. **Запустите проект:**

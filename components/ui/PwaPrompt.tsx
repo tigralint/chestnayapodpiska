@@ -8,10 +8,10 @@ export function PwaPrompt() {
         updateServiceWorker,
     } = useRegisterSW({
         onRegistered(r: ServiceWorkerRegistration | undefined) {
-            console.warn('SW Registered:', r);
+            if (import.meta.env.DEV) console.warn('SW Registered:', r);
         },
         onRegisterError(error: Error) {
-            console.error('SW registration error', error);
+            if (import.meta.env.DEV) console.error('SW registration error', error);
         },
     });
 

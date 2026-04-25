@@ -60,7 +60,7 @@ describe('useFocusTrap', () => {
     it('wraps focus from last to first element on Tab', () => {
         const container = createContainer('button', 'input', 'button');
         const focusable = container.querySelectorAll<HTMLElement>('button, input');
-        const lastElement = focusable[focusable.length - 1]!;
+        const lastElement = focusable[focusable.length - 1];
 
         renderHook(() => {
             const ref = useRef<HTMLElement>(container);
@@ -68,7 +68,7 @@ describe('useFocusTrap', () => {
         });
 
         // Focus last element
-        lastElement.focus();
+        lastElement?.focus();
         expect(document.activeElement).toBe(lastElement);
 
         // Press Tab
@@ -81,8 +81,8 @@ describe('useFocusTrap', () => {
     it('wraps focus from first to last element on Shift+Tab', () => {
         const container = createContainer('button', 'input', 'button');
         const focusable = container.querySelectorAll<HTMLElement>('button, input');
-        const firstElement = focusable[0]!;
-        const lastElement = focusable[focusable.length - 1]!;
+        const firstElement = focusable[0];
+        const lastElement = focusable[focusable.length - 1];
 
         renderHook(() => {
             const ref = useRef<HTMLElement>(container);

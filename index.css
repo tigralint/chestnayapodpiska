@@ -88,6 +88,7 @@ input:-webkit-autofill:active {
 /* ===== View Transition ===== */
 
 .view-enter {
+  will-change: opacity, transform;
   animation: viewEnter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
@@ -125,6 +126,7 @@ input:-webkit-autofill:active {
   content: '';
   position: absolute;
   inset: 0;
+  will-change: background-position;
   background: linear-gradient(90deg,
       transparent 0%,
       rgba(255, 255, 255, 0.01) 30%,
@@ -161,4 +163,9 @@ input:-webkit-autofill:active {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ===== Touch Optimization ===== */
+button, a, [role="button"] {
+  touch-action: manipulation;
 }
