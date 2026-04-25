@@ -1,4 +1,4 @@
-import type { Level } from '../../data/simulator-levels';
+import type { Level } from './levels';
 import type { FeedbackState } from '../../hooks/useSimulator';
 
 interface SimulatorMockupProps {

@@ -25,4 +25,18 @@ describe('copyToClipboard', () => {
         await copyToClipboard('Привет мир! 🚀');
         expect(writeTextMock).toHaveBeenCalledWith('Привет мир! 🚀');
     });
+
+    it('should return true on success', async () => {
+        const result = await copyToClipboard('text');
+        expect(result).toBe(true);
+    });
+
+    it('should return false and log error on failure', async () => {
+        writeTextMock.mockRejectedValueOnce(new Error('Clipboard unavailable'));
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const result = await copyToClipboard('text');
+        expect(result).toBe(false);
+        expect(consoleSpy).toHaveBeenCalled();
+        consoleSpy.mockRestore();
+    });
 });

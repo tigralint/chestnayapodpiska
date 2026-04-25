@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { LEVELS } from '../data/simulator-levels';
+import { LEVELS } from '../components/simulator/levels';
 import { SIMULATOR_CONFIG } from '../constants/simulator';
 
 export type FeedbackState = 'idle' | 'hit' | 'miss';
