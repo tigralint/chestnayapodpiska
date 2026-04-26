@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Centralized prompt builder for AI claim generation.
  * Eliminates duplication between subscription and course prompt templates.
  */
@@ -145,4 +145,3 @@ export function buildCustomReasonPrompt(
 почему данная ситуация не является основанием для претензии по закону.
 Предложи пользователю подумать, есть ли другая причина, которая подходит под закон.`;
 }
-

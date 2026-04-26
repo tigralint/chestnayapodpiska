@@ -1,5 +1,3 @@
-// utils/errors.ts
-
 /**
  * Custom error class for API requests.
  * Allows safely passing HTTP status codes without relying on string parsing.

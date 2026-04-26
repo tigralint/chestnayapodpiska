@@ -77,4 +77,3 @@ export function useSimulator() {
         totalLevels: LEVELS.length
     };
 }
-

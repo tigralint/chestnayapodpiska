@@ -18,11 +18,9 @@ export const reportSchema = z.object({
 
 export type ReportData = z.infer<typeof reportSchema>;
 
-
-
 const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     ? new Ratelimit({
-        redis: Redis.fromEnv(),
+        redis: Redis.fromEnv({ enableAutoPipelining: true }),
         limiter: Ratelimit.slidingWindow(30, "1 h"),
       })
     : null;

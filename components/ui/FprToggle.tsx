@@ -1,4 +1,3 @@
-
 interface FprToggleProps {
     label: string;
     checked: boolean;

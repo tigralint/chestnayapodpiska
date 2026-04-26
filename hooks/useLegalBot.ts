@@ -29,8 +29,8 @@ export function useLegalBot() {
     const turnstileRef = useRef<TurnstileInstance>(null);
 
     // --- Composed sub-hooks ---
-    const { messages, setMessages: _setMessages, addMessage, updateMessage, removeMessage, clearHistory } = useChatHistory();
-    const { streamResponse, cleanText, abort: _abort, abortRef } = useChatStreaming();
+    const { messages, addMessage, updateMessage, removeMessage, clearHistory } = useChatHistory();
+    const { streamResponse, cleanText, abortRef } = useChatStreaming();
     const { limits, isRequestingLimit, refreshLimits, handleRequestMoreLimits: requestMoreLimitsRaw } = useChatLimits(isOpen);
     const { pendingImage, setPendingImage, handleImageFile, handlePaste, fileInputRef } = useChatImage();
     const { addToast } = useToastContext();

@@ -43,9 +43,8 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
             const text = await generateFn(data, signal, ...args);
             setResult(text);
         } catch (e: unknown) {
-            // Silently ignore aborted requests
-            if (e instanceof DOMException && e.name === 'AbortError') return;
-            if ((e as { name?: string })?.name === 'AbortError') return;
+            // Silently ignore aborted requests (instanceof DOMException is unreliable in some runtimes)
+            if (e instanceof Error && e.name === 'AbortError') return;
 
             const message = e instanceof Error ? e.message : 'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.';
             setApiError(message);

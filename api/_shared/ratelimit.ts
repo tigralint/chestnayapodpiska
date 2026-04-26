@@ -9,7 +9,7 @@ import { Redis } from '@upstash/redis';
 export function createRatelimit(windowSize: number, windowDuration: Parameters<typeof Ratelimit.slidingWindow>[1]): Ratelimit | null {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
         return new Ratelimit({
-            redis: Redis.fromEnv(),
+            redis: Redis.fromEnv({ enableAutoPipelining: true }),
             limiter: Ratelimit.slidingWindow(windowSize, windowDuration),
         });
     }
@@ -21,7 +21,7 @@ export function createRatelimit(windowSize: number, windowDuration: Parameters<t
  */
 export function getRedisClient(): InstanceType<typeof Redis> | null {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-        return Redis.fromEnv();
+        return Redis.fromEnv({ enableAutoPipelining: true });
     }
     return null;
 }

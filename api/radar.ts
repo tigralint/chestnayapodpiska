@@ -22,8 +22,6 @@ export const radarReportSchema = z.object({
     turnstileToken: z.string().min(1, 'Токен обязателен'),
 });
 
-
-
 function getCategoryName(category: AlertCategory): string {
     const map: Record<AlertCategory, string> = {
         hidden_cancel: 'Скрытая отмена',
@@ -36,13 +34,17 @@ function getCategoryName(category: AlertCategory): string {
     return map[category];
 }
 
+const SEVERITY_MAP: Partial<Record<AlertCategory, AlertSeverity>> = {
+    phishing: 'critical',
+    hidden_cancel: 'critical',
+    refund_refused: 'high',
+};
+
 function getSeverity(category: AlertCategory): AlertSeverity {
-    if (['phishing', 'hidden_cancel'].includes(category)) return 'critical';
-    if (['refund_refused'].includes(category)) return 'high';
-    return 'medium';
+    return SEVERITY_MAP[category] ?? 'medium';
 }
 
-const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
+const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv({ enableAutoPipelining: true }) : null;
 const ratelimit = redis ? new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(20, "1 h"),

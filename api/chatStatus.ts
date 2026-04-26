@@ -8,7 +8,7 @@ const hasRedis = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_RE
 // Rate limit this endpoint to prevent abuse (100 req/hour per IP)
 const statusRateLimit = hasRedis
     ? new Ratelimit({
-        redis: Redis.fromEnv(),
+        redis: Redis.fromEnv({ enableAutoPipelining: true }),
         limiter: Ratelimit.slidingWindow(100, '1 h'),
     })
     : null;
@@ -16,7 +16,7 @@ const statusRateLimit = hasRedis
 // Mirror chat rate limit config from api/assistant.ts (for getRemaining peek)
 const chatRateLimit = hasRedis
     ? new Ratelimit({
-        redis: Redis.fromEnv(),
+        redis: Redis.fromEnv({ enableAutoPipelining: true }),
         limiter: Ratelimit.slidingWindow(15, '1 d'),
     })
     : null;
@@ -41,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Use getRemaining to just peek without incrementing the counter
         const limitRes = await chatRateLimit.getRemaining(`chat_${ip}`);
         
+        res.setHeader('Cache-Control', 'private, max-age=10, stale-while-revalidate=30');
         return res.status(200).json({ 
             remaining: limitRes.remaining,
             limit: limitRes.limit,
@@ -51,4 +52,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 }
-

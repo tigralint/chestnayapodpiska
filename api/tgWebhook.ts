@@ -27,7 +27,7 @@ function isValidIpLike(value: string): boolean {
     return /^[\da-fA-F.:]+$/.test(value) || value === 'unknown';
 }
 
-const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
+const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv({ enableAutoPipelining: true }) : null;
 
 function logError(event: string, error: unknown) {
     console.error(JSON.stringify({
