@@ -9,7 +9,7 @@
     <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178c6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
     <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646cff?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" /></a>
     <a href="https://github.com/tigralint/chestnayapodpiska/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/tigralint/chestnayapodpiska/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI" alt="CI" /></a>
-    <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Tests-240_passed-2ea44f?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" /></a>
+    <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Tests-268_passed-2ea44f?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-Dual_License-blue?style=for-the-badge" alt="License" /></a>
   </p>
 
@@ -71,19 +71,20 @@
 |----------------|------------------------------------------------------------------------------------|
 | **Frontend**   | **React 19**, TypeScript, Vite                                                         |
 | **Styling**    | **Tailwind CSS**, кастомная дизайн-система с эффектами Glassmorphism и Neon Shadows  |
-| **State**      | **Zustand** с `persist` middleware (хранение состояния формы без БД на клиенте)    |
+| **State**      | **React Context** (ScrollContext + ToastContext) с localStorage persistence    |
 | **Backend**    | **Vercel Serverless Functions** (Node.js) + **Edge Runtime** (SSE streaming для ассистента) |
 | **Database**   | **Upstash Redis** (высокопроизводительный Rate Limiting и база для Радара)         |
 | **AI Движок**  | **Google Gemini API** (Gemini 3.1 Flash Lite, Gemini 3 Flash, Gemini 2.5 Flash, Gemma 4 31B-IT) + Vision + RAG + Search Grounding |
 | **PWA**        | Полная поддержка Offline-режима и установки на рабочий стол через `vite-plugin-pwa` |
 | **Linter**     | **ESLint 9** (Flat Config) + **Prettier**                                          |
-| **Тесты**      | **Vitest** + React Testing Library (240 тестов, 37 файлов — полное покрытие API, утилит и хуков) |
+| **Тесты**      | **Vitest** + React Testing Library (268 тестов, 40 файлов) + **Playwright** E2E |
 
 > **Инженерные особенности:**
 > -   **Strongly Typed**: Весь проект написан на строгом TypeScript (`strict`, `noUncheckedIndexedAccess`) с использованием **Zod** для валидации контрактов API.
 > -   **Generic Logic**: Универсальный хук `useClaimForm<T>` обеспечивает переиспользование логики между разными типами претензий.
 > -   **Resilience**: Механизмы `AbortController` для отмены запросов и автоматические ретраи (`fetchWithRetry`) с защитным парсингом JSON для стабильности AI-генерации.
-> -   **CI/CD**: Автоматическая проверка стиля (Lint), типов (tsc), 240 тестов и production-сборка на каждый PR через GitHub Actions.
+> -   **DRY Backend**: Централизованные модули `api/_shared/` (ratelimit, turnstile, telegram, errors) устраняют дублирование кода между всеми API-хендлерами.
+> -   **CI/CD**: Автоматическая проверка стиля (Lint), типов (tsc), 268 тестов, coverage thresholds (70%) и production-сборка на каждый PR через GitHub Actions.
 
 ---
 
@@ -91,7 +92,7 @@
 
 Мы уделяем огромное внимание защите серверных мощностей и данных:
 - **Telegram Webhook Authentication**: Верификация входящих запросов через `X-Telegram-Bot-Api-Secret-Token`.
-- **IP-хэширование (SHA-256)**: IP-адреса пользователей хэшируются перед передачей в любые системы мониторинга.
+- **IP-хэширование (HMAC-SHA-256)**: IP-адреса пользователей хэшируются с помощью HMAC с секретным ключом (`IP_HASH_SECRET`) перед передачей в любые системы мониторинга — защита от rainbow-table атак.
 - **API-ключи в заголовках**: Все ключи (Gemini API) передаются через защищённые HTTP-заголовки, а не URL-параметры.
 - **Cloudflare Turnstile**: Интегрированная невидимая капча для защиты API от ботов.
 - **Serverless Rate Limiting**: Жёсткие лимиты на базе Redis со стратегией **fail-closed** (при сбое Redis запрос отклоняется).
@@ -141,6 +142,7 @@
    TELEGRAM_BOT_TOKEN=...
    TELEGRAM_ADMIN_CHAT_ID=...
    TELEGRAM_WEBHOOK_SECRET=...
+   IP_HASH_SECRET=...          # 32-byte hex string for HMAC IP hashing
    ```
 
 3. **Запустите проект:**
@@ -151,7 +153,9 @@
 
 4. **Тестирование:**
    ```bash
-   npm test           # Запуск Vitest
+   npm test           # Запуск Vitest (268 unit-тестов)
+   npm run coverage   # Тесты + coverage report с порогами (70%)
+   npm run test:e2e   # Playwright E2E smoke-тесты
    ```
 
 ---

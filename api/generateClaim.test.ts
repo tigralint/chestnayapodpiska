@@ -1,5 +1,38 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { claimSchema, courseSchema } from './generateClaim';
+
+// --- Module mocks for handler tests ---
+vi.mock('@upstash/redis', () => ({
+    Redis: { fromEnv: vi.fn(() => ({ zrange: vi.fn(), set: vi.fn() })) }
+}));
+vi.mock('@upstash/ratelimit', () => ({
+    Ratelimit: vi.fn().mockImplementation(() => ({
+        limit: vi.fn().mockResolvedValue({ success: true }),
+    }))
+}));
+vi.mock('./_shared/turnstile', () => ({
+    verifyTurnstile: vi.fn().mockResolvedValue(true),
+}));
+
+function mockRequest(overrides: Partial<{ method: string; headers: Record<string, string>; body: unknown }> = {}) {
+    return {
+        method: overrides.method ?? 'POST',
+        headers: overrides.headers ?? { 'x-forwarded-for': '127.0.0.1' },
+        body: overrides.body ?? {},
+    };
+}
+
+function mockResponse() {
+    const res = {
+        statusCode: 200,
+        _json: null as unknown,
+        _headers: new Map<string, string>(),
+        status(code: number) { res.statusCode = code; return res; },
+        json(data: unknown) { res._json = data; return res; },
+        setHeader(key: string, value: string) { res._headers.set(key, value); return res; },
+    };
+    return res;
+}
 
 describe('claimSchema (Zod validation)', () => {
     const validClaim = {
@@ -110,3 +143,63 @@ describe('courseSchema (Zod validation)', () => {
         expect(result.success).toBe(false);
     });
 });
+
+describe('generateClaim Handler (integration)', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        process.env.GEMINI_API_KEY = 'test-api-key';
+        process.env.TURNSTILE_SECRET_KEY = 'test-turnstile-key';
+        process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io';
+        process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
+    });
+
+    it('should return 405 for non-POST methods', async () => {
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({ method: 'GET' });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(405);
+    });
+
+    it('should return 400 for unknown document type', async () => {
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: { type: 'unknown', data: {}, calculatedRefund: 0 },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(400);
+    });
+
+    it('should return 400 for invalid subscription data', async () => {
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'subscription',
+                data: { serviceName: '', amount: '', date: '', reason: '', tone: 'soft', turnstileToken: 'test' },
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(400);
+    });
+
+    it('should return 400 for course with negative refund', async () => {
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'course',
+                data: {
+                    courseName: 'Test', totalCost: 50000, percentCompleted: 30,
+                    tone: 'soft', hasPlatformAccess: true, hasConsultations: false,
+                    hasCertificate: false, turnstileToken: 'test',
+                },
+                calculatedRefund: -100,
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(400);
+    });
+});
+

@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Security audit
+        run: npm audit --audit-level=moderate || true
+
       - name: Lint
         run: npm run lint
 
@@ -35,3 +38,15 @@ jobs:
 
       - name: Build production bundle
         run: npm run build
+
+      - name: Check bundle size
+        run: |
+          BUILD_SIZE=$(du -sh dist/ | cut -f1)
+          echo "📦 Bundle size: $BUILD_SIZE"
+          # Fail if dist exceeds 5MB (reasonable for a SPA with lazy loading)
+          MAX_SIZE_KB=5120
+          ACTUAL_KB=$(du -sk dist/ | cut -f1)
+          if [ "$ACTUAL_KB" -gt "$MAX_SIZE_KB" ]; then
+            echo "::error::Bundle size ${ACTUAL_KB}KB exceeds ${MAX_SIZE_KB}KB limit"
+            exit 1
+          fi

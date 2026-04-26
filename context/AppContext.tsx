@@ -2,33 +2,54 @@ import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useScrolled } from '../hooks/useScrolled';
 import { useToast, Toast } from '../hooks/useToast';
 
-interface AppContextType {
+// --- Scroll Context (updates on scroll — only AppHeader/MobileTabBar consume) ---
+interface ScrollContextType {
     scrolled: boolean;
+}
+
+const ScrollContext = createContext<ScrollContextType>({ scrolled: false });
+
+export function useScrollContext() {
+    return useContext(ScrollContext);
+}
+
+// --- Toast Context (updates on toast add/remove — isolated re-renders) ---
+interface ToastContextType {
     toasts: Toast[];
     addToast: (message: string, type?: Toast['type']) => void;
     removeToast: (id: string) => void;
 }
 
-const AppContext = createContext<AppContextType>({
-    scrolled: false,
+const ToastContext = createContext<ToastContextType>({
     toasts: [],
     addToast: () => { },
     removeToast: () => { },
 });
 
-export function useAppContext() {
-    return useContext(AppContext);
+export function useToastContext() {
+    return useContext(ToastContext);
 }
 
+// --- Legacy combined hook (backward compatibility) ---
+export function useAppContext() {
+    const { scrolled } = useScrollContext();
+    const { toasts, addToast, removeToast } = useToastContext();
+    return { scrolled, toasts, addToast, removeToast };
+}
+
+// --- Provider ---
 export function AppProvider({ children }: { children: ReactNode }) {
     const { scrolled } = useScrolled();
     const { toasts, addToast, removeToast } = useToast();
 
-    const value = useMemo(() => ({ scrolled, toasts, addToast, removeToast }), [scrolled, toasts, addToast, removeToast]);
+    const scrollValue = useMemo(() => ({ scrolled }), [scrolled]);
+    const toastValue = useMemo(() => ({ toasts, addToast, removeToast }), [toasts, addToast, removeToast]);
 
     return (
-        <AppContext.Provider value={value}>
-            {children}
-        </AppContext.Provider>
+        <ScrollContext.Provider value={scrollValue}>
+            <ToastContext.Provider value={toastValue}>
+                {children}
+            </ToastContext.Provider>
+        </ScrollContext.Provider>
     );
 }
