@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 
-interface GlassCardProps {
+interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
     children: ReactNode;
     className?: string;
     animate?: boolean;
@@ -9,7 +9,7 @@ interface GlassCardProps {
 }
 
 export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
-    ({ children, className, animate = false, style }, ref) => {
+    ({ children, className, animate = false, style, ...rest }, ref) => {
         return (
             <div
                 ref={ref}
@@ -19,6 +19,7 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
                     className
                 )}
                 style={style}
+                {...rest}
             >
                 {children}
             </div>
@@ -26,3 +27,4 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
     }
 );
 GlassCard.displayName = 'GlassCard';
+

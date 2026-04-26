@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Redis } from '@upstash/redis';
 import type { RadarStoredData } from '../types';
-import { escapeHtml } from '../utils/escapeHtml';
+import { sendTelegramMessage, editTelegramMessage, answerCallbackQuery, escapeHtml } from './_shared/telegram';
 
 /** Subset of Telegram Bot API types used by this webhook */
 interface TelegramMessage {
@@ -21,9 +21,6 @@ interface TelegramUpdate {
     callback_query?: TelegramCallbackQuery;
 }
 
-/** Timeout for all outgoing Telegram API requests (ms) */
-const TG_TIMEOUT_MS = 10_000;
-
 /** Validates that a string looks like an IPv4/IPv6 address or 'unknown' (prevents SCAN injection) */
 function isValidIpLike(value: string): boolean {
     // IPv4, IPv6, or 'unknown' — reject wildcards and glob patterns
@@ -40,8 +37,126 @@ function logError(event: string, error: unknown) {
     }));
 }
 
+// --- Callback Handlers (decomposed for readability and testability) ---
+
+/** Handle /list command: show last 5 radar alerts */
+async function handleListCommand(chatId: number): Promise<void> {
+    if (!redis) return;
+
+    const items = await redis.zrange('radar:alerts', 0, 4, { rev: true });
+
+    if (!items || items.length === 0) {
+        await sendTelegramMessage(String(chatId), 'На радаре пока пусто.');
+    } else {
+        for (const item of items) {
+            const alert = item as RadarStoredData;
+            const text = `📌 <b>${escapeHtml(alert.serviceName)}</b> (${escapeHtml(alert.city)})\n📝 ${escapeHtml(alert.description)}`;
+            await sendTelegramMessage(String(chatId), text, {
+                inline_keyboard: [[{ text: '🗑 Удалить с сайта', callback_data: `delradar_${alert.id}` }]]
+            });
+        }
+    }
+}
+
+/** Handle approve/reject radar report callbacks */
+async function handleRadarModeration(callbackQuery: TelegramCallbackQuery, data: string): Promise<void> {
+    if (!redis) return;
+
+    const isApprove = data.startsWith('approve_radar_');
+    const reportId = data.replace(isApprove ? 'approve_radar_' : 'reject_radar_', '');
+    const message = callbackQuery.message;
+
+    const pendingKey = `radar:pending:${reportId}`;
+    const pendingDataStr = await redis.get(pendingKey);
+
+    if (!pendingDataStr) {
+        await answerCallbackQuery(callbackQuery.id, 'Заявка не найдена или уже была обработана.');
+        return;
+    }
+
+    const originalText = message?.text || 'Заявка с Радара';
+    let newText = originalText;
+
+    if (isApprove) {
+        const parsedData: RadarStoredData = typeof pendingDataStr === 'string' ? JSON.parse(pendingDataStr) : pendingDataStr as RadarStoredData;
+        await redis.zadd('radar:alerts', { score: parsedData.timestamp, member: parsedData });
+        await redis.del(pendingKey);
+        newText += '\n\n✅ Одобрено и опубликовано на сайте!';
+    } else {
+        await redis.del(pendingKey);
+        newText += '\n\n❌ Отклонено модератором.';
+    }
+
+    try { await answerCallbackQuery(callbackQuery.id, isApprove ? 'Одобрено!' : 'Отклонено!'); } catch (e: unknown) { logError('answerCallback', e); }
+
+    if (message?.chat && message.message_id) {
+        try { await editTelegramMessage(message.chat.id, message.message_id, newText); } catch (e: unknown) { logError('editMessage', e); }
+    }
+}
+
+/** Handle delradar_ callback: remove a published alert */
+async function handleDeleteRadar(callbackQuery: TelegramCallbackQuery, data: string): Promise<void> {
+    if (!redis) return;
+
+    const reportId = data.replace('delradar_', '');
+    const message = callbackQuery.message;
+
+    const items = await redis.zrange('radar:alerts', 0, -1);
+    const itemToRemove = items.find((i) => (i as RadarStoredData)?.id === reportId);
+
+    if (itemToRemove) {
+        await redis.zrem('radar:alerts', itemToRemove);
+    }
+
+    try { await answerCallbackQuery(callbackQuery.id, 'Удалено навсегда!'); } catch (e: unknown) { logError('answerCallback', e); }
+
+    if (message?.chat && message.message_id) {
+        try {
+            await editTelegramMessage(message.chat.id, message.message_id,
+                (message?.text || 'Заявка с Радара') + '\n\n🗑 Удалено с сайта.');
+        } catch (e: unknown) { logError('editMessage', e); }
+    }
+}
+
+/** Handle reset_limit_ callback: reset rate limits for a hashed IP */
+async function handleResetLimit(callbackQuery: TelegramCallbackQuery, data: string): Promise<void> {
+    if (!redis) return;
+
+    const ipHash = data.replace('reset_limit_', '');
+    const message = callbackQuery.message;
+
+    const realIp = await redis.get(`limit_request:${ipHash}`) as string | null;
+
+    if (realIp && isValidIpLike(realIp)) {
+        let cursor = '0';
+        do {
+            const scanRes = await redis.scan(cursor, { match: `*chat_${realIp}*`, count: 100 });
+            cursor = scanRes[0];
+            const keys = scanRes[1];
+            if (keys.length > 0) {
+                await redis.del(...keys);
+            }
+        } while (cursor !== '0');
+
+        await redis.del(`limit_request:${ipHash}`);
+    }
+
+    try {
+        await answerCallbackQuery(callbackQuery.id, realIp ? 'Лимиты сброшены!' : 'IP не найден (ссылка устарела).');
+    } catch (e: unknown) { logError('answerCallback', e); }
+
+    if (message?.chat && message.message_id) {
+        try {
+            await editTelegramMessage(message.chat.id, message.message_id,
+                (message?.text || 'Запрос лимитов') + (realIp ? '\n\n✅ Лимиты успешно сброшены модератором!' : '\n\n⚠️ IP не найден (ссылка устарела).'));
+        } catch (e: unknown) { logError('editMessage', e); }
+    }
+}
+
+// --- Main Handler ---
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // Проверка работоспособности по GET-запросу в браузере
+    // Health check
     if (req.method === 'GET') {
         return res.status(200).json({ status: 'Webhook is running perfectly!' });
     }
@@ -50,8 +165,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    // Verify webhook authenticity via secret token set during webhook registration
-    // FAIL-CLOSED: if secret is not configured, reject all requests
+    // Verify webhook authenticity — FAIL-CLOSED
     const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
     if (!webhookSecret) {
         console.error(JSON.stringify({ event: 'tgWebhook_secret_missing', critical: true }));
@@ -74,216 +188,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const update = req.body as TelegramUpdate;
 
-        // Обработка текстовых сообщений (команды из бота)
-        if (update && update.message && update.message.text) {
-            const message = update.message;
-            if (message.text?.startsWith('/list')) {
-                // Берем последние 5 алертов с радара
-                const items = await redis.zrange('radar:alerts', 0, 4, { rev: true });
-                
-                if (!items || items.length === 0) {
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        body: JSON.stringify({ chat_id: message.chat.id, text: "На радаре пока пусто." }),
-                        headers: { 'Content-Type': 'application/json' },
-                        signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                    });
-                } else {
-                    for (const item of items) {
-                        const alert = item as RadarStoredData;
-                        const text = `📌 <b>${escapeHtml(alert.serviceName)}</b> (${escapeHtml(alert.city)})\n📝 ${escapeHtml(alert.description)}`;
-                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                chat_id: message.chat.id,
-                                text: text,
-                                parse_mode: 'HTML',
-                                reply_markup: {
-                                    inline_keyboard: [[{ text: '🗑 Удалить с сайта', callback_data: `delradar_${alert.id}` }]]
-                                }
-                            }),
-                            headers: { 'Content-Type': 'application/json' },
-                            signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                        });
-                    }
-                }
-                return res.status(200).json({ ok: true });
+        // Handle text commands
+        if (update?.message?.text?.startsWith('/list')) {
+            await handleListCommand(update.message.chat.id);
+            return res.status(200).json({ ok: true });
+        }
+
+        // Handle callback queries (inline keyboard buttons)
+        if (update?.callback_query) {
+            const { callback_query } = update;
+            const data = callback_query.data;
+
+            if (data?.startsWith('approve_radar_') || data?.startsWith('reject_radar_')) {
+                await handleRadarModeration(callback_query, data);
+            } else if (data?.startsWith('delradar_')) {
+                await handleDeleteRadar(callback_query, data);
+            } else if (data?.startsWith('reset_limit_')) {
+                await handleResetLimit(callback_query, data);
             }
         }
-        
-        // We only care about callback query
-        if (update && update.callback_query) {
-            const callbackQuery = update.callback_query;
-            const data = callbackQuery.data as string;
-            const message = callbackQuery.message;
-            
-            if (data && (data.startsWith('approve_radar_') || data.startsWith('reject_radar_'))) {
-                const isApprove = data.startsWith('approve_radar_');
-                const reportId = data.replace(isApprove ? 'approve_radar_' : 'reject_radar_', '');
-                
-                const pendingKey = `radar:pending:${reportId}`;
-                const pendingDataStr = await redis.get(pendingKey);
-                
-                if (!pendingDataStr) {
-                    // Answer callback saying expired or processed
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            callback_query_id: callbackQuery.id,
-                            text: 'Заявка не найдена или уже была обработана.',
-                            show_alert: true
-                        }),
-                        signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                    });
-                } else {
-                    const originalText = message?.text || 'Заявка с Радара';
-                    let newText = originalText;
-                    
-                    if (isApprove) {
-                        const parsedData: RadarStoredData = typeof pendingDataStr === 'string' ? JSON.parse(pendingDataStr) : pendingDataStr as RadarStoredData;
-                        // Move to active alerts list
-                        await redis.zadd('radar:alerts', { score: parsedData.timestamp, member: parsedData });
-                        await redis.del(pendingKey);
-                        newText += '\n\n✅ Одобрено и опубликовано на сайте!';
-                    } else {
-                        await redis.del(pendingKey);
-                        newText += '\n\n❌ Отклонено модератором.';
-                    }
 
-                    // 1. СРАЗУ снимаем "часики" загрузки на кнопке (Answer Callback)
-                    try {
-                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                callback_query_id: callbackQuery.id,
-                                text: isApprove ? 'Одобрено!' : 'Отклонено!'
-                            }),
-                            signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                        });
-                    } catch (e: unknown) {
-                        logError('answerCallback', e);
-                    }
-
-                    // 2. Меняем текст сообщения и удаляем кнопки
-                    if (message && message.chat && message.message_id) {
-                        try {
-                            const editRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    chat_id: message.chat.id,
-                                    message_id: message.message_id,
-                                    text: newText,
-                                    reply_markup: { inline_keyboard: [] }
-                                }),
-                                signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                            });
-                            if (!editRes.ok) logError('editMessage', await editRes.text());
-                        } catch (e: unknown) {
-                            logError('editMessage', e);
-                        }
-                    }
-                }
-            } else if (data && data.startsWith('delradar_')) {
-                // Логика удаления _уже опубликованного_ алерта
-                const reportId = data.replace('delradar_', '');
-                
-                // Ищем элемент во всем списке (чтобы удалить, нужно передать точный объект)
-                const items = await redis.zrange('radar:alerts', 0, -1);
-                const itemToRemove = items.find((i) => (i as RadarStoredData)?.id === reportId);
-
-                if (itemToRemove) {
-                    await redis.zrem('radar:alerts', itemToRemove);
-                }
-
-                try {
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ callback_query_id: callbackQuery.id, text: 'Удалено навсегда!' }),
-                        signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                    });
-                } catch (e: unknown) {
-                    logError('answerCallback', e);
-                }
-
-                if (message && message.chat && message.message_id) {
-                    try {
-                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: message.chat.id,
-                                message_id: message.message_id,
-                                text: (message?.text || 'Заявка с Радара') + '\n\n🗑 Удалено с сайта.',
-                                reply_markup: { inline_keyboard: [] }
-                            }),
-                            signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                        });
-                    } catch (e: unknown) {
-                        logError('editMessage', e);
-                    }
-                }
-            } else if (data && data.startsWith('reset_limit_')) {
-                // Логика сброса лимитов для IP (hash received from requestLimit.ts)
-                const ipHash = data.replace('reset_limit_', '');
-
-                // Look up real IP from the hash→IP mapping stored in Redis
-                const realIp = await redis.get(`limit_request:${ipHash}`) as string | null;
-
-                if (realIp && isValidIpLike(realIp)) {
-                    // Ключи Upstash Ratelimit зависят от алгоритма, но обычно это: "@upstash/ratelimit:{alg}:{identifier}" или подобное.
-                    // Самый надежный вариант - найти все ключи, содержащие идентификатор "chat_{ip}" и удалить их.
-                    let cursor = '0';
-                    do {
-                        const scanRes = await redis.scan(cursor, { match: `*chat_${realIp}*`, count: 100 });
-                        cursor = scanRes[0];
-                        const keys = scanRes[1];
-                        if (keys.length > 0) {
-                            await redis.del(...keys);
-                        }
-                    } while (cursor !== '0');
-
-                    // Clean up the mapping key
-                    await redis.del(`limit_request:${ipHash}`);
-                }
-
-                try {
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ callback_query_id: callbackQuery.id, text: realIp ? `Лимиты сброшены!` : 'IP не найден (ссылка устарела).' }),
-                        signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                    });
-                } catch (e: unknown) {
-                    logError('answerCallback', e);
-                }
-
-                if (message && message.chat && message.message_id) {
-                    try {
-                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: message.chat.id,
-                                message_id: message.message_id,
-                                text: (message?.text || 'Запрос лимитов') + (realIp ? `\n\n✅ Лимиты успешно сброшены модератором!` : '\n\n⚠️ IP не найден (ссылка устарела).'),
-                                reply_markup: { inline_keyboard: [] }
-                            }),
-                            signal: AbortSignal.timeout(TG_TIMEOUT_MS),
-                        });
-                    } catch (e: unknown) {
-                        logError('editMessage', e);
-                    }
-                }
-            }
-        }
-        
         return res.status(200).json({ ok: true });
     } catch (error: unknown) {
         logError('handler', error);
-        return res.status(200).json({ ok: false, error: 'Webhook error handled safely' }); 
+        return res.status(200).json({ ok: false, error: 'Webhook error handled safely' });
     }
 }

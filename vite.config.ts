@@ -79,7 +79,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom', 'zustand'],
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
           'markdown': ['react-markdown', 'remark-gfm'],
           'docx': ['docx'],
         }
@@ -89,5 +89,22 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    exclude: ['node_modules', 'e2e'],
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        lines: 70,
+        branches: 65,
+        functions: 70,
+        statements: 70,
+      },
+      exclude: [
+        'node_modules/',
+        'data/',
+        'constants/',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+      ],
+    },
   }
 });

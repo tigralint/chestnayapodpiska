@@ -1,9 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { buildSubscriptionPrompt, buildCoursePrompt, buildCustomReasonPrompt } from './promptBuilder.js';
-import type { TurnstileVerifyResponse } from '../utils/turnstile';
-import { TURNSTILE_TIMEOUT_MS } from '../utils/turnstile';
+import { verifyTurnstile } from './_shared/turnstile';
 import { getClientIp } from '../utils/getClientIp';
 import { sanitizeForPrompt } from '../utils/sanitize';
+
+/** Verifies Turnstile token using the shared module, with a fallback for the secret key. */
+async function verifyTurnstileToken(token: string, _secretKey: string): Promise<boolean> {
+    return verifyTurnstile(token);
+}
 
 interface GeminiResponse {
     candidates?: {
@@ -37,8 +41,8 @@ export const courseSchema = z.object({
     turnstileToken: z.string().min(1, 'Токен капчи обязателен'),
 });
 
-export type ClaimData = z.infer<typeof claimSchema>;
-export type CourseData = z.infer<typeof courseSchema>;
+export type ValidatedClaimPayload = z.infer<typeof claimSchema>;
+export type ValidatedCoursePayload = z.infer<typeof courseSchema>;
 
 
 
@@ -186,67 +190,54 @@ export default async function handler(
         }
 
         // Runtime validation of request body
-        let validData: ClaimData | CourseData;
+        let prompt = '';
+        // Validate and branch by type — no type assertions needed
         if (type === 'subscription') {
             const parsed = claimSchema.safeParse(data);
             if (!parsed.success) {
                 return response.status(400).json({ error: 'Некорректные данные подписки. Проверьте заполнение всех полей.' });
             }
-            validData = parsed.data;
+            const validData = parsed.data;
+
+            // Verify Turnstile
+            const turnstileOk = await verifyTurnstileToken(validData.turnstileToken, TURNSTILE_SECRET_KEY);
+            if (!turnstileOk) return response.status(403).json({ error: 'Ошибка капчи.' });
+
+            // Build prompt from validated data
+            const serviceName = sanitizeForPrompt(validData.serviceName);
+            const amount = sanitizeForPrompt(String(validData.amount), 20);
+            const date = sanitizeForPrompt(String(validData.date), 20);
+
+            if (validData.reason === 'custom' && validData.customReason) {
+                const customReason = sanitizeForPrompt(validData.customReason, 500);
+                prompt = buildCustomReasonPrompt(serviceName, amount, date, customReason, validData.tone);
+            } else {
+                const reason = sanitizeForPrompt(validData.reason);
+                prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, validData.tone);
+            }
         } else {
             const parsed = courseSchema.safeParse(data);
             if (!parsed.success) {
                 return response.status(400).json({ error: 'Некорректные данные курса. Проверьте заполнение всех полей.' });
             }
-            validData = parsed.data;
+            const validData = parsed.data;
             if (typeof calculatedRefund !== 'number' || calculatedRefund < 0) {
                 return response.status(400).json({ error: 'Некорректная сумма возврата.' });
             }
-        }
 
-        // turnstileToken is now validated as required by Zod schema (.min(1))
-        // No need for a separate nullish check here
+            // Verify Turnstile
+            const turnstileOk = await verifyTurnstileToken(validData.turnstileToken, TURNSTILE_SECRET_KEY);
+            if (!turnstileOk) return response.status(403).json({ error: 'Ошибка капчи.' });
 
-        // Verify Turnstile (with timeout to prevent hanging)
-        const formData = new URLSearchParams();
-        formData.append('secret', TURNSTILE_SECRET_KEY);
-        formData.append('response', validData.turnstileToken);
-
-        const turnstileCheck = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-            method: 'POST',
-            body: formData,
-            signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
-        });
-
-        const turnstileRes = await turnstileCheck.json() as TurnstileVerifyResponse;
-        if (!turnstileRes.success) {
-            return response.status(403).json({ error: 'Ошибка капчи.' });
-        }
-
-        // Sanitize all user-provided strings before embedding in prompt
-        let prompt = '';
-        if (type === 'subscription') {
-            const subData = validData as ClaimData;
-            const serviceName = sanitizeForPrompt(subData.serviceName);
-            const amount = sanitizeForPrompt(String(subData.amount), 20);
-            const date = sanitizeForPrompt(String(subData.date), 20);
-
-            // Custom reason uses a separate prompt with AI validation
-            if (subData.reason === 'custom' && subData.customReason) {
-                const customReason = sanitizeForPrompt(subData.customReason, 500);
-                prompt = buildCustomReasonPrompt(serviceName, amount, date, customReason, subData.tone);
-            } else {
-                const reason = sanitizeForPrompt(subData.reason);
-                prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, subData.tone);
-            }
-        } else {
-            const courseD = validData as CourseData;
-            const courseName = sanitizeForPrompt(courseD.courseName);
-            const totalCost = sanitizeForPrompt(String(courseD.totalCost), 20);
-            const percentCompleted = sanitizeForPrompt(String(courseD.percentCompleted), 5);
+            // Build prompt from validated data
+            const courseName = sanitizeForPrompt(validData.courseName);
+            const totalCost = sanitizeForPrompt(String(validData.totalCost), 20);
+            const percentCompleted = sanitizeForPrompt(String(validData.percentCompleted), 5);
             const refund = sanitizeForPrompt(String(calculatedRefund), 20);
-            prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, courseD.tone);
+            prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, validData.tone);
         }
+
+        // Prompt is built inside the type-discriminated branches above
 
         // --- Model Cascade: Primary → Fallback ---
         const MODELS = [

@@ -38,7 +38,7 @@ export function LegalBot() {
                     />
 
                     {/* Messages Area */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" aria-live="polite">
                         {messages.length === 0 && (
                             <div className="text-center text-slate-400 mt-10 text-sm">
                                 <div className="p-3 bg-white/5 rounded-2xl inline-block mt-3 border border-white/5">

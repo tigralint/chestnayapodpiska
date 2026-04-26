@@ -9,9 +9,11 @@ import { useRadar } from '../hooks/useRadar';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import { AlertCategory, RadarReport } from '../types';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useAppContext } from '../context/AppContext';
 
 export default function RadarView() {
   const { alerts, loading, error, categoryFilter, setCategoryFilter, submitReport } = useRadar();
+  const { addToast } = useAppContext();
   const [showModal, setShowModal] = useState(false);
   const [modalState, setModalState] = useState<'form' | 'success'>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +51,7 @@ export default function RadarView() {
     } catch(err: unknown) {
        if (import.meta.env.DEV) console.error(err);
        const message = err instanceof Error ? err.message : 'Ошибка отправки';
-       alert(message === 'Server error' ? "Ошибка отправки." : message);
+       addToast(message === 'Server error' ? 'Ошибка отправки. Попробуйте позже.' : message, 'error');
     } finally {
        setIsSubmitting(false);
        turnstileRef.current?.reset();
