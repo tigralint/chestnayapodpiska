@@ -51,6 +51,14 @@ export function LegalBot() {
                                         <span className="text-[11px] font-medium tracking-wide uppercase">Осталось запросов: {limits.remaining}</span>
                                     </div>
                                 )}
+                                <div className="mt-6 p-3 bg-red-500/5 border border-red-500/10 rounded-2xl text-left">
+                                    <p className="text-[11px] leading-relaxed text-slate-400">
+                                        <strong className="text-red-400/80 font-semibold">Внимание:</strong> Бот использует ИИ и может ошибаться. Он не заменяет профессионального юриста.
+                                    </p>
+                                    <p className="text-[11px] leading-relaxed text-slate-400 mt-1.5">
+                                        Отправляя сообщение, вы соглашаетесь с <a href="/privacy" target="_blank" className="text-cyan-400/80 hover:underline">Политикой конфиденциальности</a>. Пожалуйста, <strong>не присылайте</strong> персональные данные (паспорта, номера карт, ФИО).
+                                    </p>
+                                </div>
                             </div>
                         )}
 

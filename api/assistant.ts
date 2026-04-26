@@ -5,10 +5,10 @@ export const config = {
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { z } from 'zod';
-import { GUIDES_DB } from '../data/guides';
+import { GUIDES_DB } from '../data/guides.js';
 import type { Guide } from '../types';
-import { getClientIpEdge } from '../utils/getClientIp';
-import type { TurnstileVerifyResponse } from '../utils/turnstile';
+import { getClientIpEdge } from '../utils/getClientIp.js';
+import type { TurnstileVerifyResponse } from '../utils/turnstile.js';
 
 /** Runtime validation for incoming chat requests */
 export const assistantSchema = z.object({
@@ -41,7 +41,7 @@ interface GeminiRequestPayload {
 
 const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     ? new Ratelimit({
-        redis: Redis.fromEnv(),
+        redis: Redis.fromEnv({ enableAutoPipelining: true }),
         limiter: Ratelimit.slidingWindow(15, "1 d"),
     })
     : null;
@@ -249,19 +249,13 @@ export default async function handler(req: Request) {
                 skipReasons.push(`${modelId}:${cleanErr}`);
                 lastErrorText += `[${modelId} error ${res.status}]: ${errText} | `;
                 
-                // 429 is rate limit / quota exhausted. 5xx is internal Google errors.
-                if (res.status === 429 || res.status >= 500) {
-                    console.warn(JSON.stringify({ event: 'assistant_model_skip', model: modelId, status: res.status }));
-                    continue;
-                } else {
-                    // For other errors like 400 Bad Request, log it but keep trying just in case.
-                    console.error(JSON.stringify({ event: 'assistant_model_error', model: modelId, error: errText }));
-                    continue;
-                }
+                const logFn = (res.status === 429 || res.status >= 500) ? console.warn : console.error;
+                logFn(JSON.stringify({ event: 'assistant_model_skip', model: modelId, status: res.status }));
+                continue;
             }
         }
 
-        if (!aiResponse || !aiResponse.ok) {
+        if (!aiResponse) {
             return new Response(JSON.stringify({ error: `Детали ошибки API: ${lastErrorText}` }), { status: 503 });
         }
 

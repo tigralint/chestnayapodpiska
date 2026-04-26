@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SEO } from '../components/ui/SEO';
@@ -89,7 +89,7 @@ export default function PrivacyView() {
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white">3. Цели обработки данных</h2>
             <ul className="space-y-2 pl-5 list-disc marker:text-slate-500">
-              <li>Обеспечение работоспособности Сервиса (генерация текстов, работа ИИ-ассистента);</li>
+              <li>Обеспечение работоспособности Сервиса (генерация текстов, работа ИИ-ассистента) путём передачи обезличенных данных на обработку в искусственный интеллект через Google Gemini API;</li>
               <li>Защита от автоматизированных запросов, DDoS-атак и злоупотреблений (Cloudflare Turnstile, rate limiting);</li>
               <li>Модерация пользовательских сигналов на Народном Радаре;</li>
               <li>Анализ агрегированной статистики посещений для улучшения Сервиса.</li>
@@ -193,6 +193,7 @@ export default function PrivacyView() {
               <li>Передача данных осуществляется исключительно по защищённому протоколу HTTPS;</li>
               <li>Применяются политики Content Security Policy (CSP) для защиты от XSS-атак;</li>
               <li>IP-адреса хэшируются (SHA-256) перед передачей в системы мониторинга;</li>
+              <li>Технические логи и лимиты запросов временно хранятся в защищенной базе данных Upstash Redis;</li>
               <li>API-ключи передаются через защищённые заголовки, а не через URL;</li>
               <li>Реализована защита от автоматизированных запросов (Cloudflare Turnstile) и ограничение частоты запросов (Rate Limiting).</li>
             </ul>

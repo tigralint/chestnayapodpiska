@@ -1,5 +1,5 @@
-import type { TurnstileVerifyResponse } from '../../utils/turnstile';
-import { TURNSTILE_TIMEOUT_MS } from '../../utils/turnstile';
+import type { TurnstileVerifyResponse } from '../../utils/turnstile.js';
+import { TURNSTILE_TIMEOUT_MS } from '../../utils/turnstile.js';
 
 /**
  * Verifies a Cloudflare Turnstile token server-side.

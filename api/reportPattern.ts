@@ -1,13 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
-import { hashIp } from '../utils/hashIp';
+import { hashIp } from '../utils/hashIp.js';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { escapeHtml } from '../utils/escapeHtml';
-import { getClientIp } from '../utils/getClientIp';
-import type { TurnstileVerifyResponse } from '../utils/turnstile';
-import { TURNSTILE_TIMEOUT_MS } from '../utils/turnstile';
-import { sanitizeForStorage } from '../utils/sanitize';
+import { escapeHtml } from '../utils/escapeHtml.js';
+import { getClientIp } from '../utils/getClientIp.js';
+import type { TurnstileVerifyResponse } from '../utils/turnstile.js';
+import { TURNSTILE_TIMEOUT_MS } from '../utils/turnstile.js';
+import { sanitizeForStorage } from '../utils/sanitize.js';
 
 export const reportSchema = z.object({
     serviceName: z.string().min(1, 'Укажите название сервиса').max(100, 'Слишком длинное название'),
@@ -18,11 +18,9 @@ export const reportSchema = z.object({
 
 export type ReportData = z.infer<typeof reportSchema>;
 
-
-
 const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     ? new Ratelimit({
-        redis: Redis.fromEnv(),
+        redis: Redis.fromEnv({ enableAutoPipelining: true }),
         limiter: Ratelimit.slidingWindow(30, "1 h"),
       })
     : null;

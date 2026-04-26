@@ -201,5 +201,239 @@ describe('generateClaim Handler (integration)', () => {
         await handler(req as never, res as never);
         expect(res.statusCode).toBe(400);
     });
+
+    it('should return 500 when GEMINI_API_KEY is missing', async () => {
+        delete process.env.GEMINI_API_KEY;
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: { type: 'subscription', data: {} },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(500);
+    });
+
+    it('should return 500 when TURNSTILE_SECRET_KEY is missing', async () => {
+        delete process.env.TURNSTILE_SECRET_KEY;
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: { type: 'subscription', data: {} },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(500);
+    });
+
+    it('should return 400 for invalid course data', async () => {
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'course',
+                data: { courseName: '', totalCost: -1, percentCompleted: 200, tone: 'soft', turnstileToken: 'test' },
+                calculatedRefund: 0,
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(400);
+    });
+
+    it('should return 200 with generated text for valid subscription', async () => {
+        const mockFetch = vi.fn();
+        vi.stubGlobal('fetch', mockFetch);
+
+        // AI model returns success
+        mockFetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({
+                candidates: [{
+                    content: { parts: [{ text: 'Претензия по подписке...' }] },
+                    finishReason: 'STOP',
+                }],
+            }),
+        });
+
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'subscription',
+                data: {
+                    serviceName: 'Яндекс Плюс',
+                    amount: '299',
+                    date: '01.04.2026',
+                    reason: 'not_used',
+                    tone: 'soft',
+                    turnstileToken: 'valid',
+                },
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(200);
+        expect((res._json as { text: string }).text).toBe('Претензия по подписке...');
+    });
+
+    it('should use custom reason prompt when reason is "custom"', async () => {
+        const mockFetch = vi.fn();
+        vi.stubGlobal('fetch', mockFetch);
+
+        mockFetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({
+                candidates: [{ content: { parts: [{ text: 'Custom claim text' }] }, finishReason: 'STOP' }],
+            }),
+        });
+
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'subscription',
+                data: {
+                    serviceName: 'Netflix',
+                    amount: '999',
+                    date: '15.03.2026',
+                    reason: 'custom',
+                    customReason: 'Навязали подписку без моего согласия',
+                    tone: 'hard',
+                    turnstileToken: 'valid',
+                },
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 200 with generated text for valid course', async () => {
+        const mockFetch = vi.fn();
+        vi.stubGlobal('fetch', mockFetch);
+
+        mockFetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({
+                candidates: [{ content: { parts: [{ text: 'Претензия по курсу...' }] }, finishReason: 'STOP' }],
+            }),
+        });
+
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'course',
+                data: {
+                    courseName: 'Skillbox Python',
+                    totalCost: 50000,
+                    percentCompleted: 20,
+                    tone: 'hard',
+                    hasPlatformAccess: true,
+                    hasConsultations: false,
+                    hasCertificate: false,
+                    turnstileToken: 'valid',
+                },
+                calculatedRefund: 40000,
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(200);
+        expect((res._json as { text: string }).text).toBe('Претензия по курсу...');
+    });
+
+    it('should return 422 when all AI models fail', async () => {
+        const mockFetch = vi.fn();
+        vi.stubGlobal('fetch', mockFetch);
+
+        // All models return quota exhausted
+        mockFetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ error: { code: 429, message: 'RESOURCE_EXHAUSTED' } }),
+        });
+
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'subscription',
+                data: {
+                    serviceName: 'Test',
+                    amount: '100',
+                    date: '01.01.2026',
+                    reason: 'not_used',
+                    tone: 'soft',
+                    turnstileToken: 'valid',
+                },
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(422);
+    });
+
+    it('should handle safety block responses', async () => {
+        const mockFetch = vi.fn();
+        vi.stubGlobal('fetch', mockFetch);
+
+        mockFetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({
+                promptFeedback: { blockReason: 'SAFETY' },
+            }),
+        });
+
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'subscription',
+                data: {
+                    serviceName: 'Test',
+                    amount: '100',
+                    date: '01.01.2026',
+                    reason: 'not_used',
+                    tone: 'soft',
+                    turnstileToken: 'valid',
+                },
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(422);
+    });
+
+    it('should filter out thinking parts from response', async () => {
+        const mockFetch = vi.fn();
+        vi.stubGlobal('fetch', mockFetch);
+
+        mockFetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({
+                candidates: [{
+                    content: {
+                        parts: [
+                            { text: 'thinking...', thought: true },
+                            { text: 'Actual claim text' },
+                        ],
+                    },
+                    finishReason: 'STOP',
+                }],
+            }),
+        });
+
+        const { default: handler } = await import('./generateClaim');
+        const req = mockRequest({
+            body: {
+                type: 'subscription',
+                data: {
+                    serviceName: 'Test',
+                    amount: '100',
+                    date: '01.01.2026',
+                    reason: 'not_used',
+                    tone: 'soft',
+                    turnstileToken: 'valid',
+                },
+            },
+        });
+        const res = mockResponse();
+        await handler(req as never, res as never);
+        expect(res.statusCode).toBe(200);
+        expect((res._json as { text: string }).text).toBe('Actual claim text');
+    });
 });
 

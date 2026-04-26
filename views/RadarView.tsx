@@ -17,6 +17,7 @@ export default function RadarView() {
   const [showModal, setShowModal] = useState(false);
   const [modalState, setModalState] = useState<'form' | 'success'>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConsentGiven, setIsConsentGiven] = useState(false);
   
   const [formInput, setFormInput] = useState<Partial<RadarReport>>({
     serviceName: '',
@@ -43,6 +44,7 @@ export default function RadarView() {
        await submitReport(formInput as RadarReport);
        setModalState('success');
        setFormInput({ serviceName: '', city: '', amount: undefined, description: '', category: 'other', turnstileToken: undefined });
+       setIsConsentGiven(false);
        turnstileRef.current?.reset();
        setTimeout(() => {
            setShowModal(false);
@@ -218,7 +220,25 @@ export default function RadarView() {
                        <Turnstile ref={turnstileRef} siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''} onSuccess={(t) => setFormInput(p => ({...p, turnstileToken: t}))} onError={() => setFormInput(p => ({...p, turnstileToken: undefined}))} onExpire={() => setFormInput(p => ({...p, turnstileToken: undefined}))} />
                    </div>
 
-                   <button disabled={isSubmitting || !formInput.turnstileToken} type="submit" className="w-full py-4 text-white bg-accent-purple font-bold rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                   <label className="flex items-start gap-3 mt-1 px-1 cursor-pointer group">
+                     <div className="relative flex items-center justify-center mt-0.5">
+                       <input
+                         type="checkbox"
+                         checked={isConsentGiven}
+                         onChange={(e) => setIsConsentGiven(e.target.checked)}
+                         className="peer appearance-none w-5 h-5 border-2 border-white/20 rounded-md bg-white/5 checked:bg-accent-purple checked:border-accent-purple transition-all outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/50 cursor-pointer"
+                       />
+                       <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" viewBox="0 0 14 10" fill="none">
+                         <path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                       </svg>
+                     </div>
+                     <span className="text-xs text-slate-400 font-medium leading-relaxed group-hover:text-slate-300 transition-colors">
+                       Я подтверждаю достоверность информации и осознаю ответственность за клевету. Согласен(на) с{' '}
+                       <a href="/privacy" target="_blank" className="text-accent-purple hover:underline" onClick={(e) => e.stopPropagation()}>Политикой</a>.
+                     </span>
+                   </label>
+
+                   <button disabled={isSubmitting || !formInput.turnstileToken || !isConsentGiven} type="submit" className="w-full py-4 mt-2 text-white bg-accent-purple font-bold rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                        {isSubmitting ? 'Трансляция сигнала...' : 'Опубликовать на Радаре'}
                    </button>
                  </form>

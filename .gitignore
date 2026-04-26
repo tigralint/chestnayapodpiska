@@ -27,6 +27,13 @@ dist-ssr
 # Local Netlify folder
 .netlify
 
+# Vercel
+.vercel
+
+# Test artifacts
+test-results/
+playwright-report/
+
 # Secrets
 .env
 .env.local

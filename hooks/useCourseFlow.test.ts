@@ -124,7 +124,7 @@ describe('useCourseFlow', () => {
         expect(result.current.result).toBe('Course Result Text');
     });
 
-    it('should map to downloadWordDoc for courses correctly', () => {
+    it('should map to downloadWordDoc for courses correctly', async () => {
         vi.spyOn(router, 'useParams').mockReturnValue({});
         const downloadMock = vi.spyOn(downloadWord, 'downloadWordDoc');
 
@@ -134,8 +134,8 @@ describe('useCourseFlow', () => {
             result.current.setData({ ...result.current.data, courseName: 'Skillbox/Geekbrains' });
         });
 
-        act(() => {
-            result.current.handleDownloadWord();
+        await act(async () => {
+            await result.current.handleDownloadWord();
         });
 
         expect(downloadMock).toHaveBeenCalledTimes(1);

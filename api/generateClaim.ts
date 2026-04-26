@@ -1,13 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { z } from 'zod';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 import { buildSubscriptionPrompt, buildCoursePrompt, buildCustomReasonPrompt } from './promptBuilder.js';
-import { verifyTurnstile } from './_shared/turnstile';
-import { getClientIp } from '../utils/getClientIp';
-import { sanitizeForPrompt } from '../utils/sanitize';
-
-/** Verifies Turnstile token using the shared module, with a fallback for the secret key. */
-async function verifyTurnstileToken(token: string, _secretKey: string): Promise<boolean> {
-    return verifyTurnstile(token);
-}
+import { verifyTurnstile } from './_shared/turnstile.js';
+import { getClientIp } from '../utils/getClientIp.js';
+import { sanitizeForPrompt } from '../utils/sanitize.js';
 
 interface GeminiResponse {
     candidates?: {
@@ -17,8 +15,6 @@ interface GeminiResponse {
     promptFeedback?: { blockReason?: string };
     error?: { message?: string; code?: number };
 }
-
-import { z } from 'zod';
 
 export const claimSchema = z.object({
     serviceName: z.string().min(1, 'Укажите название сервиса').max(100, 'Название сервиса слишком длинное'),
@@ -44,16 +40,9 @@ export const courseSchema = z.object({
 export type ValidatedClaimPayload = z.infer<typeof claimSchema>;
 export type ValidatedCoursePayload = z.infer<typeof courseSchema>;
 
-
-
-import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
-
-// --- Redis Rate Limiter (60 req/hour per IP) ---
-// Instantiate only if credentials are present, falling back gracefully locally if not set
 const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     ? new Ratelimit({
-        redis: Redis.fromEnv(),
+        redis: Redis.fromEnv({ enableAutoPipelining: true }),
         limiter: Ratelimit.slidingWindow(60, "1 h"),
     })
     : null;
@@ -199,8 +188,7 @@ export default async function handler(
             }
             const validData = parsed.data;
 
-            // Verify Turnstile
-            const turnstileOk = await verifyTurnstileToken(validData.turnstileToken, TURNSTILE_SECRET_KEY);
+            const turnstileOk = await verifyTurnstile(validData.turnstileToken);
             if (!turnstileOk) return response.status(403).json({ error: 'Ошибка капчи.' });
 
             // Build prompt from validated data
@@ -225,8 +213,7 @@ export default async function handler(
                 return response.status(400).json({ error: 'Некорректная сумма возврата.' });
             }
 
-            // Verify Turnstile
-            const turnstileOk = await verifyTurnstileToken(validData.turnstileToken, TURNSTILE_SECRET_KEY);
+            const turnstileOk = await verifyTurnstile(validData.turnstileToken);
             if (!turnstileOk) return response.status(403).json({ error: 'Ошибка капчи.' });
 
             // Build prompt from validated data
@@ -236,8 +223,6 @@ export default async function handler(
             const refund = sanitizeForPrompt(String(calculatedRefund), 20);
             prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, validData.tone);
         }
-
-        // Prompt is built inside the type-discriminated branches above
 
         // --- Model Cascade: Primary → Fallback ---
         const MODELS = [

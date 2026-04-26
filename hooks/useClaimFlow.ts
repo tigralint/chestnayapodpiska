@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import type { TurnstileInstance } from '@marsidev/react-turnstile';
 import { ClaimData } from '../types';
 import { generateSubscriptionClaim } from '../services/geminiService';
-import { downloadWordDoc } from '../utils/downloadWord';
 import { useClaimForm } from './useClaimForm';
 
 export const REASONS = [
@@ -67,7 +66,8 @@ export function useClaimFlow() {
         handleGenerate(() => turnstileRef.current?.reset());
     };
 
-    const handleDownloadWord = useCallback(() => {
+    const handleDownloadWord = useCallback(async () => {
+        const { downloadWordDoc } = await import('../utils/downloadWord');
         const safeName = data.serviceName.replace(/[^a-zа-я0-9]/gi, '_');
         downloadWordDoc(
             `Претензия_${safeName}`,

@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../utils/escapeHtml';
+import { escapeHtml } from '../../utils/escapeHtml.js';
 
 interface TelegramInlineButton {
     text: string;

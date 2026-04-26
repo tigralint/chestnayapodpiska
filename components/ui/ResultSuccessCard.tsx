@@ -44,6 +44,13 @@ export const ResultSuccessCard = React.memo(function ResultSuccessCard({
                     value={result}
                 />
 
+                <div className="flex items-start gap-3 bg-red-500/5 border border-red-500/10 p-4 rounded-[1.5rem] mb-4">
+                    <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    <p className="text-[12px] leading-relaxed text-slate-400">
+                        <strong className="text-red-400 font-semibold">Внимание:</strong> Документ сгенерирован ИИ. Обязательно проверьте текст, даты, суммы и нормативные ссылки перед отправкой. Сервис не несет ответственности за возможные ошибки.
+                    </p>
+                </div>
+
                 {/* Hide action buttons when AI refused the reason */}
                 {!isRefusal && (
                     <div className="flex gap-4">

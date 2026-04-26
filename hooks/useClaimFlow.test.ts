@@ -108,7 +108,7 @@ describe('useClaimFlow', () => {
         expect(result.current.fieldErrors).toEqual({});
     });
 
-    it('should call downloadWordDoc mapping the data correctly', () => {
+    it('should call downloadWordDoc mapping the data correctly', async () => {
         vi.spyOn(router, 'useParams').mockReturnValue({});
         const downloadMock = vi.spyOn(downloadWord, 'downloadWordDoc');
 
@@ -120,8 +120,8 @@ describe('useClaimFlow', () => {
             // Normally this is set by handleGenerate.
         });
 
-        act(() => {
-            result.current.handleDownloadWord();
+        await act(async () => {
+            await result.current.handleDownloadWord();
         });
 
         expect(downloadMock).toHaveBeenCalledTimes(1);

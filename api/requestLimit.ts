@@ -1,17 +1,20 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { hashIp } from '../utils/hashIp';
-import { getClientIp } from '../utils/getClientIp';
-import { escapeHtml } from '../utils/escapeHtml';
+import { hashIp } from '../utils/hashIp.js';
+import { getClientIp } from '../utils/getClientIp.js';
+import { escapeHtml } from '../utils/escapeHtml.js';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 /** TTL for hash→IP mapping in Redis (24 hours) */
 const IP_MAPPING_TTL_SECONDS = 24 * 60 * 60;
 
-// Rate limit: 5 requests per hour per IP (prevent Telegram spam)
-const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+    ? Redis.fromEnv({ enableAutoPipelining: true })
+    : null;
+
+const ratelimit = redis
     ? new Ratelimit({
-        redis: Redis.fromEnv(),
+        redis,
         limiter: Ratelimit.slidingWindow(5, '1 h'),
     })
     : null;
@@ -37,8 +40,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const ipHash = hashIp(ip);
 
-        // Store hash→IP mapping in Redis so tgWebhook can look it up without exposing raw IP in callback_data
-        const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
         if (redis) {
             await redis.set(`limit_request:${ipHash}`, ip, { ex: IP_MAPPING_TTL_SECONDS });
         }

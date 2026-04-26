@@ -1,14 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
-import { hashIp } from '../utils/hashIp';
+import { hashIp } from '../utils/hashIp.js';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { RadarAlertResponse, RadarStoredData, AlertCategory, AlertSeverity } from '../types';
-import { escapeHtml } from '../utils/escapeHtml';
-import { getClientIp } from '../utils/getClientIp';
-import type { TurnstileVerifyResponse } from '../utils/turnstile';
-import { TURNSTILE_TIMEOUT_MS } from '../utils/turnstile';
-import { sanitizeForStorage } from '../utils/sanitize';
+import { escapeHtml } from '../utils/escapeHtml.js';
+import { getClientIp } from '../utils/getClientIp.js';
+import type { TurnstileVerifyResponse } from '../utils/turnstile.js';
+import { TURNSTILE_TIMEOUT_MS } from '../utils/turnstile.js';
+import { sanitizeForStorage } from '../utils/sanitize.js';
 
 /** TTL for pending radar reports in Redis (7 days) */
 const PENDING_TTL_SECONDS = 7 * 24 * 60 * 60;
@@ -22,8 +22,6 @@ export const radarReportSchema = z.object({
     turnstileToken: z.string().min(1, 'Токен обязателен'),
 });
 
-
-
 function getCategoryName(category: AlertCategory): string {
     const map: Record<AlertCategory, string> = {
         hidden_cancel: 'Скрытая отмена',
@@ -36,13 +34,17 @@ function getCategoryName(category: AlertCategory): string {
     return map[category];
 }
 
+const SEVERITY_MAP: Partial<Record<AlertCategory, AlertSeverity>> = {
+    phishing: 'critical',
+    hidden_cancel: 'critical',
+    refund_refused: 'high',
+};
+
 function getSeverity(category: AlertCategory): AlertSeverity {
-    if (['phishing', 'hidden_cancel'].includes(category)) return 'critical';
-    if (['refund_refused'].includes(category)) return 'high';
-    return 'medium';
+    return SEVERITY_MAP[category] ?? 'medium';
 }
 
-const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv() : null;
+const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv({ enableAutoPipelining: true }) : null;
 const ratelimit = redis ? new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(20, "1 h"),

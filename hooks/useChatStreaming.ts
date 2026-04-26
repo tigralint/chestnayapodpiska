@@ -1,5 +1,4 @@
 import { useRef, useCallback } from 'react';
-import { stripHtml } from 'string-strip-html';
 import type { Message } from './useChatHistory';
 
 /**
@@ -14,7 +13,8 @@ export function useChatStreaming() {
     const cleanText = useCallback((text: string) => {
         let cleaned = text.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '');
         cleaned = cleaned.replace(/<\|channel>thought[\s\S]*?(<channel\|>|$)/gi, '');
-        cleaned = stripHtml(cleaned).result;
+        // Safety net: strip any residual HTML-like tags the model might produce
+        cleaned = cleaned.replace(/<[^>]+>/g, '');
         return cleaned.trim();
     }, []);
 

@@ -32,10 +32,16 @@
   <script type="speculationrules">
   {
     "prerender": [
-      { "where": { "href_matches": ["/claim", "/course", "/guides", "/simulator"] } }
+      {
+        "where": { "href_matches": ["/claim", "/course", "/guides", "/simulator"] },
+        "eagerness": "moderate"
+      }
     ],
     "prefetch": [
-      { "where": { "href_matches": ["/radar", "/faq", "/terms", "/privacy"] } }
+      {
+        "where": { "href_matches": ["/radar", "/faq", "/terms", "/privacy"] },
+        "eagerness": "moderate"
+      }
     ]
   }
   </script>

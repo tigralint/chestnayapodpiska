@@ -1,10 +1,8 @@
-// hooks/useCourseFlow.ts
 import { useMemo, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import type { TurnstileInstance } from '@marsidev/react-turnstile';
 import { CourseData } from '../types';
 import { generateCourseClaim } from '../services/geminiService';
-import { downloadWordDoc } from '../utils/downloadWord';
 import { useClaimForm } from './useClaimForm';
 
 export function useCourseFlow() {
@@ -46,7 +44,8 @@ export function useCourseFlow() {
         handleGenerate(() => turnstileRef.current?.reset(), calculatedRefund);
     };
 
-    const handleDownloadWord = useCallback(() => {
+    const handleDownloadWord = useCallback(async () => {
+        const { downloadWordDoc } = await import('../utils/downloadWord');
         const safeName = data.courseName.replace(/[^a-zа-я0-9]/gi, '_');
         downloadWordDoc(
             `Уведомление_о_расторжении_${safeName}`,

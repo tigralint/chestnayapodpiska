@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { FileText, ChevronDown, Info } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -22,6 +22,8 @@ export default function SubscriptionFlow() {
     turnstileRef,
     isCustomReason, isRefusal
   } = useClaimFlow();
+
+  const [isConsentGiven, setIsConsentGiven] = useState(false);
 
   // Prefetch heavy docx library in the background so it's ready when the user clicks 'Download'
   useEffect(() => {
@@ -236,7 +238,7 @@ export default function SubscriptionFlow() {
               <div className="absolute inset-0 bg-app-bg/50 blur-xl md:hidden rounded-full"></div>
               <button
                 onClick={handleSubmit}
-                disabled={isGenerating || !data.turnstileToken}
+                disabled={isGenerating || !data.turnstileToken || !isConsentGiven}
                 className="relative w-full bg-button-glow hover:shadow-[0_0_30px_rgba(0,242,254,0.4)] disabled:opacity-50 disabled:hover:shadow-none text-app-bg font-bold text-lg rounded-2xl py-4 active:scale-[0.96] hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-cyan/30"
               >
                 {isGenerating ? (
@@ -251,10 +253,27 @@ export default function SubscriptionFlow() {
                   </>
                 )}
               </button>
-              <p className="relative z-10 text-center mt-3 text-xs text-slate-400 font-medium">
-                Нажимая на кнопку, вы принимаете условия{' '}
-                <Link to="/terms" className="text-accent-cyan hover:underline transition-colors">Пользовательского соглашения</Link>
-              </p>
+              
+              {/* Checkbox 152-ФЗ */}
+              <label className="flex items-start gap-3 mt-4 px-1 cursor-pointer group">
+                <div className="relative flex items-center justify-center mt-0.5">
+                  <input
+                    type="checkbox"
+                    checked={isConsentGiven}
+                    onChange={(e) => setIsConsentGiven(e.target.checked)}
+                    className="peer appearance-none w-5 h-5 border-2 border-white/20 rounded-md bg-white/5 checked:bg-accent-cyan checked:border-accent-cyan transition-all outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 cursor-pointer"
+                  />
+                  <svg className="absolute w-3.5 h-3.5 text-app-bg pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" viewBox="0 0 14 10" fill="none">
+                    <path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="text-xs text-slate-400 font-medium leading-relaxed group-hover:text-slate-300 transition-colors">
+                  Я согласен(на) с{' '}
+                  <Link to="/privacy" className="text-accent-cyan hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>Политикой конфиденциальности</Link>{' '}
+                  и{' '}
+                  <Link to="/terms" className="text-accent-cyan hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>Пользовательским соглашением</Link>.
+                </span>
+              </label>
             </div>
           </div>
         </div>

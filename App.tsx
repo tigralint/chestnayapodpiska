@@ -3,6 +3,8 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import MobileTabBar from './components/MobileTabBar';
 import { AppHeader } from './components/layout/AppHeader';
 import { ErrorBoundary } from './components/layout/ErrorBoundary';
+import { AppFooter } from './components/layout/AppFooter';
+import { CookieConsent } from './components/ui/CookieConsent';
 import { usePageTitle } from './hooks/usePageTitle';
 import Dashboard from './views/Dashboard';
 
@@ -21,8 +23,8 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { PwaPrompt } from './components/ui/PwaPrompt';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { useAppContext } from './context/AppContext';
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
+const Analytics = React.lazy(() => import('@vercel/analytics/react').then(m => ({ default: m.Analytics })));
+const SpeedInsights = React.lazy(() => import('@vercel/speed-insights/react').then(m => ({ default: m.SpeedInsights })));
 const LegalBot = React.lazy(() => import('./components/ui/LegalBot').then(m => ({ default: m.LegalBot })));
 
 export default function App() {
@@ -56,8 +58,7 @@ export default function App() {
       {/* Global Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      <Analytics />
-      <SpeedInsights />
+      <Suspense fallback={null}><Analytics /><SpeedInsights /></Suspense>
       <Suspense fallback={null}><LegalBot /></Suspense>
 
       <ErrorBoundary>
@@ -83,6 +84,12 @@ export default function App() {
           </div>
         </div>
       </ErrorBoundary>
+
+      {/* Global Footer — legal links & copyright */}
+      <AppFooter />
+
+      {/* Cookie Banner */}
+      <CookieConsent />
     </div>
   );
 }

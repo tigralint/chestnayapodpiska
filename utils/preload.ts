@@ -19,8 +19,8 @@ const preloadedPaths = new Set<string>();
  * Preloads the chunk for a given path if it hasn't been preloaded yet.
  */
 export const preloadRoute = (path: string) => {
-    // Extract base path (e.g., /claim/netflix -> /claim)
-    const basePath = path.split('/').filter(Boolean)[0] ? `/${path.split('/').filter(Boolean)[0]}` : '/';
+    const firstSegment = path.split('/').filter(Boolean)[0];
+    const basePath = firstSegment ? `/${firstSegment}` : '/';
 
     if (routeImports[basePath] && !preloadedPaths.has(basePath)) {
         routeImports[basePath]().catch(() => { });

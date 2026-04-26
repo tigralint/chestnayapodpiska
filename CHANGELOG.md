@@ -2,20 +2,46 @@
 
 Все значимые релизы проекта «Честная Подписка» фиксируются здесь.
 
-## [1.2.1] – 2026-04-25
-### 🛡️ Security Hardening, Юридическое соответствие и Тесты
-- **🔐 Webhook Authentication**: Верификация входящих запросов через `X-Telegram-Bot-Api-Secret-Token` для предотвращения несанкционированных административных действий.
-- **🔒 IP-хэширование (SHA-256)**: IP-адреса пользователей хэшируются перед передачей в Telegram-уведомления. Утечка `ip` из ответа `chatStatus` устранена.
-- **🔑 API-ключи в заголовках**: Gemini API-ключ перенесён из URL-параметров в защищённые HTTP-заголовки (`x-goog-api-key`).
-- **📜 Политика конфиденциальности**: Создан полноценный документ `/privacy` – покрытие трансграничной передачи данных, третьих лиц (Google, Cloudflare, Vercel, Upstash, Telegram), прав субъектов ПДн по 152-ФЗ.
-- **⚖️ Пользовательское соглашение**: Расширено AI-дисклеймером, ограничениями ответственности и перекрёстными ссылками на Privacy Policy.
-- **📝 Structured JSON Logging**: Все серверные логи (`assistant.ts`, `generateClaim.ts`) переведены на `JSON.stringify` для безопасного мониторинга.
-- **🏗️ Рефакторинг структуры**: `simulator-levels.tsx` перемещён из `data/` в `components/simulator/`. Удалена пустая `src/`.
-- **✅ Тесты: 133 → 185 (+52)**: Покрытие `utils/` – 94.6%, `hooks/` – 90.1%. Новые тест-файлы: `hashIp`, `downloadWord`, `generateClaim` (Zod-схемы), `useFocusTrap`, `ApiErrorBanner`.
-- **📄 Документация**: Обновлены `SECURITY.md` и `README.md` с описанием всех мер защиты.
-- **⚡ Производительность**: DNS preconnect, immutable cache headers, `useTransition` для поиска, `will-change` GPU-оптимизация, `touch-action: manipulation`, Workbox runtime caching.
-- **🧹 Чистка кода**: Удалён мёртвый Zustand store, дубли гайдов (Boosty, Telegram, Whoosh), debug-логи обёрнуты в `import.meta.env.DEV`. ESLint: 0 errors, 0 warnings.
-- **❓ FAQ расширен**: 6 → 10 вопросов (сроки ответа, Роспотребнадзор, чарджбэк, оферта vs закон).
+## [1.2.1] – 2026-04-26
+### 🛡️ Security Hardening, Production-Grade Testing и Performance Optimization
+
+#### 🔐 Безопасность
+- **Webhook Authentication**: Верификация входящих запросов через `X-Telegram-Bot-Api-Secret-Token` для предотвращения несанкционированных административных действий.
+- **IP-хэширование (HMAC-SHA-256)**: IP-адреса пользователей хэшируются с помощью HMAC с секретным ключом (`IP_HASH_SECRET`) перед передачей в любые системы мониторинга.
+- **API-ключи в заголовках**: Gemini API-ключ перенесён из URL-параметров в защищённые HTTP-заголовки (`x-goog-api-key`).
+- **Structured JSON Logging**: Все серверные логи переведены на `JSON.stringify` для безопасного мониторинга.
+
+#### ✅ Тестирование: 133 → 338 тестов (+205)
+- **42 тест-файла** с покрытием всех слоёв: API-эндпоинты, hooks, utilities, services.
+- **Новые API-тесты**: `assistant.test.ts`, `generateClaim.test.ts`, `radar.test.ts`, `reportPattern.test.ts`, `chatStatus.test.ts`, `tgWebhook.test.ts`, `requestLimit.test.ts`.
+- **Новые hook-тесты**: `useChatStreaming`, `useChatHistory`, `useChatLimits`, `useClaimFlow`, `useCourseFlow`, `useSimulator`, `useRadar`, `useFocusTrap`.
+- **Новые utility-тесты**: `hashIp`, `downloadWord`, `escapeHtml`, `fuzzyMatch`, `preload`, `fetchWithRetry`, `format`, `sanitize`.
+- **E2E (Playwright)**: 12 smoke-тестов — навигация, LegalBot, валидация форм, accessibility.
+- **Coverage thresholds**: `lines: 70%`, `branches: 55%`, `functions: 55%`, `statements: 70%` — проверяются в CI.
+
+#### ⚡ Производительность
+- **`docx` Dynamic Import**: Библиотека DOCX (407 KB) вынесена из начального бандла — загружается **только при клике на кнопку скачивания**. Initial bundle: −407 KB.
+- **Удалён `string-strip-html`**: Заменён на 1-строчный regex. Чанк LegalBot: **95 KB → 21 KB** (−78%).
+- **Lazy Analytics**: `@vercel/analytics` и `@vercel/speed-insights` обёрнуты в `React.lazy` — не блокируют FCP.
+- **Redis `enableAutoPipelining`**: Все 8 инстансов Redis используют auto-pipelining для батчинга конкурентных операций (−30-50% latency).
+- **`Cache-Control` для `/api/chatStatus`**: `private, max-age=10, stale-while-revalidate=30` — снижает Redis RTT при повторных открытиях чата.
+- **Speculation Rules API**: Добавлен `eagerness: "moderate"` — Chrome предзагружает страницы при наведении курсора (>200ms).
+- **PWA Workbox**: Добавлены стратегии `NetworkFirst` для `/api/chatStatus` (offline fallback) и `StaleWhileRevalidate` для Google Fonts.
+- **Bundle Visualizer**: Интегрирован `rollup-plugin-visualizer` — генерирует `dist/stats.html` с gzip/brotli-анализом при каждой сборке.
+
+#### 🧹 Чистка кода
+- Удалён мёртвый Zustand store, дубли гайдов, debug-логи обёрнуты в `import.meta.env.DEV`.
+- Модуль-level Redis в `requestLimit.ts` — инстанс создаётся 1 раз при cold start.
+- Декларативная `getSeverity()` map вместо цепочки `if/else`.
+- Унифицирована обработка `AbortError` во всех hooks.
+- ESLint: 0 errors, 0 warnings. TypeScript: 0 errors.
+- `.gitignore`: добавлены `test-results/`, `playwright-report/`, `.vercel`; удалены закоммиченные артефакты.
+
+#### 📄 Документация
+- Политика конфиденциальности `/privacy`: покрытие 152-ФЗ, трансграничная передача данных.
+- Пользовательское соглашение: AI-дисклеймер, ограничения ответственности.
+- Обновлены `SECURITY.md`, `README.md`, `CHANGELOG.md`.
+- FAQ: 6 → 10 вопросов (сроки ответа, Роспотребнадзор, чарджбэк, оферта vs закон).
 
 ## [1.2.0] – 2026-04-04
 ### 🤖 Эра Gemma 4: Vision, RAG и Поиск
