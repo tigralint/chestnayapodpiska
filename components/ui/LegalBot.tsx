@@ -1,3 +1,4 @@
+import { useEffect, useRef, useCallback } from 'react';
 import { useLegalBot } from '../../hooks/useLegalBot';
 import { ChatHeader, BotIcon } from './chat/ChatHeader';
 import { ChatMessage } from './chat/ChatMessage';
@@ -25,11 +26,44 @@ export function LegalBot() {
         messagesEndRef, fileInputRef, turnstileRef,
     } = useLegalBot();
 
+    const dialogRef = useRef<HTMLDivElement>(null);
+
+    // Focus trap: move focus into dialog on open, close on Escape
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            setIsOpen(false);
+            return;
+        }
+        if (e.key !== 'Tab' || !dialogRef.current) return;
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) return;
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+        }
+    }, [setIsOpen]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        document.addEventListener('keydown', handleKeyDown);
+        // Focus the dialog on open
+        requestAnimationFrame(() => dialogRef.current?.focus());
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, handleKeyDown]);
+
     return (
         <div className="fixed bottom-28 md:bottom-8 right-4 md:right-8 z-50">
             {/* The Chat Window */}
             {isOpen && (
-                <div role="dialog" aria-modal="true" aria-label="Юридический ИИ-ассистент" className="mb-4 w-[calc(100vw-2rem)] md:w-96 max-w-sm h-[500px] max-h-[70vh] flex flex-col bg-slate-950/40 backdrop-blur-3xl border border-white/5 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(6,182,212,0.15)] animate-slide-up origin-bottom-right ring-1 ring-white/10">
+                <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Юридический ИИ-ассистент" className="mb-4 w-[calc(100vw-2rem)] md:w-96 max-w-sm h-[500px] max-h-[70vh] flex flex-col bg-slate-950/40 backdrop-blur-3xl border border-white/5 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(6,182,212,0.15)] animate-slide-up origin-bottom-right ring-1 ring-white/10 outline-none">
 
                     <ChatHeader
                         limits={limits}

@@ -42,7 +42,7 @@ export function FeatureCard({ title, description, icon, path, accent, delay }: F
         <button
             onClick={() => navigate(path)}
             onMouseEnter={() => preloadRoute(path)}
-            className={`group relative text-left real-glass rounded-[2.5rem] p-8 hover:-translate-y-2 ${s.hover} active:scale-[0.98] transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden opacity-0 animate-slide-up`}
+            className={`group relative text-left real-glass rounded-[2.5rem] p-8 hover:-translate-y-2 ${s.hover} active:scale-[0.98] transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden opacity-0 animate-slide-up focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan/50 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg`}
             style={{ animationDelay: delay }}
         >
             <div className={`absolute inset-0 bg-gradient-to-br ${s.gradient} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>

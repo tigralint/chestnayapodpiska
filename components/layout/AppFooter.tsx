@@ -13,7 +13,7 @@ export function AppFooter() {
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
                 {/* Copyright */}
-                <p className="text-white/40 text-center sm:text-left select-none">
+                <p className="text-white/60 text-center sm:text-left select-none">
                     © {new Date().getFullYear()} Честная Подписка. Все права защищены.
                 </p>
 
@@ -21,7 +21,7 @@ export function AppFooter() {
                 <nav aria-label="Юридические документы" className="flex items-center gap-4">
                     <Link
                         to="/privacy"
-                        className="text-white/40 hover:text-white/80 transition-colors duration-200"
+                        className="text-white/60 hover:text-white/80 transition-colors duration-200"
                     >
                         Конфиденциальность
                     </Link>

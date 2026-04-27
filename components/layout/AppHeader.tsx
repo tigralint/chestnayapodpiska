@@ -18,7 +18,7 @@ export const AppHeader = React.memo(function AppHeader() {
     const { scrolled } = useAppContext();
 
     return (
-        <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hidden md:block pt-6 px-6 ${scrolled ? 'translate-y-[-120%]' : 'translate-y-0'}`}>
+        <header className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hidden md:block pt-6 px-6 ${scrolled ? 'translate-y-[-120%]' : 'translate-y-0'}`}>
             <div className="max-w-6xl mx-auto h-16 real-glass rounded-[2rem] px-6 flex items-center justify-between shadow-2xl">
                 <div className="flex items-center gap-6">
                     <button onClick={() => navigate('/')} aria-label="На главную" className="flex items-center gap-3 group shrink-0 transition-transform active:scale-95">
@@ -51,6 +51,6 @@ export const AppHeader = React.memo(function AppHeader() {
                     })}
                 </nav>
             </div>
-        </div>
+        </header>
     );
 });

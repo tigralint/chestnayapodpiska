@@ -73,7 +73,7 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
 
     if (isGenerating) {
         return (
-            <div ref={panelRef} className="w-full h-full flex flex-col">
+            <div ref={panelRef} className="w-full h-full flex flex-col" aria-busy="true">
                 <GeneratingState
                     theme={theme}
                     loadingTitle={loadingTitle}
@@ -85,7 +85,7 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
 
     if (result) {
         return (
-            <div ref={panelRef} className="w-full h-full flex flex-col">
+            <div ref={panelRef} className="w-full h-full flex flex-col" aria-live="polite">
                 <ResultSuccessCard
                     result={result}
                     theme={theme}

@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, GraduationCap, ArrowRight, BookOpen, Gamepad, Radio } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
@@ -14,6 +14,7 @@ import { ToolCard } from '../components/ui/ToolCard';
 export default function Dashboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeResultIdx, setActiveResultIdx] = useState(-1);
 
   const navigateTo = useCallback((path: string) => {
     navigate(path);
@@ -40,6 +41,29 @@ export default function Dashboard() {
     description: 'Бесплатный ИИ-сервис для генерации юридически грамотных претензий на возврат средств за подписки и онлайн-курсы.',
   }), []);
 
+  /** Handle keyboard navigation in search dropdown */
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (searchQuery.trim() === '') return;
+    const total = searchResults.length;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveResultIdx(prev => (prev < total - 1 ? prev + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveResultIdx(prev => (prev > 0 ? prev - 1 : total - 1));
+    } else if (e.key === 'Enter' && activeResultIdx >= 0 && activeResultIdx < total) {
+      e.preventDefault();
+      const result = searchResults[activeResultIdx];
+      if (result) {
+        navigateTo(result.type === 'course' ? `/course/${encodeURIComponent(result.service)}` : `/claim/${encodeURIComponent(result.service)}`);
+      }
+    } else if (e.key === 'Escape') {
+      setSearchQuery('');
+      setActiveResultIdx(-1);
+    }
+  }, [searchQuery, searchResults, activeResultIdx, navigateTo]);
+
   return (
     <div className="w-full flex flex-col items-center">
       <SEO
@@ -63,21 +87,24 @@ export default function Dashboard() {
           </p>
 
           {/* Search Bar */}
-          <div className="relative group max-w-2xl z-50">
+          <div className="relative group max-w-2xl z-50" onKeyDown={handleSearchKeyDown}>
             <SearchInput
               value={searchQuery}
-              onChange={setSearchQuery}
+              onChange={(v) => { setSearchQuery(v); setActiveResultIdx(-1); }}
               placeholder={APP_CONTENT.hero.searchPlaceholder}
             />
 
             {/* Quick Search Results */}
             {searchQuery.trim() !== '' && (
-              <div className="absolute top-full left-0 right-0 mt-4 bg-[#0a0f1c]/98 rounded-3xl p-2 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 animate-fade-in overflow-hidden">
+              <div role="listbox" aria-label="Результаты поиска" className="absolute top-full left-0 right-0 mt-4 bg-[#0a0f1c]/98 rounded-3xl p-2 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 animate-fade-in overflow-hidden">
                 {searchResults.length > 0 ? (
                   searchResults.map((result, idx) => (
                     <div
                       key={result.id}
-                      className={cn("flex items-center justify-between p-4 rounded-2xl transition-colors group/item", idx % 2 === 0 ? "bg-white/5" : "hover:bg-white/5")}
+                      id={`search-result-${idx}`}
+                      role="option"
+                      aria-selected={activeResultIdx === idx}
+                      className={cn("flex items-center justify-between p-4 rounded-2xl transition-colors group/item", activeResultIdx === idx ? "bg-white/10 ring-1 ring-accent-cyan/30" : idx % 2 === 0 ? "bg-white/5" : "hover:bg-white/5")}
                       style={{ animationDelay: `${idx * 50}ms` }}
                     >
                       <div className="flex items-center gap-4">
@@ -155,7 +182,7 @@ export default function Dashboard() {
       </div>
 
       {/* Interactive Tools */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 mb-16 shadow-2xl overflow-visible">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
         <ToolCard
           title={APP_CONTENT.tools.simulator.title}
           description={APP_CONTENT.tools.simulator.desc}

@@ -123,13 +123,20 @@
 - **React 19 Compiler**: Автоматическая мемоизация компонентов через `babel-plugin-react-compiler`.
 - **Bundle Analysis**: Интегрирован `rollup-plugin-visualizer` для data-driven оптимизации (`dist/stats.html`).
 
-## ♿ Доступность (Accessibility)
+## ♿ Доступность (Accessibility — WCAG 2.1 AA)
 
-- Семантическая разметка: `<nav>`, `role="main"`, `aria-current="page"`, `role="dialog"`, `aria-modal`.
-- `aria-label` на всех интерактивных элементах навигации, поиска и чата.
-- Focus trap в модальных окнах (LegalBot) с корректной клавиатурной навигацией.
-- Skip-to-content ссылка (`Перейти к содержимому`) для клавиатурной навигации.
-- `prefers-reduced-motion` – глобальное отключение анимаций для пользователей с вестибулярными расстройствами.
+Проект прошёл полный аудит доступности и соответствует стандарту **WCAG 2.1 уровня AA**:
+
+- **Семантическая разметка**: `<main>`, `<header>`, `<footer>`, `<nav>`, `<button>` — корректные HTML5 landmarks для навигации экранными читалками.
+- **ARIA-атрибуты**: `aria-expanded`, `aria-controls`, `aria-live`, `aria-invalid`, `aria-describedby`, `aria-haspopup`, `aria-modal`, `role="dialog"`, `role="listbox"`.
+- **Клавиатурная навигация**: `focus-visible` кольца на всех интерактивных элементах, Arrow/Enter/Escape в поиске и dropdown-ах.
+- **Focus trap**: Модальное окно чат-бота удерживает фокус внутри диалога (Tab cycling + Escape = close).
+- **Контрастность**: Все текстовые элементы проверены на соответствие минимуму 4.5:1 (WCAG AA).
+- **Screen Reader**: Результаты генерации, ошибки валидации и тосты объявляются через `aria-live` / `role="alert"`.
+- **Декоративные элементы**: `aria-hidden="true"` на всех 20 SVG-иконках и декоративных символах.
+- **Skip-to-content**: Ссылка «Перейти к содержимому» для быстрого перехода к основному контенту.
+- **Reduced motion**: `prefers-reduced-motion` отключает все анимации для пользователей с вестибулярными расстройствами.
+- **Системная интеграция**: `<meta name="color-scheme" content="dark">` для корректной отрисовки в ОС.
 
 ---
 

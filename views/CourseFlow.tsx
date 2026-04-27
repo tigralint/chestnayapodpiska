@@ -80,11 +80,13 @@ export default function CourseFlow() {
                   id="courseNameInput"
                   type="text"
                   placeholder="Например: Skillbox, GeekBrains"
-                  className={`w-full bg-white/5 rounded-2xl px-5 py-4 text-[17px] text-white outline-none transition-all duration-300 shadow-inner placeholder-slate-600 focus:scale-[1.01] focus:bg-white/10 ${fieldErrors.courseName ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-purple/50 focus:border-accent-purple/50'}`}
+                  aria-invalid={!!fieldErrors.courseName}
+                  aria-describedby={fieldErrors.courseName ? 'courseNameError' : undefined}
+                  className={`w-full bg-white/5 rounded-2xl px-5 py-4 text-[17px] text-white outline-none transition-all duration-300 shadow-inner placeholder-slate-500 focus:scale-[1.01] focus:bg-white/10 ${fieldErrors.courseName ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-purple/50 focus:border-accent-purple/50'}`}
                   value={data.courseName}
                   onChange={e => { setData({ ...data, courseName: e.target.value }); clearFieldError('courseName'); }}
                 />
-                {fieldErrors.courseName && <p className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.courseName}</p>}
+                {fieldErrors.courseName && <p id="courseNameError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.courseName}</p>}
               </div>
 
               {/* Total Cost */}
@@ -94,13 +96,15 @@ export default function CourseFlow() {
                   <input
                     id="totalCostInput"
                     type="text"
+                    aria-invalid={!!fieldErrors.totalCost}
+                    aria-describedby={fieldErrors.totalCost ? 'totalCostError' : undefined}
                     className={`w-full bg-white/5 rounded-2xl pl-5 pr-10 py-4 text-[19px] font-mono text-accent-cyan outline-none transition-all duration-300 shadow-inner focus:scale-[1.01] focus:bg-white/10 ${fieldErrors.totalCost ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-purple/50 focus:border-accent-purple/50'}`}
                     value={data.totalCost ? formatNumberSpace(data.totalCost) : ''}
                     onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setData({ ...data, totalCost: raw ? Number(raw) : 0 }); clearFieldError('totalCost'); }}
                   />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-accent-purple transition-colors">₽</span>
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-accent-purple transition-colors" aria-hidden="true">₽</span>
                 </div>
-                {fieldErrors.totalCost && <p className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.totalCost}</p>}
+                {fieldErrors.totalCost && <p id="totalCostError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.totalCost}</p>}
               </div>
 
               {/* Percent Slider */}

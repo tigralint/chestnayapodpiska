@@ -18,7 +18,8 @@ export const GeneratingState = React.memo(function GeneratingState({
     const themeStyles = RESULT_THEMES[theme];
 
     return (
-        <GlassCard className={cn("flex-grow flex flex-col items-center justify-center border relative overflow-hidden animate-fade-in min-h-[400px]", themeStyles.border)} aria-live="assertive" role="alert">
+        <GlassCard className={cn("flex-grow flex flex-col items-center justify-center border relative overflow-hidden animate-fade-in min-h-[400px]", themeStyles.border)} aria-live="assertive" aria-busy="true" role="alert">
+            <span className="sr-only">{loadingTitle}. {loadingSubtitle}</span>
             <div className={cn("absolute inset-0 bg-gradient-to-tr animate-gradient-shift bg-[length:200%_200%]", themeStyles.gradient)}></div>
             <div className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-[80px] animate-magic-pulse", themeStyles.bg)}></div>
 

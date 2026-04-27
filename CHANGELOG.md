@@ -2,6 +2,29 @@
 
 Все значимые релизы проекта «Честная Подписка» фиксируются здесь.
 
+## [1.2.2] – В разработке
+### ♿ Полный аудит доступности (WCAG 2.1 AA)
+
+#### Accessibility
+- **Семантическая разметка**: `<div role="main">` → `<main>`, `<div>` → `<header>` — корректные HTML5 landmarks.
+- **ARIA на формах**: `aria-invalid`, `aria-describedby` на всех полях ввода (SubscriptionFlow, CourseFlow). Ошибки валидации объявляются через `role="alert"`.
+- **Контрастность (WCAG 1.4.3)**: Placeholder-ы (`slate-600` → `slate-500`), footer (`white/40` → `white/60`), табы (`text-[10px]` → `text-[11px]`, `slate-500` → `slate-400`).
+- **Иконки**: `aria-hidden="true"` и `focusable="false"` на всех 20 SVG-иконках — screen reader больше не зачитывает «path, line, circle».
+- **Focus visible**: Кольца `focus-visible:ring-2` на FeatureCard, ToolCard, FAQ accordion buttons.
+- **ToolCard**: Конвертирован из `<div onClick>` в `<button>` — теперь доступен с клавиатуры (Tab + Enter).
+- **FAQ Accordion**: Полный ARIA-паттерн — `aria-expanded`, `aria-controls`, panel `id`, `role="region"`.
+- **Screen Reader**: `aria-live="polite"` на результатах генерации, `aria-busy="true"` + SR-only текст на загрузке.
+- **LegalBot Focus Trap**: Полноценная ловушка фокуса в диалоге (Tab cycling, Escape close, auto-focus при открытии).
+- **Поиск**: Keyboard navigation (↑↓ Enter Escape), `role="listbox"` / `role="option"` / `aria-selected`.
+- **Декоративные элементы**: `aria-hidden="true"` на символе ₽ в формах.
+- **Системная интеграция**: `<meta name="color-scheme" content="dark">`.
+
+#### Верификация
+- ESLint: 0 errors, 0 warnings.
+- TypeScript: 0 errors (`tsc --noEmit`).
+- Тесты: 338/338 passed, 42 файла.
+- Vite build: success (390 modules).
+
 ## [1.2.1] – 2026-04-26
 ### 🛡️ Security Hardening, Production-Grade Testing и Performance Optimization
 

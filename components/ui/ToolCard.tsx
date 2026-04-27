@@ -33,8 +33,9 @@ export function ToolCard({ title, description, icon, path, accent, delay }: Tool
     const s = TOOL_ACCENT_STYLES[accent];
 
     return (
-        <div
-            className={`group relative real-glass-panel rounded-[2rem] p-4 flex items-center gap-6 border border-white/5 ${s.hoverBorder} ${s.hoverShadow} transition-all cursor-pointer opacity-0 animate-slide-up`}
+        <button
+            type="button"
+            className={`group relative real-glass-panel rounded-[2rem] p-4 flex items-center gap-6 border border-white/5 ${s.hoverBorder} ${s.hoverShadow} transition-all cursor-pointer opacity-0 animate-slide-up text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-cyan/50`}
             onClick={() => navigate(path)}
             onMouseEnter={() => preloadRoute(path)}
             style={{ animationDelay: delay }}
@@ -47,6 +48,6 @@ export function ToolCard({ title, description, icon, path, accent, delay }: Tool
                 <p className="text-sm text-slate-400">{description}</p>
             </div>
             <ArrowRight className="w-5 h-5 text-slate-600 ml-auto mr-4 group-hover:text-white transition-colors" />
-        </div>
+        </button>
     );
 }

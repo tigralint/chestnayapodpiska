@@ -62,7 +62,7 @@ export default function App() {
       <Suspense fallback={null}><LegalBot /></Suspense>
 
       <ErrorBoundary>
-        <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-[100dvh] pt-[max(1rem,env(safe-area-inset-top))] md:pt-32 pb-28 md:pb-24">
+        <main id="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-[100dvh] pt-[max(1rem,env(safe-area-inset-top))] md:pt-32 pb-28 md:pb-24">
           <div className="h-full w-full view-enter">
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
@@ -82,7 +82,7 @@ export default function App() {
               </Routes>
             </Suspense>
           </div>
-        </div>
+        </main>
       </ErrorBoundary>
 
       {/* Global Footer — legal links & copyright */}

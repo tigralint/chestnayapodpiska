@@ -69,11 +69,13 @@ export default function SubscriptionFlow() {
                 id="serviceNameInput"
                 type="text"
                 placeholder="Например: Яндекс Плюс, ivi, VK"
-                className={`w-full bg-white/5 rounded-2xl px-5 py-4 text-[17px] text-white outline-none transition-all shadow-inner placeholder-slate-600 focus:scale-[1.01] focus:bg-white/10 ${fieldErrors.serviceName ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50'}`}
+                aria-invalid={!!fieldErrors.serviceName}
+                aria-describedby={fieldErrors.serviceName ? 'serviceNameError' : undefined}
+                className={`w-full bg-white/5 rounded-2xl px-5 py-4 text-[17px] text-white outline-none transition-all shadow-inner placeholder-slate-500 focus:scale-[1.01] focus:bg-white/10 ${fieldErrors.serviceName ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50'}`}
                 value={data.serviceName}
                 onChange={e => { setData({ ...data, serviceName: e.target.value }); clearFieldError('serviceName'); }}
               />
-              {fieldErrors.serviceName && <p className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.serviceName}</p>}
+              {fieldErrors.serviceName && <p id="serviceNameError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.serviceName}</p>}
             </div>
 
             {/* Amount + Date */}
@@ -85,13 +87,15 @@ export default function SubscriptionFlow() {
                     id="amountInput"
                     type="text"
                     placeholder="299"
-                    className={`w-full bg-white/5 rounded-2xl pl-5 pr-10 py-4 text-[17px] text-white outline-none transition-all shadow-inner placeholder-slate-600 focus:scale-[1.01] focus:bg-white/10 ${fieldErrors.amount ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50'}`}
+                    aria-invalid={!!fieldErrors.amount}
+                    aria-describedby={fieldErrors.amount ? 'amountError' : undefined}
+                    className={`w-full bg-white/5 rounded-2xl pl-5 pr-10 py-4 text-[17px] text-white outline-none transition-all shadow-inner placeholder-slate-500 focus:scale-[1.01] focus:bg-white/10 ${fieldErrors.amount ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50'}`}
                     value={data.amount ? formatNumberSpace(data.amount) : ''}
                     onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setData({ ...data, amount: raw }); clearFieldError('amount'); }}
                   />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-accent-cyan transition-colors">₽</span>
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-accent-cyan transition-colors" aria-hidden="true">₽</span>
                 </div>
-                {fieldErrors.amount && <p className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.amount}</p>}
+                {fieldErrors.amount && <p id="amountError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.amount}</p>}
               </div>
 
               {/* Custom Date Picker */}
@@ -195,13 +199,15 @@ export default function SubscriptionFlow() {
                   placeholder="Например: Мне не пришло уведомление о списании, я не пользовался сервисом с момента подписки..."
                   maxLength={500}
                   rows={3}
-                  className={`w-full bg-white/5 rounded-2xl px-5 py-4 text-[17px] text-white outline-none transition-all shadow-inner placeholder-slate-600 resize-none focus:scale-[1.005] focus:bg-white/10 ${fieldErrors.customReason ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50'}`}
+                  aria-invalid={!!fieldErrors.customReason}
+                  aria-describedby={fieldErrors.customReason ? 'customReasonError' : undefined}
+                  className={`w-full bg-white/5 rounded-2xl px-5 py-4 text-[17px] text-white outline-none transition-all shadow-inner placeholder-slate-500 resize-none focus:scale-[1.005] focus:bg-white/10 ${fieldErrors.customReason ? 'border-2 border-red-500/50 focus:border-red-400/80 focus:ring-2 focus:ring-red-500/30' : 'border border-white/10 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan/50'}`}
                   value={data.customReason || ''}
                   onChange={e => { setData({ ...data, customReason: e.target.value }); clearFieldError('customReason'); }}
                 />
                 <div className="flex justify-between mt-1.5 px-2">
                   {fieldErrors.customReason ? (
-                    <p className="text-red-400 text-xs animate-fade-in font-medium">{fieldErrors.customReason}</p>
+                    <p id="customReasonError" role="alert" className="text-red-400 text-xs animate-fade-in font-medium">{fieldErrors.customReason}</p>
                   ) : (
                     <p className="text-slate-500 text-xs">ИИ оценит причину и решит, можно ли составить претензию</p>
                   )}

@@ -51,7 +51,9 @@ export default function FaqView() {
               >
                 <button
                   onClick={() => toggleItem(item.id)}
-                  className="w-full flex justify-between items-center p-6 sm:p-8 text-left active:scale-[0.99] transition-transform"
+                  aria-expanded={isOpen}
+                  aria-controls={`faq-panel-${item.id}`}
+                  className="w-full flex justify-between items-center p-6 sm:p-8 text-left active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan/50 focus-visible:ring-inset focus-visible:rounded-[2rem]"
                 >
                   <h3 className={cn(
                     "font-bold text-lg sm:text-xl pr-6 transition-colors duration-300",
@@ -68,6 +70,10 @@ export default function FaqView() {
                 </button>
 
                 <div
+                  id={`faq-panel-${item.id}`}
+                  role="region"
+                  aria-labelledby={`faq-btn-${item.id}`}
+                  hidden={!isOpen}
                   className={cn(
                     "transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden",
                     isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
