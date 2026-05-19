@@ -5,9 +5,12 @@ import { CourseData } from '../types';
 import { generateCourseClaim } from '../services/geminiService';
 import { useClaimForm } from './useClaimForm';
 
+import { useClaimHistory } from './useClaimHistory';
+
 export function useCourseFlow() {
     const { service } = useParams<{ service?: string }>();
     const prefilledService = service ? decodeURIComponent(service) : '';
+    const { addClaim } = useClaimHistory();
 
     const {
         data, setData,
@@ -30,6 +33,17 @@ export function useCourseFlow() {
             if (!d.courseName.trim()) errors.courseName = 'Укажите название школы или курса';
             if (!d.totalCost || isNaN(d.totalCost) || d.totalCost <= 0) errors.totalCost = 'Укажите корректную стоимость курса (> 0)';
             return errors;
+        },
+        (resultText, formData) => {
+            const refund = Math.max(0, formData.totalCost - (formData.totalCost * (formData.percentCompleted / 100)));
+            addClaim({
+                type: 'course',
+                serviceName: formData.courseName,
+                amount: refund,
+                date: new Date().toISOString().split('T')[0] ?? '',
+                resultText,
+                tone: formData.tone
+            });
         }
     );
 

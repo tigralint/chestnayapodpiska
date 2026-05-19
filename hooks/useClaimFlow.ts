@@ -5,6 +5,8 @@ import { ClaimData } from '../types';
 import { generateSubscriptionClaim } from '../services/geminiService';
 import { useClaimForm } from './useClaimForm';
 
+import { useClaimHistory } from './useClaimHistory';
+
 export const REASONS = [
     'Забыл отменить подписку после пробного периода',
     'Не планировал продлевать, случайно нажал',
@@ -22,6 +24,7 @@ export const REFUSAL_MARKER = '[ОТКАЗ]';
 export function useClaimFlow() {
     const { service } = useParams<{ service?: string }>();
     const prefilledService = service ? decodeURIComponent(service) : '';
+    const { addClaim } = useClaimHistory();
 
     const {
         data, setData,
@@ -47,6 +50,16 @@ export function useClaimFlow() {
                 errors.customReason = 'Опишите причину возврата';
             }
             return errors;
+        },
+        (resultText, formData) => {
+            addClaim({
+                type: 'subscription',
+                serviceName: formData.serviceName,
+                amount: Number(formData.amount),
+                date: formData.date,
+                resultText,
+                tone: formData.tone
+            });
         }
     );
 

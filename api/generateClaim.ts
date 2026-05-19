@@ -225,11 +225,13 @@ export default async function handler(
         }
 
         // --- Model Cascade: Primary → Fallback ---
+        // Puts high-limit models first to avoid hitting low-limit 20 RPD caps on Gemini Flash models.
         const MODELS = [
-            'gemini-3.1-flash-lite-preview',
-            'gemini-3-flash-preview',
-            'gemini-2.5-flash',
-            'gemma-4-31b-it' // Gemma 4 used as ultimate fallback (supports systemInstruction via Gemini API)
+            'gemini-3.1-flash-lite',
+            'gemma-4-31b-it',
+            'gemini-3.5-flash',
+            'gemini-3-flash',
+            'gemini-2.5-flash'
         ];
 
         let finalResultText = null;

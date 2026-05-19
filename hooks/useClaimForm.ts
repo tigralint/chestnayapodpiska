@@ -8,7 +8,8 @@ import { copyToClipboard } from '../utils/clipboard';
 export function useClaimForm<T extends { turnstileToken?: string }, A extends unknown[] = []>(
     initialData: T,
     generateFn: (data: T, signal: AbortSignal, ...args: A) => Promise<string>,
-    validateFn: (data: T) => Record<string, string>
+    validateFn: (data: T) => Record<string, string>,
+    onSuccess?: (resultText: string, formData: T) => void
 ) {
     const [data, setData] = useState<T>(initialData);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -42,6 +43,7 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
         try {
             const text = await generateFn(data, signal, ...args);
             setResult(text);
+            onSuccess?.(text, data);
         } catch (e: unknown) {
             // Silently ignore aborted requests (instanceof DOMException is unreliable in some runtimes)
             if (e instanceof Error && e.name === 'AbortError') return;

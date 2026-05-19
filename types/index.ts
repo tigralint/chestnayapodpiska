@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Client-side type definitions.
  * 
  * NOTE: ClaimData & CourseData here represent the *form state* – turnstileToken is optional
@@ -88,4 +88,16 @@ export interface RadarAlertResponse {
   category: AlertCategory;
   serviceName: string;
   reportCount: number;     
+}
+
+export interface ClaimHistoryItem {
+  id: string;
+  type: 'subscription' | 'course';
+  serviceName: string;
+  amount: number;
+  date: string;
+  resultText: string;
+  status: 'pending' | 'refunded' | 'refused';
+  createdAt: string;
+  tone: Tone;
 }

@@ -10,11 +10,14 @@ import { APP_CONTENT } from '../constants/text';
 import { HeroBlobCanvas } from '../components/ui/HeroBlobCanvas';
 import { FeatureCard } from '../components/ui/FeatureCard';
 import { ToolCard } from '../components/ui/ToolCard';
+import { useClaimHistory } from '../hooks/useClaimHistory';
+import { ClaimHistoryList } from '../components/ui/ClaimHistoryList';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeResultIdx, setActiveResultIdx] = useState(-1);
+  const { history, updateClaimStatus, deleteClaim } = useClaimHistory();
 
   const navigateTo = useCallback((path: string) => {
     navigate(path);
@@ -150,6 +153,23 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+
+          {/* Quick jump to history if exists */}
+          {history.length > 0 && (
+            <div className="mt-6 flex justify-center md:justify-start">
+              <a
+                href="#history"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all hover:scale-[1.02] shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
+              >
+                <span>📂 У вас есть сохраненные претензии: {history.length}</span>
+                <span className="text-accent-cyan animate-bounce">↓</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
 
@@ -200,6 +220,14 @@ export default function Dashboard() {
           delay="600ms"
         />
       </div>
+
+      {history.length > 0 && (
+        <ClaimHistoryList
+          history={history}
+          onUpdateStatus={updateClaimStatus}
+          onDelete={deleteClaim}
+        />
+      )}
     </div>
   );
 }

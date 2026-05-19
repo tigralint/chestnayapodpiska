@@ -180,11 +180,11 @@ export default async function handler(req: Request) {
         }
 
         // --- Model Cascade ---
-        // Gemma 4 31B is the primary model (via Gemini API, uses same API key)
-        // Gemma 3 27B remains as ultimate fallback
+        // Gemini 3.1 Flash Lite is the primary model (does not output raw reasoning/thoughts)
+        // Gemma 4 31B remains as a high-limit fallback
         const MODELS = [
-            'gemma-4-31b-it',
-            'gemma-3-27b-it'
+            'gemini-3.1-flash-lite',
+            'gemma-4-31b-it'
         ];
 
         let aiResponse: globalThis.Response | null = null;
