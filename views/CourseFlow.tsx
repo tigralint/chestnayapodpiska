@@ -51,7 +51,7 @@ export default function CourseFlow() {
             theme="purple"
           />
 
-          {apiError && <ApiErrorBanner error={apiError} />}
+          {apiError ? <ApiErrorBanner error={apiError} /> : null}
 
           <div className="space-y-8 real-glass-panel p-6 sm:p-8 rounded-[2.5rem] opacity-0 animate-slide-up" style={{ animationDelay: '150ms' }}>
 
@@ -86,7 +86,7 @@ export default function CourseFlow() {
                   value={data.courseName}
                   onChange={e => { setData({ ...data, courseName: e.target.value }); clearFieldError('courseName'); }}
                 />
-                {fieldErrors.courseName && <p id="courseNameError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.courseName}</p>}
+                {fieldErrors.courseName ? <p id="courseNameError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.courseName}</p> : null}
               </div>
 
               {/* Total Cost */}
@@ -104,7 +104,7 @@ export default function CourseFlow() {
                   />
                   <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-accent-purple transition-colors" aria-hidden="true">₽</span>
                 </div>
-                {fieldErrors.totalCost && <p id="totalCostError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.totalCost}</p>}
+                {fieldErrors.totalCost ? <p id="totalCostError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.totalCost}</p> : null}
               </div>
 
               {/* Percent Slider */}

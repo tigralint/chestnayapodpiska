@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { ClaimHistoryItem } from '../../types';
-import { CreditCard, GraduationCap, Copy, Download, Trash } from '../icons';
+import { CreditCard, GraduationCap, Copy, Download, Trash, ChevronDown } from '../icons';
 import { copyToClipboard } from '../../utils/clipboard';
 import { useToastContext } from '../../context/AppContext';
 import { cn } from '../../utils/cn';
@@ -19,6 +19,7 @@ export function ClaimHistoryList({ history, onUpdateStatus, onDelete }: ClaimHis
     const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
     const [typeFilter, setTypeFilter] = useState<FilterType>('all');
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
     const handleCopy = useCallback(async (id: string, text: string) => {
         const success = await copyToClipboard(text);
@@ -239,20 +240,78 @@ export function ClaimHistoryList({ history, onUpdateStatus, onDelete }: ClaimHis
                             <div className="flex flex-col gap-4 border-t border-white/10 pt-4">
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-bold text-slate-400">Статус претензии:</span>
-                                    <select
-                                        value={item.status}
-                                        onChange={(e) => onUpdateStatus(item.id, e.target.value as ClaimHistoryItem['status'])}
-                                        className={cn(
-                                            "text-xs font-bold rounded-xl px-3 py-1.5 border cursor-pointer outline-none transition-all bg-[#0d1220]/95",
-                                            item.status === 'pending' && "border-amber-500/30 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.15)]",
-                                            item.status === 'refunded' && "border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.15)]",
-                                            item.status === 'refused' && "border-rose-500/30 text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)]"
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => setOpenDropdownId(openDropdownId === item.id ? null : item.id)}
+                                            className={cn(
+                                                "text-xs font-bold rounded-xl px-3 py-1.5 border cursor-pointer outline-none transition-all bg-[#0d1220]/90 hover:bg-[#141b30]/90 flex items-center gap-1.5 select-none relative z-40",
+                                                item.status === 'pending' && "border-amber-500/30 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.15)]",
+                                                item.status === 'refunded' && "border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.15)]",
+                                                item.status === 'refused' && "border-rose-500/30 text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.15)]"
+                                            )}
+                                        >
+                                            <span>
+                                                {item.status === 'pending' && "⏳ В процессе"}
+                                                {item.status === 'refunded' && "🎉 Деньги вернули"}
+                                                {item.status === 'refused' && "❌ Отказано"}
+                                            </span>
+                                            <ChevronDown className={cn("w-3.5 h-3.5 opacity-70 transition-transform duration-200", openDropdownId === item.id && "rotate-180")} />
+                                        </button>
+                                        
+                                        {openDropdownId === item.id && (
+                                            <>
+                                                <div 
+                                                    className="fixed inset-0 z-30 cursor-default" 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setOpenDropdownId(null);
+                                                    }}
+                                                />
+                                                <div className="absolute right-0 mt-1.5 w-44 rounded-xl border border-white/10 real-glass-panel shadow-[0_10px_35px_rgba(0,0,0,0.6)] overflow-hidden z-40 flex flex-col p-1 animate-fade-in origin-top-right">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            onUpdateStatus(item.id, 'pending');
+                                                            setOpenDropdownId(null);
+                                                        }}
+                                                        className={cn(
+                                                            "w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5",
+                                                            item.status === 'pending' ? "bg-amber-500/10 text-amber-400 font-extrabold" : "text-slate-300 hover:bg-white/5 hover:text-white"
+                                                        )}
+                                                    >
+                                                        ⏳ В процессе
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            onUpdateStatus(item.id, 'refunded');
+                                                            setOpenDropdownId(null);
+                                                        }}
+                                                        className={cn(
+                                                            "w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5",
+                                                            item.status === 'refunded' ? "bg-emerald-500/10 text-emerald-400 font-extrabold" : "text-slate-300 hover:bg-white/5 hover:text-white"
+                                                        )}
+                                                    >
+                                                        🎉 Деньги вернули
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            onUpdateStatus(item.id, 'refused');
+                                                            setOpenDropdownId(null);
+                                                        }}
+                                                        className={cn(
+                                                            "w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5",
+                                                            item.status === 'refused' ? "bg-rose-500/10 text-rose-400 font-extrabold" : "text-slate-300 hover:bg-white/5 hover:text-white"
+                                                        )}
+                                                    >
+                                                        ❌ Отказано
+                                                    </button>
+                                                </div>
+                                            </>
                                         )}
-                                    >
-                                        <option value="pending">⏳ В процессе</option>
-                                        <option value="refunded">🎉 Деньги вернули</option>
-                                        <option value="refused">❌ Отказано</option>
-                                    </select>
+                                    </div>
                                 </div>
 
                                 <div className="flex gap-2">

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { FileText, ChevronDown, Info } from '../components/icons';
+import { Info, FileText, Pencil, ChevronDown } from '../components/icons';
 import { formatNumberSpace } from '../utils/format';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ToneToggle } from '../components/ui/ToneToggle';
@@ -59,7 +59,7 @@ export default function SubscriptionFlow() {
             theme="cyan"
           />
 
-          {apiError && <ApiErrorBanner error={apiError} />}
+          {apiError ? <ApiErrorBanner error={apiError} /> : null}
 
           <div className="space-y-6 real-glass-panel p-6 sm:p-8 rounded-[2.5rem] opacity-0 animate-slide-up" style={{ animationDelay: '150ms' }}>
             {/* Service Name */}
@@ -75,7 +75,7 @@ export default function SubscriptionFlow() {
                 value={data.serviceName}
                 onChange={e => { setData({ ...data, serviceName: e.target.value }); clearFieldError('serviceName'); }}
               />
-              {fieldErrors.serviceName && <p id="serviceNameError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.serviceName}</p>}
+              {fieldErrors.serviceName ? <p id="serviceNameError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.serviceName}</p> : null}
             </div>
 
             {/* Amount + Date */}
@@ -95,7 +95,7 @@ export default function SubscriptionFlow() {
                   />
                   <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-accent-cyan transition-colors" aria-hidden="true">₽</span>
                 </div>
-                {fieldErrors.amount && <p id="amountError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.amount}</p>}
+                {fieldErrors.amount ? <p id="amountError" role="alert" className="text-red-400 text-xs mt-2 ml-2 animate-fade-in font-medium">{fieldErrors.amount}</p> : null}
               </div>
 
               {/* Custom Date Picker */}
@@ -153,7 +153,7 @@ export default function SubscriptionFlow() {
                 <span className="truncate pr-4">{reasonDisplayText}</span>
                 <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 shrink-0 ${isReasonOpen ? 'rotate-180 text-accent-cyan' : ''}`} />
               </button>
-              {isReasonOpen && <div className="fixed inset-0 z-40" onClick={() => setIsReasonOpen(false)}></div>}
+              {isReasonOpen ? <div className="fixed inset-0 z-40" onClick={() => setIsReasonOpen(false)}></div> : null}
               <div
                 role="listbox"
                 aria-labelledby="reason-label"
@@ -180,7 +180,7 @@ export default function SubscriptionFlow() {
                         setIsReasonOpen(false);
                       }}
                     >
-                      {isCustomOption && <span className="mr-2 text-accent-cyan">✏️</span>}
+                      {isCustomOption ? <Pencil className="w-4 h-4 mr-2 text-accent-cyan" /> : null}
                       {reason}
                     </button>
                   );

@@ -29,7 +29,7 @@ export default function FaqView() {
         description="Ответы на главные вопросы о бесплатном правовом навигаторе для возврата денег за подписки и онлайн-курсы."
         jsonLd={faqJsonLd}
       />
-      <div className="max-w-4xl mx-auto w-full">
+      <div className="max-w-3xl mx-auto w-full">
 
         <ViewHeader
           title="О проекте (FAQ)"

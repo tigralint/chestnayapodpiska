@@ -49,6 +49,6 @@ describe('RadarView integration', () => {
         fireEvent.click(reportBtn);
         
         expect(screen.getByText('Новый сигнал')).toBeTruthy();
-        expect(screen.getByPlaceholderText(/Название сервиса/i)).toBeTruthy();
+        expect(screen.getByLabelText(/Название сервиса/i)).toBeTruthy();
     });
 });

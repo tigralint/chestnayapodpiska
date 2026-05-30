@@ -29,13 +29,13 @@ export function ViewHeader({ title, subtitle, icon, badge }: ViewHeaderProps) {
                 {title}
             </h1>
 
-            {subtitle && <p className="hidden md:block text-slate-400 text-lg">{subtitle}</p>}
+            {subtitle ? <p className="hidden md:block text-slate-400 text-lg">{subtitle}</p> : null}
 
-            {badge && (
+            {badge ? (
                 <div className="mt-2 md:mt-3">
                     <span className={`text-[10px] md:text-xs font-bold uppercase tracking-widest ${badge.color} ${badge.bgColor} px-2.5 md:px-3 py-1 md:py-1.5 rounded-full border ${badge.borderColor}`}>{badge.text}</span>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 }

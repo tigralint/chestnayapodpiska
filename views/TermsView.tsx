@@ -15,7 +15,7 @@ export default function TermsView() {
           name: 'Пользовательское соглашение',
         }), [])}
       />
-      <div className="max-w-4xl mx-auto w-full">
+      <div className="max-w-3xl mx-auto w-full">
         <PageHeader
           title="Пользовательское соглашение"
           subtitle="Публичная оферта об условиях использования сервиса."

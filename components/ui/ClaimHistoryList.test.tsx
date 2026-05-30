@@ -86,8 +86,11 @@ describe('ClaimHistoryList', () => {
         const history = [makeItem()];
         render(<ClaimHistoryList history={history} onUpdateStatus={mockUpdateStatus} onDelete={mockDelete} />);
 
-        const select = screen.getByDisplayValue('⏳ В процессе');
-        fireEvent.change(select, { target: { value: 'refunded' } });
+        const trigger = screen.getByText('⏳ В процессе');
+        fireEvent.click(trigger);
+
+        const option = screen.getByText('🎉 Деньги вернули');
+        fireEvent.click(option);
 
         expect(mockUpdateStatus).toHaveBeenCalledWith('test-id-1', 'refunded');
     });

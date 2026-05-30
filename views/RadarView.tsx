@@ -81,7 +81,7 @@ export default function RadarView() {
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
-                  className={`px-4 py-2 rounded-xl transition-all font-semibold shadow-sm ${categoryFilter === cat ? 'bg-accent-purple text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}`}
+                  className={`px-4 py-2.5 rounded-xl transition-all font-semibold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05050A] ${categoryFilter === cat ? 'bg-accent-purple text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}`}
                 >
                   {cat === 'all' ? 'Все' : 
                    cat === 'hidden_cancel' ? 'Скрытые отмены' : 
@@ -118,7 +118,7 @@ export default function RadarView() {
 
           {/* Alerts Feed */}
           <div className="lg:col-span-2 space-y-4">
-            {error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl mb-4 text-center">{error} – показаны старые записи</div>}
+            {error ? <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl mb-4 text-center">{error} – показаны старые записи</div> : null}
             
             {loading && alerts.length === 0 ? (
                // Skeletons
@@ -168,7 +168,7 @@ export default function RadarView() {
                       </div>
 
                       <div className="flex items-start gap-4 mt-2">
-                        {alert.severity === 'critical' && <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-400 animate-pulse" />}
+                        {alert.severity === 'critical' ? <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-400 animate-pulse" /> : null}
                         <p className="text-slate-200 text-sm leading-relaxed font-medium">
                           {alert.text}
                         </p>
@@ -198,23 +198,38 @@ export default function RadarView() {
                    
                    <p className="text-sm text-slate-400 mb-2">Подайте сигнал на радар, чтобы помочь другим пользователям. Заявка отправится в бота юристам проекта.</p>
 
-                   <input required type="text" placeholder="Название сервиса*" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent-purple/50 outline-none placeholder-slate-500" value={formInput.serviceName} onChange={e => setFormInput(p => ({...p, serviceName: e.target.value}))} />
+                   <div className="flex flex-col gap-1.5">
+                       <label htmlFor="serviceName" className="text-sm font-semibold text-slate-300 ml-1">Название сервиса<span className="text-red-400 ml-1">*</span></label>
+                       <input id="serviceName" required type="text" placeholder="Например: Яндекс.Плюс" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent-purple/50 outline-none placeholder-slate-500" value={formInput.serviceName} onChange={e => setFormInput(p => ({...p, serviceName: e.target.value}))} />
+                   </div>
                    
                    <div className="flex gap-4">
-                       <input required type="text" placeholder="Город*" className="w-1/2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent-purple/50 outline-none placeholder-slate-500" value={formInput.city} onChange={e => setFormInput(p => ({...p, city: e.target.value}))} />
-                       <input type="number" placeholder="Сумма (₽)" className="w-1/2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent-purple/50 outline-none placeholder-slate-500" value={formInput.amount || ''} onChange={e => setFormInput(p => ({...p, amount: Number(e.target.value)}))} />
+                       <div className="w-1/2 flex flex-col gap-1.5">
+                           <label htmlFor="city" className="text-sm font-semibold text-slate-300 ml-1">Город<span className="text-red-400 ml-1">*</span></label>
+                           <input id="city" required type="text" placeholder="Например: Москва" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent-purple/50 outline-none placeholder-slate-500" value={formInput.city} onChange={e => setFormInput(p => ({...p, city: e.target.value}))} />
+                       </div>
+                       <div className="w-1/2 flex flex-col gap-1.5">
+                           <label htmlFor="amount" className="text-sm font-semibold text-slate-300 ml-1">Сумма (₽)</label>
+                           <input id="amount" type="number" placeholder="299" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent-purple/50 outline-none placeholder-slate-500" value={formInput.amount || ''} onChange={e => setFormInput(p => ({...p, amount: Number(e.target.value)}))} />
+                       </div>
                    </div>
 
-                   <select required className="w-full bg-[#121827] border border-white/10 rounded-xl px-4 py-3 text-slate-300 focus:ring-2 focus:ring-accent-purple/50 outline-none appearance-none cursor-pointer" value={formInput.category} onChange={e => setFormInput(p => ({...p, category: e.target.value as AlertCategory}))}>
-                      <option value="hidden_cancel">Скрытая отмена</option>
-                      <option value="auto_renewal">Неожиданное автопродление</option>
-                      <option value="dark_pattern">Дарк-паттерн при отписке</option>
-                      <option value="phishing">Фишинг или мошенничество</option>
-                      <option value="refund_refused">Отказ в возврате</option>
-                      <option value="other">Другое</option>
-                   </select>
+                   <div className="flex flex-col gap-1.5">
+                       <label htmlFor="category" className="text-sm font-semibold text-slate-300 ml-1">Категория нарушения<span className="text-red-400 ml-1">*</span></label>
+                       <select id="category" required className="w-full bg-[#121827] border border-white/10 rounded-xl px-4 py-3 text-slate-300 focus:ring-2 focus:ring-accent-purple/50 outline-none appearance-none cursor-pointer" value={formInput.category} onChange={e => setFormInput(p => ({...p, category: e.target.value as AlertCategory}))}>
+                          <option value="hidden_cancel">Скрытая отмена</option>
+                          <option value="auto_renewal">Неожиданное автопродление</option>
+                          <option value="dark_pattern">Дарк-паттерн при отписке</option>
+                          <option value="phishing">Фишинг или мошенничество</option>
+                          <option value="refund_refused">Отказ в возврате</option>
+                          <option value="other">Другое</option>
+                       </select>
+                   </div>
 
-                   <textarea required placeholder="Опишите, что произошло?*" rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent-purple/50 outline-none resize-none placeholder-slate-500" value={formInput.description} onChange={e => setFormInput(p => ({...p, description: e.target.value}))}></textarea>
+                   <div className="flex flex-col gap-1.5">
+                       <label htmlFor="description" className="text-sm font-semibold text-slate-300 ml-1">Описание ситуации<span className="text-red-400 ml-1">*</span></label>
+                       <textarea id="description" required placeholder="Опишите, что произошло?" rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent-purple/50 outline-none resize-none placeholder-slate-500" value={formInput.description} onChange={e => setFormInput(p => ({...p, description: e.target.value}))}></textarea>
+                   </div>
 
                    <div className="flex justify-center my-2">
                        <Turnstile ref={turnstileRef} siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''} onSuccess={(t) => setFormInput(p => ({...p, turnstileToken: t}))} onError={() => setFormInput(p => ({...p, turnstileToken: undefined}))} onExpire={() => setFormInput(p => ({...p, turnstileToken: undefined}))} />

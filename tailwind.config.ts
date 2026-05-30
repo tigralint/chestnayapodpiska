@@ -1,4 +1,4 @@
-﻿import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
     darkMode: 'class',
@@ -45,9 +45,9 @@ const config: Config = {
                 'button-glow': 'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)',
             },
             animation: {
-                'fade-in': 'fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-                'slide-up': 'slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-                'slide-in-right': 'slideInRight 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                'fade-in': 'fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                'slide-up': 'slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                'slide-in-right': 'slideInRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
                 'pop-in': 'popIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
                 'blob': 'blob 40s infinite alternate cubic-bezier(0.4, 0, 0.6, 1)',
                 'spin-slow': 'spin 8s linear infinite',

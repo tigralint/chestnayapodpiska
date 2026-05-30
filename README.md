@@ -9,7 +9,7 @@
     <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178c6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
     <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646cff?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" /></a>
     <a href="https://github.com/tigralint/chestnayapodpiska/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/tigralint/chestnayapodpiska/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI" alt="CI" /></a>
-    <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Tests-338_passed-2ea44f?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" /></a>
+    <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Tests-360_passed-2ea44f?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-Dual_License-blue?style=for-the-badge" alt="License" /></a>
   </p>
 
@@ -78,14 +78,14 @@
 | **AI Движок**  | **Google Gemini API** (Gemini 3.1 Flash Lite, Gemini 3 Flash, Gemini 2.5 Flash, Gemma 4 31B-IT) + Vision + RAG + Search Grounding |
 | **PWA**        | Полная поддержка Offline-режима и установки на рабочий стол через `vite-plugin-pwa` |
 | **Linter**     | **ESLint 9** (Flat Config) + **Prettier**                                          |
-| **Тесты**      | **Vitest** + React Testing Library (338 тестов, 42 файла) + **Playwright** E2E  |
+| **Тесты**      | **Vitest** + React Testing Library (360 тестов, 44 файла) + **Playwright** E2E  |
 
 > **Инженерные особенности:**
 > -   **Strongly Typed**: Весь проект написан на строгом TypeScript (`strict`, `noUncheckedIndexedAccess`) с использованием **Zod** для валидации контрактов API.
 > -   **Generic Logic**: Универсальный хук `useClaimForm<T>` обеспечивает переиспользование логики между разными типами претензий.
 > -   **Resilience**: Механизмы `AbortController` для отмены запросов и автоматические ретраи (`fetchWithRetry`) с защитным парсингом JSON для стабильности AI-генерации.
 > -   **DRY Backend**: Централизованные модули `api/_shared/` (ratelimit, turnstile, telegram, errors) устраняют дублирование кода между всеми API-хендлерами.
-> -   **CI/CD**: Автоматическая проверка стиля (Lint), типов (tsc), 338 тестов, coverage thresholds (70%) и production-сборка на каждый PR через GitHub Actions.
+> -   **CI/CD**: Автоматическая проверка стиля (Lint), типов (tsc), 360 тестов, coverage thresholds (70%) и production-сборка на каждый PR через GitHub Actions.
 
 ---
 
@@ -171,7 +171,7 @@
 
 4. **Тестирование:**
    ```bash
-   npm test           # Запуск Vitest (338 unit-тестов)
+   npm test           # Запуск Vitest (360 unit-тестов)
    npm run coverage   # Тесты + coverage report с порогами (70%)
    npm run test:e2e   # Playwright E2E smoke-тесты
    ```

@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-export function HeroBlobCanvas() {
+export const HeroBlobCanvas = React.memo(function HeroBlobCanvas() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -128,4 +128,4 @@ export function HeroBlobCanvas() {
             className="w-full h-full object-contain"
         />
     );
-}
+});
