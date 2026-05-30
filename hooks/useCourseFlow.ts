@@ -13,10 +13,16 @@ export function useCourseFlow() {
     const { addClaim } = useClaimHistory();
 
     const {
-        data, setData,
-        isGenerating, result, copied,
-        fieldErrors, apiError,
-        handleGenerate, clearFieldError, handleCopy
+        data,
+        setData,
+        isGenerating,
+        result,
+        copied,
+        fieldErrors,
+        apiError,
+        handleGenerate,
+        clearFieldError,
+        handleCopy,
     } = useClaimForm<CourseData, [number]>(
         {
             courseName: prefilledService,
@@ -25,30 +31,31 @@ export function useCourseFlow() {
             tone: 'soft',
             hasPlatformAccess: true,
             hasConsultations: false,
-            hasCertificate: false
+            hasCertificate: false,
         },
         (courseData, signal, refund) => generateCourseClaim(courseData, refund, signal),
         (d) => {
             const errors: Record<string, string> = {};
             if (!d.courseName.trim()) errors.courseName = 'Укажите название школы или курса';
-            if (!d.totalCost || isNaN(d.totalCost) || d.totalCost <= 0) errors.totalCost = 'Укажите корректную стоимость курса (> 0)';
+            if (!d.totalCost || isNaN(d.totalCost) || d.totalCost <= 0)
+                errors.totalCost = 'Укажите корректную стоимость курса (> 0)';
             return errors;
         },
         (resultText, formData) => {
-            const refund = Math.max(0, formData.totalCost - (formData.totalCost * (formData.percentCompleted / 100)));
+            const refund = Math.max(0, formData.totalCost - formData.totalCost * (formData.percentCompleted / 100));
             addClaim({
                 type: 'course',
                 serviceName: formData.courseName,
                 amount: refund,
                 date: new Date().toISOString().split('T')[0] ?? '',
                 resultText,
-                tone: formData.tone
+                tone: formData.tone,
             });
         }
     );
 
     const calculatedRefund = useMemo(
-        () => Math.max(0, data.totalCost - (data.totalCost * (data.percentCompleted / 100))),
+        () => Math.max(0, data.totalCost - data.totalCost * (data.percentCompleted / 100)),
         [data.totalCost, data.percentCompleted]
     );
 
@@ -63,22 +70,29 @@ export function useCourseFlow() {
         const safeName = data.courseName.replace(/[^a-zа-я0-9]/gi, '_');
         downloadWordDoc(
             `Уведомление_о_расторжении_${safeName}`,
-            "Руководству образовательной платформы",
+            'Руководству образовательной платформы',
             data.courseName,
-            "_________________________ (Email / Паспорт: _________________)",
-            "ПРЕТЕНЗИЯ",
-            "об одностороннем расторжении договора и возврате денежных средств",
+            '_________________________ (Email / Паспорт: _________________)',
+            'ПРЕТЕНЗИЯ',
+            'об одностороннем расторжении договора и возврате денежных средств',
             result
         );
     }, [data.courseName, result]);
 
     return {
-        data, setData,
-        isGenerating, result, copied,
-        fieldErrors, apiError,
-        clearFieldError, handleCopy,
-        handleSubmit, handleDownloadWord,
-        calculatedRefund, turnstileRef,
-        prefilledService
+        data,
+        setData,
+        isGenerating,
+        result,
+        copied,
+        fieldErrors,
+        apiError,
+        clearFieldError,
+        handleCopy,
+        handleSubmit,
+        handleDownloadWord,
+        calculatedRefund,
+        turnstileRef,
+        prefilledService,
     };
 }

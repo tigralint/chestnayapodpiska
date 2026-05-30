@@ -49,7 +49,7 @@ describe('useCourseFlow', () => {
             result.current.setData({
                 ...result.current.data,
                 totalCost: 50000,
-                percentCompleted: 50
+                percentCompleted: 50,
             });
         });
 
@@ -66,7 +66,7 @@ describe('useCourseFlow', () => {
             result.current.setData({
                 ...result.current.data,
                 totalCost: 10000,
-                percentCompleted: 150 // Bad data
+                percentCompleted: 150, // Bad data
             });
         });
 
@@ -83,7 +83,7 @@ describe('useCourseFlow', () => {
         act(() => {
             result.current.setData({
                 ...result.current.data,
-                totalCost: 0
+                totalCost: 0,
             });
         });
 
@@ -107,7 +107,7 @@ describe('useCourseFlow', () => {
                 ...result.current.data,
                 courseName: 'Test School',
                 totalCost: 100000,
-                percentCompleted: 0
+                percentCompleted: 0,
             });
         });
 
@@ -141,12 +141,12 @@ describe('useCourseFlow', () => {
         expect(downloadMock).toHaveBeenCalledTimes(1);
         expect(downloadMock).toHaveBeenCalledWith(
             'Уведомление_о_расторжении_Skillbox_Geekbrains',
-            "Руководству образовательной платформы",
+            'Руководству образовательной платформы',
             'Skillbox/Geekbrains',
-            "_________________________ (Email / Паспорт: _________________)",
-            "ПРЕТЕНЗИЯ",
-            "об одностороннем расторжении договора и возврате денежных средств",
-            ""
+            '_________________________ (Email / Паспорт: _________________)',
+            'ПРЕТЕНЗИЯ',
+            'об одностороннем расторжении договора и возврате денежных средств',
+            ''
         );
     });
 });

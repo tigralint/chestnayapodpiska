@@ -12,7 +12,7 @@ interface TelegramInlineButton {
 export async function sendTelegramMessage(
     chatId: string,
     text: string,
-    replyMarkup?: { inline_keyboard: TelegramInlineButton[][] },
+    replyMarkup?: { inline_keyboard: TelegramInlineButton[][] }
 ): Promise<void> {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     if (!botToken) {
@@ -35,11 +35,7 @@ export async function sendTelegramMessage(
 /**
  * Edits the text of an existing Telegram message (used in callback handlers).
  */
-export async function editTelegramMessage(
-    chatId: string | number,
-    messageId: number,
-    text: string,
-): Promise<void> {
+export async function editTelegramMessage(chatId: string | number, messageId: number, text: string): Promise<void> {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     if (!botToken) {
         throw new Error('TELEGRAM_BOT_TOKEN is not configured');

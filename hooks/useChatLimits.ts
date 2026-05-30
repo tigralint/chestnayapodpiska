@@ -9,13 +9,15 @@ export function useChatLimits(isOpen: boolean) {
 
     const refreshLimits = useCallback(() => {
         fetch('/api/chatStatus')
-            .then(r => r.json())
-            .then(d => {
+            .then((r) => r.json())
+            .then((d) => {
                 if (d && typeof d.remaining === 'number') {
                     setLimits({ remaining: d.remaining, limit: d.limit || 15 });
                 }
             })
-            .catch(() => { /* silently ignore fetch errors */ });
+            .catch(() => {
+                /* silently ignore fetch errors */
+            });
     }, []);
 
     // Load limits when the chat panel opens

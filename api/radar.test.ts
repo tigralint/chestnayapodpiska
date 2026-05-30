@@ -8,7 +8,6 @@ vi.hoisted(() => {
 
 import { radarReportSchema } from './radar';
 
-
 // --- Mocks for module-level singletons (Redis, Ratelimit) ---
 const mockZrange = vi.fn().mockResolvedValue([]);
 const mockSet = vi.fn().mockResolvedValue('OK');
@@ -20,8 +19,8 @@ vi.mock('@upstash/redis', () => ({
             zrange: (...args: unknown[]) => mockZrange(...args),
             set: (...args: unknown[]) => mockSet(...args),
             zadd: (...args: unknown[]) => mockZadd(...args),
-        }))
-    }
+        })),
+    },
 }));
 vi.mock('@upstash/ratelimit', () => {
     class MockRatelimit {
@@ -31,8 +30,6 @@ vi.mock('@upstash/ratelimit', () => {
     return { Ratelimit: MockRatelimit };
 });
 
-
-
 // Mock hashIp
 vi.mock('../utils/hashIp', () => ({
     hashIp: vi.fn((ip: string) => `hashed_${ip}`),
@@ -41,8 +38,15 @@ vi.mock('../utils/hashIp', () => ({
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-
-function mockRequest(overrides: Partial<{ method: string; headers: Record<string, string>; body: unknown; query: Record<string, string>; socket: { remoteAddress: string } }> = {}) {
+function mockRequest(
+    overrides: Partial<{
+        method: string;
+        headers: Record<string, string>;
+        body: unknown;
+        query: Record<string, string>;
+        socket: { remoteAddress: string };
+    }> = {}
+) {
     return {
         method: overrides.method ?? 'GET',
         headers: overrides.headers ?? {},
@@ -56,8 +60,14 @@ function mockResponse() {
     const res = {
         statusCode: 200,
         _json: null as unknown,
-        status(code: number) { res.statusCode = code; return res; },
-        json(data: unknown) { res._json = data; return res; },
+        status(code: number) {
+            res.statusCode = code;
+            return res;
+        },
+        json(data: unknown) {
+            res._json = data;
+            return res;
+        },
     };
     return res;
 }
@@ -82,7 +92,7 @@ describe('API: radar', () => {
                 amount: 500,
                 description: 'This is a test description of an alert.',
                 category: 'hidden_cancel',
-                turnstileToken: 'dummy'
+                turnstileToken: 'dummy',
             });
             expect(result.success).toBe(true);
         });
@@ -93,7 +103,7 @@ describe('API: radar', () => {
                 city: 'Москва',
                 description: 'Short',
                 category: 'other',
-                turnstileToken: 'dummy'
+                turnstileToken: 'dummy',
             });
             expect(result.success).toBe(false);
         });
@@ -104,7 +114,7 @@ describe('API: radar', () => {
                 city: 'Москва',
                 description: 'A valid description for testing',
                 category: 'invalid_category',
-                turnstileToken: 'dummy'
+                turnstileToken: 'dummy',
             });
             expect(result.success).toBe(false);
         });
@@ -115,7 +125,7 @@ describe('API: radar', () => {
                 city: 'Москва',
                 description: 'A valid description for testing',
                 category: 'dark_pattern',
-                turnstileToken: 'dummy'
+                turnstileToken: 'dummy',
             });
             expect(result.success).toBe(true);
         });
@@ -127,7 +137,7 @@ describe('API: radar', () => {
                 amount: -100,
                 description: 'A valid description for testing',
                 category: 'dark_pattern',
-                turnstileToken: 'dummy'
+                turnstileToken: 'dummy',
             });
             expect(result.success).toBe(false);
         });
@@ -138,7 +148,7 @@ describe('API: radar', () => {
                 city: '',
                 description: 'A valid description for testing',
                 category: 'dark_pattern',
-                turnstileToken: 'dummy'
+                turnstileToken: 'dummy',
             });
             expect(result.success).toBe(false);
         });
@@ -149,7 +159,7 @@ describe('API: radar', () => {
                 city: 'Москва',
                 description: 'A valid description for testing',
                 category: 'dark_pattern',
-                turnstileToken: 'dummy'
+                turnstileToken: 'dummy',
             });
             expect(result.success).toBe(false);
         });
@@ -162,7 +172,7 @@ describe('API: radar', () => {
                     city: 'Москва',
                     description: 'A valid description for testing',
                     category,
-                    turnstileToken: 'dummy'
+                    turnstileToken: 'dummy',
                 });
                 expect(result.success).toBe(true);
             }
@@ -216,7 +226,12 @@ describe('API: radar', () => {
                 await handler(req as never, res as never);
 
                 expect(res.statusCode).toBe(200);
-                const data = res._json as Array<{ id: string; severity: string; category: string; serviceName: string }>;
+                const data = res._json as Array<{
+                    id: string;
+                    severity: string;
+                    category: string;
+                    serviceName: string;
+                }>;
                 expect(data).toHaveLength(1);
                 expect(data[0]!.id).toBe('test-1');
                 expect(data[0]!.severity).toBe('critical'); // hidden_cancel = critical
@@ -225,8 +240,22 @@ describe('API: radar', () => {
 
             it('should filter by category when provided', async () => {
                 mockZrange.mockResolvedValueOnce([
-                    { id: '1', timestamp: Date.now(), serviceName: 'A', city: 'Москва', description: 'Test', category: 'phishing' },
-                    { id: '2', timestamp: Date.now(), serviceName: 'B', city: 'СПб', description: 'Test', category: 'dark_pattern' },
+                    {
+                        id: '1',
+                        timestamp: Date.now(),
+                        serviceName: 'A',
+                        city: 'Москва',
+                        description: 'Test',
+                        category: 'phishing',
+                    },
+                    {
+                        id: '2',
+                        timestamp: Date.now(),
+                        serviceName: 'B',
+                        city: 'СПб',
+                        description: 'Test',
+                        category: 'dark_pattern',
+                    },
                 ]);
 
                 const { default: handler } = await import('./radar');
@@ -262,7 +291,14 @@ describe('API: radar', () => {
 
             it('should show "только что" for 0-minute-old alerts', async () => {
                 mockZrange.mockResolvedValueOnce([
-                    { id: 'fresh', timestamp: Date.now(), serviceName: 'Fresh', city: 'Москва', description: 'Just now', category: 'other' },
+                    {
+                        id: 'fresh',
+                        timestamp: Date.now(),
+                        serviceName: 'Fresh',
+                        city: 'Москва',
+                        description: 'Just now',
+                        category: 'other',
+                    },
                 ]);
 
                 const { default: handler } = await import('./radar');
@@ -276,7 +312,14 @@ describe('API: radar', () => {
 
             it('should show hours for old alerts', async () => {
                 mockZrange.mockResolvedValueOnce([
-                    { id: 'old', timestamp: Date.now() - 120 * 60000, serviceName: 'Old', city: 'Москва', description: 'Two hours ago', category: 'other' },
+                    {
+                        id: 'old',
+                        timestamp: Date.now() - 120 * 60000,
+                        serviceName: 'Old',
+                        city: 'Москва',
+                        description: 'Two hours ago',
+                        category: 'other',
+                    },
                 ]);
 
                 const { default: handler } = await import('./radar');
@@ -290,9 +333,30 @@ describe('API: radar', () => {
 
             it('should return correct severity for different categories', async () => {
                 mockZrange.mockResolvedValueOnce([
-                    { id: '1', timestamp: Date.now(), serviceName: 'A', city: 'М', description: 'Test alert text', category: 'phishing' },
-                    { id: '2', timestamp: Date.now(), serviceName: 'B', city: 'М', description: 'Test alert text', category: 'refund_refused' },
-                    { id: '3', timestamp: Date.now(), serviceName: 'C', city: 'М', description: 'Test alert text', category: 'auto_renewal' },
+                    {
+                        id: '1',
+                        timestamp: Date.now(),
+                        serviceName: 'A',
+                        city: 'М',
+                        description: 'Test alert text',
+                        category: 'phishing',
+                    },
+                    {
+                        id: '2',
+                        timestamp: Date.now(),
+                        serviceName: 'B',
+                        city: 'М',
+                        description: 'Test alert text',
+                        category: 'refund_refused',
+                    },
+                    {
+                        id: '3',
+                        timestamp: Date.now(),
+                        serviceName: 'C',
+                        city: 'М',
+                        description: 'Test alert text',
+                        category: 'auto_renewal',
+                    },
                 ]);
 
                 const { default: handler } = await import('./radar');
@@ -301,9 +365,9 @@ describe('API: radar', () => {
                 await handler(req as never, res as never);
 
                 const data = res._json as Array<{ severity: string }>;
-                expect(data[0]!.severity).toBe('critical');   // phishing
-                expect(data[1]!.severity).toBe('high');       // refund_refused
-                expect(data[2]!.severity).toBe('medium');     // auto_renewal
+                expect(data[0]!.severity).toBe('critical'); // phishing
+                expect(data[1]!.severity).toBe('high'); // refund_refused
+                expect(data[2]!.severity).toBe('medium'); // auto_renewal
             });
         });
 

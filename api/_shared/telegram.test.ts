@@ -47,8 +47,7 @@ describe('Telegram shared module', () => {
         it('throws when TELEGRAM_BOT_TOKEN is not configured', async () => {
             delete process.env.TELEGRAM_BOT_TOKEN;
             const { sendTelegramMessage } = await import('./telegram');
-            await expect(sendTelegramMessage('123', 'test'))
-                .rejects.toThrow('TELEGRAM_BOT_TOKEN is not configured');
+            await expect(sendTelegramMessage('123', 'test')).rejects.toThrow('TELEGRAM_BOT_TOKEN is not configured');
         });
     });
 
@@ -73,8 +72,7 @@ describe('Telegram shared module', () => {
         it('throws when TELEGRAM_BOT_TOKEN is not configured', async () => {
             delete process.env.TELEGRAM_BOT_TOKEN;
             const { editTelegramMessage } = await import('./telegram');
-            await expect(editTelegramMessage('123', 1, 'test'))
-                .rejects.toThrow('TELEGRAM_BOT_TOKEN is not configured');
+            await expect(editTelegramMessage('123', 1, 'test')).rejects.toThrow('TELEGRAM_BOT_TOKEN is not configured');
         });
     });
 

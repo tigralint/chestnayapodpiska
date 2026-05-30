@@ -11,7 +11,7 @@ export const REASONS = [
     'Забыл отменить подписку после пробного периода',
     'Не планировал продлевать, случайно нажал',
     'Сервисом не пользовался, услуга не нужна',
-    'Списание произошло без предупреждения'
+    'Списание произошло без предупреждения',
 ];
 
 /** Sentinel value for "custom reason" dropdown option */
@@ -19,7 +19,7 @@ export const CUSTOM_REASON_VALUE = 'custom';
 export const CUSTOM_REASON_LABEL = 'Другое (своя причина)';
 
 /** Marker the AI prepends to signal an invalid reason */
-export const REFUSAL_MARKER = '[ОТКАЗ]';
+const REFUSAL_MARKER = '[ОТКАЗ]';
 
 export function useClaimFlow() {
     const { service } = useParams<{ service?: string }>();
@@ -27,17 +27,23 @@ export function useClaimFlow() {
     const { addClaim } = useClaimHistory();
 
     const {
-        data, setData,
-        isGenerating, result, copied,
-        fieldErrors, apiError,
-        handleGenerate, clearFieldError, handleCopy
+        data,
+        setData,
+        isGenerating,
+        result,
+        copied,
+        fieldErrors,
+        apiError,
+        handleGenerate,
+        clearFieldError,
+        handleCopy,
     } = useClaimForm<ClaimData>(
         {
             serviceName: prefilledService,
             amount: '',
             date: new Date().toISOString().split('T')[0] ?? '',
             reason: REASONS[0] ?? '',
-            tone: 'soft'
+            tone: 'soft',
         },
         (claimData, signal) => generateSubscriptionClaim(claimData, signal),
         (d) => {
@@ -58,7 +64,7 @@ export function useClaimFlow() {
                 amount: Number(formData.amount),
                 date: formData.date,
                 resultText,
-                tone: formData.tone
+                tone: formData.tone,
             });
         }
     );
@@ -84,23 +90,32 @@ export function useClaimFlow() {
         const safeName = data.serviceName.replace(/[^a-zа-я0-9]/gi, '_');
         downloadWordDoc(
             `Претензия_${safeName}`,
-            "В службу поддержки / Руководству",
+            'В службу поддержки / Руководству',
             data.serviceName,
-            "_________________________ (Email / Телефон: _________________)",
-            "ДОСУДЕБНАЯ ПРЕТЕНЗИЯ",
-            "",
+            '_________________________ (Email / Телефон: _________________)',
+            'ДОСУДЕБНАЯ ПРЕТЕНЗИЯ',
+            '',
             result
         );
     }, [data.serviceName, result]);
 
     return {
-        data, setData,
-        isGenerating, result: displayResult, copied,
-        fieldErrors, apiError,
-        clearFieldError, handleCopy,
-        handleSubmit, handleDownloadWord,
-        isReasonOpen, setIsReasonOpen,
-        turnstileRef, prefilledService,
-        isCustomReason, isRefusal
+        data,
+        setData,
+        isGenerating,
+        result: displayResult,
+        copied,
+        fieldErrors,
+        apiError,
+        clearFieldError,
+        handleCopy,
+        handleSubmit,
+        handleDownloadWord,
+        isReasonOpen,
+        setIsReasonOpen,
+        turnstileRef,
+        prefilledService,
+        isCustomReason,
+        isRefusal,
     };
 }

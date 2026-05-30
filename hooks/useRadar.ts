@@ -42,6 +42,6 @@ export function useRadar() {
         setCategoryFilter,
         fetchAlerts,
         submitReport,
-        setAlerts // expose explicitly for fallback testing
+        setAlerts, // expose explicitly for fallback testing
     };
 }

@@ -5,13 +5,17 @@ interface RetryOptions {
     baseDelayMs?: number;
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Wrapper over standard fetch that implements Exponential Backoff.
  * Only retries on 429, 5xx status codes, and network errors.
  */
-export async function fetchWithRetry(url: string, options: RequestInit, retryOptions: RetryOptions = {}): Promise<Response> {
+export async function fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    retryOptions: RetryOptions = {}
+): Promise<Response> {
     const { maxRetries = 3, baseDelayMs = 1000 } = retryOptions;
     for (let attempt = 0; ; attempt++) {
         try {
@@ -22,7 +26,6 @@ export async function fetchWithRetry(url: string, options: RequestInit, retryOpt
             }
 
             return response;
-
         } catch (error: unknown) {
             const isApiErrorToRetry = error instanceof ApiError && (error.status === 429 || error.status >= 500);
             const isNetworkError = error instanceof TypeError;
@@ -39,10 +42,17 @@ export async function fetchWithRetry(url: string, options: RequestInit, retryOpt
                 throw error;
             }
 
-            if (import.meta.env.DEV) console.warn(`[API] fetchWithRetry attempt ${attempt + 1}/${maxRetries} failed:`, error instanceof Error ? error.message : error);
+            if (import.meta.env.DEV)
+                console.warn(
+                    `[API] fetchWithRetry attempt ${attempt + 1}/${maxRetries} failed:`,
+                    error instanceof Error ? error.message : error
+                );
 
             if (attempt + 1 >= maxRetries) {
-                throw new ApiError(503, 'Удаленный сервер перегружен (ошибка 429/500). Попробуйте сгенерировать претензию через минуту.');
+                throw new ApiError(
+                    503,
+                    'Удаленный сервер перегружен (ошибка 429/500). Попробуйте сгенерировать претензию через минуту.'
+                );
             }
 
             // Exponential backoff: 1s -> 2s

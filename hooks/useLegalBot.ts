@@ -31,14 +31,21 @@ export function useLegalBot() {
     // --- Composed sub-hooks ---
     const { messages, addMessage, updateMessage, removeMessage, clearHistory } = useChatHistory();
     const { streamResponse, cleanText, abortRef } = useChatStreaming();
-    const { limits, isRequestingLimit, refreshLimits, handleRequestMoreLimits: requestMoreLimitsRaw } = useChatLimits(isOpen);
+    const {
+        limits,
+        isRequestingLimit,
+        refreshLimits,
+        handleRequestMoreLimits: requestMoreLimitsRaw,
+    } = useChatLimits(isOpen);
     const { pendingImage, setPendingImage, handleImageFile, handlePaste, fileInputRef } = useChatImage();
     const { addToast } = useToastContext();
 
     // Cleanup: abort any in-flight request on unmount
     useEffect(() => {
         const ref = abortRef;
-        return () => { ref.current?.abort(); };
+        return () => {
+            ref.current?.abort();
+        };
     }, [abortRef]);
 
     // Scroll to bottom when messages change
@@ -77,7 +84,7 @@ export function useLegalBot() {
             role: 'user',
             text: input.trim(),
             id: Date.now().toString(),
-            ...(pendingImage ? { imagePreview: pendingImage } : {})
+            ...(pendingImage ? { imagePreview: pendingImage } : {}),
         };
         const newHistory = [...messages, userMsg];
 
@@ -91,11 +98,7 @@ export function useLegalBot() {
         addMessage({ role: 'model', text: '', id: botMsgId });
 
         try {
-            await streamResponse(
-                newHistory,
-                captchaToken,
-                (fullText) => updateMessage(botMsgId, fullText),
-            );
+            await streamResponse(newHistory, captchaToken, (fullText) => updateMessage(botMsgId, fullText));
         } catch (e: unknown) {
             // Don't show error for intentionally aborted requests
             if (e instanceof DOMException && e.name === 'AbortError') {
@@ -114,16 +117,27 @@ export function useLegalBot() {
     };
 
     return {
-        isOpen, setIsOpen,
-        messages, input, setInput,
-        isLoading, errorMsg,
-        captchaToken, setCaptchaToken,
-        limits, isRequestingLimit,
-        pendingImage, setPendingImage,
-        handleSubmit, handleClearChat,
+        isOpen,
+        setIsOpen,
+        messages,
+        input,
+        setInput,
+        isLoading,
+        errorMsg,
+        captchaToken,
+        setCaptchaToken,
+        limits,
+        isRequestingLimit,
+        pendingImage,
+        setPendingImage,
+        handleSubmit,
+        handleClearChat,
         handleRequestMoreLimits,
-        handleImageFile, handlePaste,
+        handleImageFile,
+        handlePaste,
         cleanText,
-        messagesEndRef, fileInputRef, turnstileRef,
+        messagesEndRef,
+        fileInputRef,
+        turnstileRef,
     };
 }

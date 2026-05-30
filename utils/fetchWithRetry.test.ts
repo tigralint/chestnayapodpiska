@@ -53,7 +53,9 @@ describe('fetchWithRetry', () => {
         (global.fetch as any).mockResolvedValue(mockErrorResponse); // Always fails
 
         await expect(fetchWithRetry(mockUrl, {}, { maxRetries: 3, baseDelayMs: 1 })).rejects.toThrow(ApiError);
-        await expect(fetchWithRetry(mockUrl, {}, { maxRetries: 3, baseDelayMs: 1 })).rejects.toThrow('Удаленный сервер перегружен (ошибка 429/500). Попробуйте сгенерировать претензию через минуту.');
+        await expect(fetchWithRetry(mockUrl, {}, { maxRetries: 3, baseDelayMs: 1 })).rejects.toThrow(
+            'Удаленный сервер перегружен (ошибка 429/500). Попробуйте сгенерировать претензию через минуту.'
+        );
 
         // 3 total attempts
         expect(global.fetch).toHaveBeenCalledTimes(6); // 3 per each expect, total 6 times

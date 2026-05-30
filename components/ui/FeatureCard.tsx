@@ -23,7 +23,7 @@ const ACCENT_STYLES = {
     },
 } as const;
 
-export type FeatureAccent = keyof typeof ACCENT_STYLES;
+type FeatureAccent = keyof typeof ACCENT_STYLES;
 
 interface FeatureCardProps {
     title: string;
@@ -42,21 +42,25 @@ export function FeatureCard({ title, description, icon, path, accent, delay }: F
         <button
             onClick={() => navigate(path)}
             onMouseEnter={() => preloadRoute(path)}
-            className={`group relative text-left real-glass rounded-[2.5rem] p-8 hover:-translate-y-2 ${s.hover} active:scale-[0.98] transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden opacity-0 animate-slide-up focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan/50 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg`}
+            className={`real-glass group relative rounded-[2.5rem] p-8 text-left hover:-translate-y-2 ${s.hover} animate-slide-up overflow-hidden opacity-0 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-cyan/50 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg active:scale-[0.98]`}
             style={{ animationDelay: delay }}
         >
-            <div className={`absolute inset-0 bg-gradient-to-br ${s.gradient} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+            <div
+                className={`absolute inset-0 bg-gradient-to-br ${s.gradient} to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
+            ></div>
             <div className="relative z-10">
-                <div className="flex items-center justify-between mb-8">
-                    <div className={`w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] ${s.iconBg} transition-colors duration-500`}>
+                <div className="mb-8 flex items-center justify-between">
+                    <div
+                        className={`flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] ${s.iconBg} transition-colors duration-500`}
+                    >
                         {icon}
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-app-bg transition-colors duration-300">
-                        <ArrowRight className="w-5 h-5" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-slate-400 transition-colors duration-300 group-hover:bg-white group-hover:text-app-bg">
+                        <ArrowRight className="h-5 w-5" />
                     </div>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">{title}</h3>
-                <p className="text-slate-400 leading-relaxed">{description}</p>
+                <h3 className="mb-3 text-2xl font-bold text-white">{title}</h3>
+                <p className="leading-relaxed text-slate-400">{description}</p>
             </div>
         </button>
     );

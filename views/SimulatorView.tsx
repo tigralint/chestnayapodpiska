@@ -6,52 +6,48 @@ import { SimulatorMockup } from '../components/simulator/SimulatorMockup';
 import { SEO } from '../components/ui/SEO';
 
 export default function SimulatorView() {
-  const {
-    currentLevel,
-    currentLevelIdx,
-    currentStepIdx,
-    feedback,
-    showResult,
-    progress,
-    handleHit,
-    handleMiss,
-    reset,
-    totalLevels
-  } = useSimulator();
+    const {
+        currentLevel,
+        currentLevelIdx,
+        currentStepIdx,
+        feedback,
+        showResult,
+        progress,
+        handleHit,
+        handleMiss,
+        reset,
+        totalLevels,
+    } = useSimulator();
 
-  if (showResult) {
-    return <SimulatorResultPanel reset={reset} />;
-  }
+    if (showResult) {
+        return <SimulatorResultPanel reset={reset} />;
+    }
 
-  return (
-    <div className="flex flex-col h-full px-4 sm:px-6 pb-12">
-      <SEO
-        title="Тренажер общения с поддержкой | ЧестнаяПодписка"
-        description="Интерактивный тренажер: научитесь отвечать на скрипты поддержки и отстаивать свои права на возврат денег."
-      />
-      <div className="max-w-5xl mx-auto w-full">
-        <SimulatorHeader
-          currentLevelIdx={currentLevelIdx}
-          totalLevels={totalLevels}
-          progress={progress}
-        />
+    return (
+        <div className="flex h-full flex-col px-4 pb-12 sm:px-6">
+            <SEO
+                title="Тренажер общения с поддержкой | ЧестнаяПодписка"
+                description="Интерактивный тренажер: научитесь отвечать на скрипты поддержки и отстаивать свои права на возврат денег."
+            />
+            <div className="mx-auto w-full max-w-5xl">
+                <SimulatorHeader currentLevelIdx={currentLevelIdx} totalLevels={totalLevels} progress={progress} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start relative z-10">
-          <SimulatorInfoPanel
-            currentLevel={currentLevel}
-            currentStepIdx={currentStepIdx}
-            feedback={feedback}
-          />
+                <div className="relative z-10 grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12">
+                    <SimulatorInfoPanel
+                        currentLevel={currentLevel}
+                        currentStepIdx={currentStepIdx}
+                        feedback={feedback}
+                    />
 
-          <SimulatorMockup
-            currentLevel={currentLevel}
-            currentStepIdx={currentStepIdx}
-            feedback={feedback}
-            handleHit={handleHit}
-            handleMiss={handleMiss}
-          />
+                    <SimulatorMockup
+                        currentLevel={currentLevel}
+                        currentStepIdx={currentStepIdx}
+                        feedback={feedback}
+                        handleHit={handleHit}
+                        handleMiss={handleMiss}
+                    />
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

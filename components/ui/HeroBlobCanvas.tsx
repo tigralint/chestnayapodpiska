@@ -101,12 +101,15 @@ export const HeroBlobCanvas = React.memo(function HeroBlobCanvas() {
             updateRunningState();
         };
 
-        const io = new IntersectionObserver(([entry]) => {
-            if (entry) {
-                isIntersecting = entry.isIntersecting;
-                updateRunningState();
-            }
-        }, { threshold: 0 });
+        const io = new IntersectionObserver(
+            ([entry]) => {
+                if (entry) {
+                    isIntersecting = entry.isIntersecting;
+                    updateRunningState();
+                }
+            },
+            { threshold: 0 }
+        );
         io.observe(canvas);
 
         document.addEventListener('visibilitychange', handleVisibility);
@@ -122,10 +125,5 @@ export const HeroBlobCanvas = React.memo(function HeroBlobCanvas() {
         };
     }, []);
 
-    return (
-        <canvas
-            ref={canvasRef}
-            className="w-full h-full object-contain"
-        />
-    );
+    return <canvas ref={canvasRef} className="h-full w-full object-contain" />;
 });

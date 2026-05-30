@@ -30,8 +30,6 @@ describe('AppHeader', () => {
         expect(screen.getByText('FAQ')).toBeInTheDocument();
     });
 
-
-
     it('translates header out of view when scrolled is true', () => {
         vi.spyOn(appContext, 'useAppContext').mockReturnValue({ scrolled: true } as any);
 

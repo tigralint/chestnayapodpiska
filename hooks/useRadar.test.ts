@@ -7,7 +7,7 @@ vi.mock('../services/radarService', () => ({
     RadarService: {
         getAlerts: vi.fn(),
         submitAlert: vi.fn(),
-    }
+    },
 }));
 
 describe('Hook: useRadar', () => {
@@ -35,7 +35,7 @@ describe('Hook: useRadar', () => {
         (RadarService.getAlerts as any).mockResolvedValue(mockData);
 
         const { result } = renderHook(() => useRadar());
-        
+
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
         });

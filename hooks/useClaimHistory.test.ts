@@ -5,14 +5,16 @@ import { ClaimHistoryItem } from '../types';
 
 const STORAGE_KEY = 'chestnaya_podpiska_claims_history';
 
-const makeClaim = (overrides: Partial<Omit<ClaimHistoryItem, 'id' | 'createdAt' | 'status'>> = {}): Omit<ClaimHistoryItem, 'id' | 'createdAt' | 'status'> => ({
+const makeClaim = (
+    overrides: Partial<Omit<ClaimHistoryItem, 'id' | 'createdAt' | 'status'>> = {}
+): Omit<ClaimHistoryItem, 'id' | 'createdAt' | 'status'> => ({
     type: 'subscription',
     serviceName: 'Яндекс Плюс',
     amount: 399,
     date: '2026-01-15',
     resultText: 'Текст претензии...',
     tone: 'soft',
-    ...overrides
+    ...overrides,
 });
 
 describe('useClaimHistory', () => {
@@ -27,17 +29,19 @@ describe('useClaimHistory', () => {
     });
 
     it('should load existing history from localStorage on mount', () => {
-        const existing: ClaimHistoryItem[] = [{
-            id: 'test-id-1',
-            type: 'subscription',
-            serviceName: 'Netflix',
-            amount: 1200,
-            date: '2026-01-10',
-            resultText: 'Existing claim text',
-            tone: 'hard',
-            status: 'pending',
-            createdAt: '2026-01-10T10:00:00.000Z'
-        }];
+        const existing: ClaimHistoryItem[] = [
+            {
+                id: 'test-id-1',
+                type: 'subscription',
+                serviceName: 'Netflix',
+                amount: 1200,
+                date: '2026-01-10',
+                resultText: 'Existing claim text',
+                tone: 'hard',
+                status: 'pending',
+                createdAt: '2026-01-10T10:00:00.000Z',
+            },
+        ];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
 
         const { result } = renderHook(() => useClaimHistory());
@@ -136,7 +140,7 @@ describe('useClaimHistory', () => {
             result.current.addClaim(makeClaim({ serviceName: 'ToDelete' }));
         });
 
-        const deleteId = result.current.history.find(c => c.serviceName === 'ToDelete')!.id;
+        const deleteId = result.current.history.find((c) => c.serviceName === 'ToDelete')!.id;
 
         act(() => {
             result.current.deleteClaim(deleteId);
@@ -170,12 +174,14 @@ describe('useClaimHistory', () => {
         const { result } = renderHook(() => useClaimHistory());
 
         act(() => {
-            result.current.addClaim(makeClaim({
-                type: 'course',
-                serviceName: 'Skillbox',
-                amount: 85000,
-                tone: 'hard'
-            }));
+            result.current.addClaim(
+                makeClaim({
+                    type: 'course',
+                    serviceName: 'Skillbox',
+                    amount: 85000,
+                    tone: 'hard',
+                })
+            );
         });
 
         expect(result.current.history[0]!.type).toBe('course');

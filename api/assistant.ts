@@ -9,14 +9,20 @@ import { GUIDES_DB } from '../data/guides.js';
 import type { Guide } from '../types';
 import { getClientIpEdge } from '../utils/getClientIp.js';
 import type { TurnstileVerifyResponse } from '../utils/turnstile.js';
+import { APP_LINKS } from '../constants/links.js';
 
 /** Runtime validation for incoming chat requests */
 export const assistantSchema = z.object({
-    messages: z.array(z.object({
-        role: z.string(),
-        text: z.string(),
-        image: z.string().optional(),
-    })).min(1, 'Нужно хотя бы одно сообщение').max(50, 'Слишком много сообщений'),
+    messages: z
+        .array(
+            z.object({
+                role: z.string(),
+                text: z.string(),
+                image: z.string().optional(),
+            })
+        )
+        .min(1, 'Нужно хотя бы одно сообщение')
+        .max(50, 'Слишком много сообщений'),
     turnstileToken: z.string().min(1, 'Токен капчи обязателен'),
 });
 
@@ -39,30 +45,31 @@ interface GeminiRequestPayload {
     tools?: { googleSearch: Record<string, never> }[];
 }
 
-const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
-    ? new Ratelimit({
-        redis: Redis.fromEnv({ enableAutoPipelining: true }),
-        limiter: Ratelimit.slidingWindow(15, "1 d"),
-    })
-    : null;
+const ratelimit =
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+        ? new Ratelimit({
+              redis: Redis.fromEnv({ enableAutoPipelining: true }),
+              limiter: Ratelimit.slidingWindow(15, '1 d'),
+          })
+        : null;
 
-const SYSTEM_PROMPT = `Ты – юридический ассистент сервиса «Честная Подписка» (chestnayapodpiska.vercel.app).
+const SYSTEM_PROMPT = `Ты – юридический ассистент сервиса «Честная Подписка» (${APP_LINKS.SITE_URL.replace(/^https?:\/\//i, '')}).
 Твоя задача – консультировать пользователей сугубо по вопросам возврата средств за платные подписки и онлайн-курсы на территории РФ (применяя ГК РФ и Закон о защите прав потребителей).
 
 О СОЗДАТЕЛЕ И ПРОЕКТЕ:
 1. Создатель сервиса – Тигран Мкртчян, студент юридического факультета МГУ им. М.В. Ломоносова. Проект реализуется в рамках Всероссийского студенческого проекта «Твой Ход».
-2. Если пользователь хочет сказать спасибо, задать вопрос автору, предложить функционал или пожаловаться на ошибку – направляй в официальный паблик ВКонтакте: vk.com/fairsubs
+2. Если пользователь хочет сказать спасибо, задать вопрос автору, предложить функционал или пожаловаться на ошибку – направняй в официальный паблик ВКонтакте: ${APP_LINKS.VK_GROUP_SHORT}
 3. На сайте есть 2 основных раздела: калькулятор для «Подписок» и калькулятор для «Курсов». Если пользователь просит написать документ, направь его к нужной форме на сайте.
 4. Ссылка на Закон о защите прав потребителей: https://www.consultant.ru/document/cons_doc_LAW_305/
 
 ПОДДЕРЖИВАЕМЫЕ СЕРВИСЫ (по категориям):
-• Экосистемы/подписки: Яндекс Плюс, СберПрайм, Ozon Premium, Т-Банк Pro, МТС Premium/KION, VK Музыка/Combo, Подписка «Пакет» (X5), VK Play Cloud, Whoosh/Urent, Boosty, Газпром Бонус, Яндекс 360, Telegram Premium, Apple Music/Apple One, Spotify, 2ГИС Premium, Авито Подписки.
+• Экосистемы/подписки: Яндекс Плюс, СберПрайм, Ozon Premium, Т-Банк Pro, МТС Premium/KION, VK Музыка, Подписка «Пакет» (X5), VK Play Cloud, Whoosh/Urent, Boosty, Газпром Бонус, Яндекс 360, Telegram Premium, Apple Music/Apple One, Spotify, 2ГИС Premium, Авито Подписки, FitStars, MyBook.
 • Онлайн-кинотеатры: Okko, Иви, Premier (ТНТ), Start, Amediateka, Wink, Литрес.
-• Онлайн-курсы (EdTech): Skillbox, GeekBrains, SkillFactory, Фоксфорд, Умскул, Яндекс Практикум, Нетология, Skyeng/Skysmart, Синергия, Stepik, Contented.
+• Онлайн-курсы (EdTech): Skillbox, GeekBrains, SkillFactory, Фоксфорд, Умскул, Яндекс Практикум, Нетология, Skyeng/Skysmart, Синергия, Stepik, Contented, Академия Eduson (Eduson Academy), XYZ School, Зерокодер (Zerocoder).
 
 ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ (FAQ):
 Q: Могу ли я вернуть деньги за подписку, если забыл отменить?
-A: Да, если вы не пользовались сервисом. Согласно ст. 32 ЗоЗПП и новым правилам 2025-2026, поставщики обязаны уведомлять за 24 часа до списания. Если уведомления не было – пишите претензию.
+A: Да, если вы фактически не пользовались услугами после списания. Согласно ст. 32 ЗоЗПП, потребитель имеет право отказаться от услуг в любое время с возвратом аванса за неиспользованный период. Дополнительно, с 1 марта 2026 года (закон № 376-ФЗ) сервисам строго запрещено списывать деньги с карт, которые пользователь удалил или отвязал в личном кабинете. Если карта была отвязана, но списание произошло – это прямое нарушение ст. 16.1 ЗоЗПП.
 
 Q: Школа удерживает 30% за «административные расходы» – это законно?
 A: Нет. По ст. 32 ЗоЗПП и ст. 782 ГК РФ удерживать можно ТОЛЬКО документально подтверждённые фактически понесённые расходы (ФПР) именно на ваше обучение. Маркетинг, зарплата менеджеров и разработка платформы ФПР не являются.
@@ -102,14 +109,17 @@ export default async function handler(req: Request) {
             return new Response(JSON.stringify({ error: 'Ошибка конфигурации сервера.' }), { status: 500 });
         }
 
-        // 2. Rate Limiting (15 per IP per day) — before Turnstile to save external fetch
+        // 2. Rate Limiting (15 per IP per day) – before Turnstile to save external fetch
         // Prefer Vercel's trusted header (cannot be spoofed by client)
         const ip = getClientIpEdge(req);
 
         if (ratelimit) {
             const { success } = await ratelimit.limit(`chat_${ip}`);
             if (!success) {
-                return new Response(JSON.stringify({ error: 'Лимит обращений исчерпан (15 запросов в сутки). Попробуйте завтра.' }), { status: 429 });
+                return new Response(
+                    JSON.stringify({ error: 'Лимит обращений исчерпан (15 запросов в сутки). Попробуйте завтра.' }),
+                    { status: 429 }
+                );
             }
         } else {
             console.error(JSON.stringify({ event: 'assistant_ratelimit_missing', critical: true }));
@@ -129,7 +139,7 @@ export default async function handler(req: Request) {
             signal: AbortSignal.timeout(8_000),
         });
 
-        const turnstileRes = await turnstileCheck.json() as TurnstileVerifyResponse;
+        const turnstileRes = (await turnstileCheck.json()) as TurnstileVerifyResponse;
         if (!turnstileRes.success) {
             return new Response(JSON.stringify({ error: 'Ошибка капчи.' }), { status: 403 });
         }
@@ -142,50 +152,55 @@ export default async function handler(req: Request) {
                 parts.unshift({
                     inlineData: {
                         mimeType: 'image/jpeg',
-                        data: msg.image
-                    }
+                        data: msg.image,
+                    },
                 });
             }
             return {
                 role: msg.role === 'user' ? 'user' : 'model',
-                parts
+                parts,
             };
         });
 
         // 5. Keyword RAG – find relevant guides based on user messages
         // Search ALL user messages (not just last) to maintain context across follow-ups
         const allUserText = messages
-            .filter(m => m.role === 'user')
-            .map(m => m.text)
+            .filter((m) => m.role === 'user')
+            .map((m) => m.text)
             .join(' ')
             .toLowerCase();
 
         const relevantGuides = GUIDES_DB.filter((guide: Guide) =>
-            guide.aliases.some(alias => allUserText.includes(alias.toLowerCase()))
+            guide.aliases.some((alias) => allUserText.includes(alias.toLowerCase()))
         ).slice(0, 3); // Max 3 guides to avoid context bloat
 
         // Build dynamic system prompt with RAG context
         let dynamicPrompt = SYSTEM_PROMPT;
         if (relevantGuides.length > 0) {
-            const guidesContext = relevantGuides.map((g: Guide) => {
-                const typeLabel = g.type === 'subscription' ? 'Подписка' : 'Онлайн-курс';
-                const stepsText = g.steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
-                const email = g.contactEmail ? `\nEmail поддержки: ${g.contactEmail}` : '';
-                return `### ${g.service} (${typeLabel})\n${stepsText}${email}\nОбновлено: ${g.lastUpdated || 'н/д'}`;
-            }).join('\n\n');
+            const guidesContext = relevantGuides
+                .map((g: Guide) => {
+                    const typeLabel = g.type === 'subscription' ? 'Подписка' : 'Онлайн-курс';
+                    const stepsText = g.steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
+                    const email = g.contactEmail ? `\nEmail поддержки: ${g.contactEmail}` : '';
+                    return `### ${g.service} (${typeLabel})\n${stepsText}${email}\nОбновлено: ${g.lastUpdated || 'н/д'}`;
+                })
+                .join('\n\n');
 
             dynamicPrompt += `\n\n===== РЕЛЕВАНТНЫЕ ПОШАГОВЫЕ ИНСТРУКЦИИ (из базы знаний) =====\nИспользуй эти данные для точного ответа. Цитируй конкретные шаги и дарк-паттерны:\n\n${guidesContext}`;
             // eslint-disable-next-line no-console
-            console.log(JSON.stringify({ event: 'rag_injection', guideCount: relevantGuides.length, guides: relevantGuides.map((g: Guide) => g.service) }));
+            console.log(
+                JSON.stringify({
+                    event: 'rag_injection',
+                    guideCount: relevantGuides.length,
+                    guides: relevantGuides.map((g: Guide) => g.service),
+                })
+            );
         }
 
         // --- Model Cascade ---
         // Gemini 3.1 Flash Lite is the primary model (does not output raw reasoning/thoughts)
         // Gemma 4 31B remains as a high-limit fallback
-        const MODELS = [
-            'gemini-3.1-flash-lite',
-            'gemma-4-31b-it'
-        ];
+        const MODELS = ['gemini-3.1-flash-lite', 'gemma-4-31b-it'];
 
         let aiResponse: globalThis.Response | null = null;
         let finalModelId = '';
@@ -198,9 +213,9 @@ export default async function handler(req: Request) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?alt=sse`;
 
             // Make a deep copy of formattedMessages
-            const localContents: GeminiContent[] = formattedMessages.map(m => ({
+            const localContents: GeminiContent[] = formattedMessages.map((m) => ({
                 role: m.role,
-                parts: m.parts.map((p: GeminiPart) => ({ ...p }))
+                parts: m.parts.map((p: GeminiPart) => ({ ...p })),
             }));
 
             const aiRequestPayload: GeminiRequestPayload = {
@@ -227,7 +242,7 @@ export default async function handler(req: Request) {
                     'x-goog-api-key': GEMINI_API_KEY,
                 },
                 body: JSON.stringify(aiRequestPayload),
-                signal: AbortSignal.timeout(60_000),
+                signal: AbortSignal.timeout(20_000),
             });
 
             if (res.ok) {
@@ -236,7 +251,7 @@ export default async function handler(req: Request) {
                 break; // Connection established & stream opened successfully
             } else {
                 const errText = await res.text().catch(() => 'Unknown error text');
-                
+
                 // Keep the raw error message safe for the header
                 let cleanErr = 'Unknown';
                 try {
@@ -245,11 +260,11 @@ export default async function handler(req: Request) {
                 } catch {
                     cleanErr = `HTTP_${res.status}`;
                 }
-                
+
                 skipReasons.push(`${modelId}:${cleanErr}`);
                 lastErrorText += `[${modelId} error ${res.status}]: ${errText} | `;
-                
-                const logFn = (res.status === 429 || res.status >= 500) ? console.warn : console.error;
+
+                const logFn = res.status === 429 || res.status >= 500 ? console.warn : console.error;
                 logFn(JSON.stringify({ event: 'assistant_model_skip', model: modelId, status: res.status }));
                 continue;
             }
@@ -267,20 +282,21 @@ export default async function handler(req: Request) {
             headers: {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache, no-transform',
-                'Connection': 'keep-alive',
+                Connection: 'keep-alive',
                 'X-Accel-Buffering': 'no',
                 'X-AI-Model': finalModelId,
-                'X-AI-Skip-Reasons': skipReasons.join(', ')
-            }
+                'X-AI-Skip-Reasons': skipReasons.join(', '),
+            },
         });
-
     } catch (err: unknown) {
-        console.error(JSON.stringify({
-            event: 'assistant_error',
-            error: err instanceof Error ? err.message : String(err),
-            ...(process.env.VERCEL_ENV !== 'production' && { stack: err instanceof Error ? err.stack : undefined }),
-            timestamp: new Date().toISOString(),
-        }));
+        console.error(
+            JSON.stringify({
+                event: 'assistant_error',
+                error: err instanceof Error ? err.message : String(err),
+                ...(process.env.VERCEL_ENV !== 'production' && { stack: err instanceof Error ? err.stack : undefined }),
+                timestamp: new Date().toISOString(),
+            })
+        );
         return new Response(JSON.stringify({ error: 'Внутренняя ошибка сервера.' }), { status: 500 });
     }
 }

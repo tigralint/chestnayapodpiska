@@ -36,7 +36,7 @@ describe('usePageTitle', () => {
 
     it('should update title if pathname changes', () => {
         const { rerender } = renderHook(({ path }) => usePageTitle(path), {
-            initialProps: { path: '/simulator' }
+            initialProps: { path: '/simulator' },
         });
 
         expect(document.title).toBe(`Тренажер самообороны – ${BASE_TITLE}`);

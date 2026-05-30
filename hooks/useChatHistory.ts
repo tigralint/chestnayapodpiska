@@ -37,10 +37,13 @@ export function useChatHistory() {
     // Persist to localStorage whenever messages change (strip images for PII safety)
     useEffect(() => {
         if (messages.length > 0) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                timestamp: Date.now(),
-                data: messages.map(m => ({ ...m, imagePreview: undefined }))
-            }));
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                    timestamp: Date.now(),
+                    data: messages.map((m) => ({ ...m, imagePreview: undefined })),
+                })
+            );
         }
     }, [messages]);
 
@@ -50,15 +53,15 @@ export function useChatHistory() {
     }, []);
 
     const addMessage = useCallback((msg: Message) => {
-        setMessages(prev => [...prev, msg]);
+        setMessages((prev) => [...prev, msg]);
     }, []);
 
     const updateMessage = useCallback((id: string, text: string) => {
-        setMessages(prev => prev.map(m => m.id === id ? { ...m, text } : m));
+        setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, text } : m)));
     }, []);
 
     const removeMessage = useCallback((id: string) => {
-        setMessages(prev => prev.filter(m => m.id !== id));
+        setMessages((prev) => prev.filter((m) => m.id !== id));
     }, []);
 
     return {

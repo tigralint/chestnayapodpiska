@@ -16,15 +16,25 @@ export function useChatImage() {
             const img = new Image();
             img.onload = () => {
                 const MAX = IMAGE_RESIZE_MAX_PX;
-                let w = img.width, h = img.height;
+                let w = img.width,
+                    h = img.height;
                 if (w > MAX || h > MAX) {
-                    if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-                    else { w = Math.round(w * MAX / h); h = MAX; }
+                    if (w > h) {
+                        h = Math.round((h * MAX) / w);
+                        w = MAX;
+                    } else {
+                        w = Math.round((w * MAX) / h);
+                        h = MAX;
+                    }
                 }
                 const canvas = document.createElement('canvas');
-                canvas.width = w; canvas.height = h;
+                canvas.width = w;
+                canvas.height = h;
                 const ctx = canvas.getContext('2d');
-                if (!ctx) { if (import.meta.env.DEV) console.error('Failed to get canvas 2d context'); return; }
+                if (!ctx) {
+                    if (import.meta.env.DEV) console.error('Failed to get canvas 2d context');
+                    return;
+                }
                 ctx.drawImage(img, 0, 0, w, h);
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 setPendingImage(dataUrl);
@@ -34,20 +44,23 @@ export function useChatImage() {
         reader.readAsDataURL(file);
     }, []);
 
-    const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
-        const items = e.clipboardData?.items;
-        if (!items) return;
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if (!item) continue;
-            if (item.type.startsWith('image/')) {
-                const file = item.getAsFile();
-                if (file) handleImageFile(file);
-                e.preventDefault();
-                return;
+    const handlePaste = useCallback(
+        (e: React.ClipboardEvent<HTMLInputElement>) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (!item) continue;
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    if (file) handleImageFile(file);
+                    e.preventDefault();
+                    return;
+                }
             }
-        }
-    }, [handleImageFile]);
+        },
+        [handleImageFile]
+    );
 
     return { pendingImage, setPendingImage, handleImageFile, handlePaste, fileInputRef };
 }

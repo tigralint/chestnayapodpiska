@@ -73,7 +73,7 @@ describe('GuidesView integration', () => {
         renderGuides();
         const coursesTab = screen.getByText(/Онлайн-курсы/i);
         fireEvent.click(coursesTab);
-        
+
         // After clicking "Courses", "Skillbox" should be there, but "СберПрайм" should not
         expect(screen.getByText(/Skillbox/i)).toBeTruthy();
         expect(screen.queryByText('СберПрайм')).toBeFalsy();

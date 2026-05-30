@@ -23,36 +23,40 @@ export function CookieConsent() {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 sm:p-6 animate-slide-up">
-            <div className="max-w-4xl mx-auto real-glass bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative overflow-hidden">
+        <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-up p-4 sm:p-6">
+            <div className="real-glass relative mx-auto flex max-w-4xl flex-col items-center gap-4 overflow-hidden rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:flex-row sm:gap-6">
                 {/* Decorative gradient */}
-                <div className="absolute inset-0 bg-gradient-to-r from-accent-cyan/10 via-transparent to-accent-purple/10 pointer-events-none" />
-                
-                <div className="shrink-0 hidden sm:flex w-10 h-10 rounded-full bg-white/5 items-center justify-center text-slate-300">
-                    <Info className="w-5 h-5" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-accent-cyan/10 via-transparent to-accent-purple/10" />
+
+                <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 text-slate-300 sm:flex">
+                    <Info className="h-5 w-5" />
                 </div>
 
-                <div className="flex-1 text-[13px] sm:text-sm text-slate-300 leading-relaxed text-center sm:text-left relative z-10">
-                    Мы используем файлы cookie и локальное хранилище браузера (localStorage) для защиты от спама и сбора анонимной аналитики. 
-                    Продолжая использовать сайт, вы соглашаетесь с нашей{' '}
-                    <Link to="/privacy" className="text-white font-medium hover:text-accent-cyan underline decoration-white/30 underline-offset-2 transition-colors">
+                <div className="relative z-10 flex-1 text-center text-[13px] leading-relaxed text-slate-300 sm:text-left sm:text-sm">
+                    Мы используем файлы cookie и локальное хранилище браузера (localStorage) для защиты от спама и сбора
+                    анонимной аналитики. Продолжая использовать сайт, вы соглашаетесь с нашей{' '}
+                    <Link
+                        to="/privacy"
+                        className="font-medium text-white underline decoration-white/30 underline-offset-2 transition-colors hover:text-accent-cyan"
+                    >
                         Политикой конфиденциальности
-                    </Link>.
+                    </Link>
+                    .
                 </div>
 
-                <div className="flex shrink-0 w-full sm:w-auto relative z-10">
+                <div className="relative z-10 flex w-full shrink-0 sm:w-auto">
                     <button
                         onClick={handleAccept}
-                        className="w-full sm:w-auto px-8 py-3 bg-white text-slate-900 font-bold rounded-2xl hover:bg-slate-200 active:scale-95 transition-all shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
+                        className="w-full rounded-2xl bg-white px-8 py-3 font-bold text-slate-900 shadow-lg transition-all hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30 active:scale-95 sm:w-auto"
                     >
                         Понятно
                     </button>
-                    <button 
+                    <button
                         onClick={handleAccept}
-                        className="absolute -top-3 -right-3 sm:hidden p-2 text-slate-400 hover:text-white"
+                        className="absolute -right-3 -top-3 p-2 text-slate-400 hover:text-white sm:hidden"
                         aria-label="Закрыть"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="h-4 w-4" />
                     </button>
                 </div>
             </div>

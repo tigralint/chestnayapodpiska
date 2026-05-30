@@ -48,7 +48,10 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
             // Silently ignore aborted requests (instanceof DOMException is unreliable in some runtimes)
             if (e instanceof Error && e.name === 'AbortError') return;
 
-            const message = e instanceof Error ? e.message : 'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.';
+            const message =
+                e instanceof Error
+                    ? e.message
+                    : 'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.';
             setApiError(message);
 
             if (window.innerWidth < 1024) {
@@ -58,7 +61,7 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
             setIsGenerating(false);
 
             // Always clear the consumed turnstile token (use functional setter to avoid stale closure)
-            setData(prev => ({ ...prev, turnstileToken: undefined }));
+            setData((prev) => ({ ...prev, turnstileToken: undefined }));
 
             if (onAfterGenerate) {
                 onAfterGenerate();
@@ -68,7 +71,7 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
 
     const clearFieldError = (field: keyof T | string) => {
         if (fieldErrors[field as string]) {
-            setFieldErrors(prev => ({ ...prev, [field as string]: '' }));
+            setFieldErrors((prev) => ({ ...prev, [field as string]: '' }));
         }
     };
 
@@ -90,6 +93,6 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
         apiError,
         handleGenerate,
         clearFieldError,
-        handleCopy
+        handleCopy,
     };
 }

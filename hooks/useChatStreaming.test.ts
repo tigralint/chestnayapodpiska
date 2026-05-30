@@ -22,14 +22,12 @@ describe('useChatStreaming', () => {
 
     it('strips <think> reasoning blocks from model output', () => {
         const { result } = renderHook(() => useChatStreaming());
-        expect(result.current.cleanText('<think>internal reasoning</think>Hello world'))
-            .toBe('Hello world');
+        expect(result.current.cleanText('<think>internal reasoning</think>Hello world')).toBe('Hello world');
     });
 
     it('strips Gemma 4 channel-thought tags', () => {
         const { result } = renderHook(() => useChatStreaming());
-        expect(result.current.cleanText('<|channel>thought\nsome thinking\n<channel|>Answer here'))
-            .toBe('Answer here');
+        expect(result.current.cleanText('<|channel>thought\nsome thinking\n<channel|>Answer here')).toBe('Answer here');
     });
 
     it('strips unclosed <think> tags (streaming edge case)', () => {
@@ -40,8 +38,7 @@ describe('useChatStreaming', () => {
 
     it('strips HTML tags (security: prevents XSS from model)', () => {
         const { result } = renderHook(() => useChatStreaming());
-        expect(result.current.cleanText('<b>bold</b> and <script>alert(1)</script>'))
-            .toBe('bold and alert(1)');
+        expect(result.current.cleanText('<b>bold</b> and <script>alert(1)</script>')).toBe('bold and alert(1)');
     });
 
     it('passes through clean text without mutation', () => {
@@ -68,9 +65,9 @@ describe('useChatStreaming', () => {
 
         const { result } = renderHook(() => useChatStreaming());
 
-        await expect(
-            result.current.streamResponse([msg('test')], 'captcha-token', vi.fn())
-        ).rejects.toThrow('Превышен лимит запросов');
+        await expect(result.current.streamResponse([msg('test')], 'captcha-token', vi.fn())).rejects.toThrow(
+            'Превышен лимит запросов'
+        );
     });
 
     it('throws fallback error when response body cannot be parsed', async () => {
@@ -82,9 +79,9 @@ describe('useChatStreaming', () => {
 
         const { result } = renderHook(() => useChatStreaming());
 
-        await expect(
-            result.current.streamResponse([msg('test')], 'captcha-token', vi.fn())
-        ).rejects.toThrow('Ошибка сети. Попробуйте позже.');
+        await expect(result.current.streamResponse([msg('test')], 'captcha-token', vi.fn())).rejects.toThrow(
+            'Ошибка сети. Попробуйте позже.'
+        );
     });
 
     it('throws when response body is null', async () => {
@@ -96,9 +93,9 @@ describe('useChatStreaming', () => {
 
         const { result } = renderHook(() => useChatStreaming());
 
-        await expect(
-            result.current.streamResponse([msg('test')], 'captcha-token', vi.fn())
-        ).rejects.toThrow('No readable stream');
+        await expect(result.current.streamResponse([msg('test')], 'captcha-token', vi.fn())).rejects.toThrow(
+            'No readable stream'
+        );
     });
 
     // ── streamResponse: SSE parsing ──────────────────────────
@@ -127,9 +124,7 @@ describe('useChatStreaming', () => {
         const { result } = renderHook(() => useChatStreaming());
         const onChunk = vi.fn();
 
-        const fullText = await result.current.streamResponse(
-            [msg('test')], 'captcha-token', onChunk,
-        );
+        const fullText = await result.current.streamResponse([msg('test')], 'captcha-token', onChunk);
 
         expect(fullText).toBe('Привет, мир!');
         expect(onChunk).toHaveBeenCalledTimes(2);
@@ -137,7 +132,8 @@ describe('useChatStreaming', () => {
 
     it('filters out "thought" parts (thinking model responses)', async () => {
         const encoder = new TextEncoder();
-        const sseData = 'data: {"candidates":[{"content":{"parts":[{"text":"thinking...","thought":true},{"text":"Answer"}]}}]}\n\n';
+        const sseData =
+            'data: {"candidates":[{"content":{"parts":[{"text":"thinking...","thought":true},{"text":"Answer"}]}}]}\n\n';
 
         const stream = new ReadableStream({
             start(controller) {
@@ -153,9 +149,7 @@ describe('useChatStreaming', () => {
         });
 
         const { result } = renderHook(() => useChatStreaming());
-        const fullText = await result.current.streamResponse(
-            [msg('test')], 'captcha-token', vi.fn(),
-        );
+        const fullText = await result.current.streamResponse([msg('test')], 'captcha-token', vi.fn());
 
         expect(fullText).toBe('Answer');
     });
@@ -182,15 +176,17 @@ describe('useChatStreaming', () => {
         });
 
         const { result } = renderHook(() => useChatStreaming());
-        const fullText = await result.current.streamResponse(
-            [msg('test')], 'captcha-token', vi.fn(),
-        );
+        const fullText = await result.current.streamResponse([msg('test')], 'captcha-token', vi.fn());
 
         expect(fullText).toBe('OK');
     });
 
     it('sends image data as base64 when message has imagePreview', async () => {
-        const stream = new ReadableStream({ start(c) { c.close(); } });
+        const stream = new ReadableStream({
+            start(c) {
+                c.close();
+            },
+        });
 
         mockFetch.mockResolvedValueOnce({
             ok: true,
@@ -207,9 +203,7 @@ describe('useChatStreaming', () => {
             imagePreview: 'data:image/jpeg;base64,abc123',
         };
 
-        await result.current.streamResponse(
-            [msgWithImage], 'captcha-token', vi.fn(),
-        );
+        await result.current.streamResponse([msgWithImage], 'captcha-token', vi.fn());
 
         const fetchBody = JSON.parse(mockFetch.mock.calls[0]![1].body);
         expect(fetchBody.messages[0].image).toBe('abc123');

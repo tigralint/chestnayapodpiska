@@ -5,20 +5,20 @@ import removeMarkdown from 'remove-markdown';
 
 /** Removes accidental Markdown formatting from AI output safely */
 const cleanMarkdown = (text: string): string => {
-  return removeMarkdown(text).trim();
+    return removeMarkdown(text).trim();
 };
 
 /** Strict Runtime Type Guard for the API response */
 function isGenerateClaimResponse(data: unknown): data is GenerateClaimResponse {
-  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-    return false;
-  }
-  const obj = data as Record<string, unknown>;
-  // Validate that text and error are strings if present
-  const hasValidText = !('text' in obj) || typeof obj.text === 'string';
-  const hasValidError = !('error' in obj) || typeof obj.error === 'string';
-  const hasValidDetails = !('details' in obj) || typeof obj.details === 'string';
-  return hasValidText && hasValidError && hasValidDetails;
+    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+        return false;
+    }
+    const obj = data as Record<string, unknown>;
+    // Validate that text and error are strings if present
+    const hasValidText = !('text' in obj) || typeof obj.text === 'string';
+    const hasValidError = !('error' in obj) || typeof obj.error === 'string';
+    const hasValidDetails = !('details' in obj) || typeof obj.details === 'string';
+    return hasValidText && hasValidError && hasValidDetails;
 }
 
 /**
@@ -26,68 +26,74 @@ function isGenerateClaimResponse(data: unknown): data is GenerateClaimResponse {
  * Uses Strict Discriminated Unions and safe fetchWithRetry.
  */
 async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promise<string> {
-  const response = await fetchWithRetry('/api/generateClaim', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    signal,
-  });
+    const response = await fetchWithRetry('/api/generateClaim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal,
+    });
 
-  if (import.meta.env.DEV) {
-    const modelUsed = response.headers.get('X-AI-Model');
-    if (modelUsed) {
-      console.warn('%c[Claim Generator AI] Activated Model: ' + modelUsed, 'color: #10b981; font-weight: bold; background: #064e3b; padding: 4px 8px; border-radius: 4px;');
+    if (import.meta.env.DEV) {
+        const modelUsed = response.headers.get('X-AI-Model');
+        if (modelUsed) {
+            console.warn(
+                '%c[Claim Generator AI] Activated Model: ' + modelUsed,
+                'color: #10b981; font-weight: bold; background: #064e3b; padding: 4px 8px; border-radius: 4px;'
+            );
+        }
+        const skippedModels = response.headers.get('X-AI-Skip-Reasons');
+        if (skippedModels) {
+            console.warn('[Claim Generator AI] Models skipped before success:', skippedModels);
+        }
     }
-    const skippedModels = response.headers.get('X-AI-Skip-Reasons');
-    if (skippedModels) {
-      console.warn('[Claim Generator AI] Models skipped before success:', skippedModels);
+
+    const contentType = response.headers.get('content-type');
+
+    if (!contentType || !contentType.includes('application/json')) {
+        // Prevent raw HTML (like 502 Bad Gateway Nginx pages) from leaking to UI
+        throw new ApiError(response.status, 'Сервер вернул некорректный ответ (не JSON).');
     }
-  }
 
-  const contentType = response.headers.get('content-type');
-
-  if (!contentType || !contentType.includes('application/json')) {
-    // Prevent raw HTML (like 502 Bad Gateway Nginx pages) from leaking to UI
-    throw new ApiError(response.status, 'Сервер вернул некорректный ответ (не JSON).');
-  }
-
-  let result: GenerateClaimResponse;
-  try {
-    const rawResult = await response.json();
-    if (!isGenerateClaimResponse(rawResult)) {
-      throw new Error('Invalid JSON shape');
+    let result: GenerateClaimResponse;
+    try {
+        const rawResult = await response.json();
+        if (!isGenerateClaimResponse(rawResult)) {
+            throw new Error('Invalid JSON shape');
+        }
+        result = rawResult;
+    } catch (parseError: unknown) {
+        if (parseError instanceof DOMException && parseError.name === 'AbortError') {
+            throw parseError; // do not mask abort errors
+        }
+        throw new ApiError(500, 'Ошибка парсинга ответа от сервера.');
     }
-    result = rawResult;
-  } catch (parseError: unknown) {
-    if (parseError instanceof DOMException && parseError.name === 'AbortError') {
-      throw parseError; // do not mask abort errors
+
+    if (!response.ok) {
+        // 400 errors shouldn't be retried and are handled here
+        throw new ApiError(response.status, result.error || 'Произошла ошибка при генерации.');
     }
-    throw new ApiError(500, 'Ошибка парсинга ответа от сервера.');
-  }
 
-  if (!response.ok) {
-    // 400 errors shouldn't be retried and are handled here
-    throw new ApiError(response.status, result.error || 'Произошла ошибка при генерации.');
-  }
+    if (!result.text) {
+        throw new ApiError(500, 'Модель не вернула текст. Попробуйте повторить.');
+    }
 
-  if (!result.text) {
-    throw new ApiError(500, 'Модель не вернула текст. Попробуйте повторить.');
-  }
+    // Preserve the [ОТКАЗ] refusal marker before cleaning markdown
+    // (removeMarkdown strips square brackets which would destroy the marker)
+    const REFUSAL_PREFIX = '[ОТКАЗ]';
+    const hasRefusal = result.text.trimStart().startsWith(REFUSAL_PREFIX);
+    const rawText = hasRefusal ? result.text.trimStart().slice(REFUSAL_PREFIX.length) : result.text;
+    const cleaned = cleanMarkdown(rawText);
 
-  // Preserve the [ОТКАЗ] refusal marker before cleaning markdown
-  // (removeMarkdown strips square brackets which would destroy the marker)
-  const REFUSAL_PREFIX = '[ОТКАЗ]';
-  const hasRefusal = result.text.trimStart().startsWith(REFUSAL_PREFIX);
-  const rawText = hasRefusal ? result.text.trimStart().slice(REFUSAL_PREFIX.length) : result.text;
-  const cleaned = cleanMarkdown(rawText);
-
-  return hasRefusal ? `${REFUSAL_PREFIX} ${cleaned}` : cleaned;
+    return hasRefusal ? `${REFUSAL_PREFIX} ${cleaned}` : cleaned;
 }
 
 /** Thin wrapper for subscription claims */
 export const generateSubscriptionClaim = (data: ClaimData, signal?: AbortSignal): Promise<string> =>
-  generateClaim({ type: 'subscription', data }, signal);
+    generateClaim({ type: 'subscription', data }, signal);
 
 /** Thin wrapper for course claims */
-export const generateCourseClaim = (data: CourseData, calculatedRefund: number, signal?: AbortSignal): Promise<string> =>
-  generateClaim({ type: 'course', data, calculatedRefund }, signal);
+export const generateCourseClaim = (
+    data: CourseData,
+    calculatedRefund: number,
+    signal?: AbortSignal
+): Promise<string> => generateClaim({ type: 'course', data, calculatedRefund }, signal);

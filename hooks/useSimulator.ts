@@ -27,7 +27,7 @@ export function useSimulator() {
         setFeedback('idle');
         setCurrentStepIdx(SIMULATOR_CONFIG.INITIAL_STEP_INDEX);
         if (currentLevelIdx < LEVELS.length - 1) {
-            setCurrentLevelIdx(idx => idx + 1);
+            setCurrentLevelIdx((idx) => idx + 1);
         } else {
             setShowResult(true);
         }
@@ -40,7 +40,7 @@ export function useSimulator() {
 
         timerRef.current = setTimeout(() => {
             if (currentLevel.maxSteps && currentStepIdx < currentLevel.maxSteps - 1) {
-                setCurrentStepIdx(prevStep => prevStep + 1);
+                setCurrentStepIdx((prevStep) => prevStep + 1);
                 setFeedback('idle');
             } else {
                 nextLevel();
@@ -74,6 +74,6 @@ export function useSimulator() {
         handleHit,
         handleMiss,
         reset,
-        totalLevels: LEVELS.length
+        totalLevels: LEVELS.length,
     };
 }

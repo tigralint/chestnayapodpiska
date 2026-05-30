@@ -1,0 +1,3 @@
+# Ignore markdown files and github folder from Prettier formatting
+*.md
+.github/

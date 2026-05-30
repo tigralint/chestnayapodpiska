@@ -41,7 +41,6 @@ vi.hoisted(() => {
 
 import handler from './tgWebhook';
 
-
 function createMockReqRes(method = 'POST', body: unknown = {}, secretToken = 'my-secret') {
     const req = {
         method,
@@ -128,7 +127,14 @@ describe('API: tgWebhook', () => {
 
         it('sends alert details when alerts exist', async () => {
             mockZrange.mockResolvedValueOnce([
-                { id: 'alert-1', serviceName: 'Netflix', city: 'Москва', description: 'Hidden cancel button', category: 'hidden_cancel', timestamp: Date.now() },
+                {
+                    id: 'alert-1',
+                    serviceName: 'Netflix',
+                    city: 'Москва',
+                    description: 'Hidden cancel button',
+                    category: 'hidden_cancel',
+                    timestamp: Date.now(),
+                },
             ]);
             const { req, res } = createMockReqRes('POST', {
                 message: { chat: { id: 123 }, message_id: 1, text: '/list' },
@@ -201,7 +207,13 @@ describe('API: tgWebhook', () => {
 
     describe('Delete radar callback', () => {
         it('deletes a published alert from the sorted set', async () => {
-            const alert = { id: 'alert-to-delete', serviceName: 'Test', city: 'М', description: 'D', category: 'other' };
+            const alert = {
+                id: 'alert-to-delete',
+                serviceName: 'Test',
+                city: 'М',
+                description: 'D',
+                category: 'other',
+            };
             mockZrange.mockResolvedValueOnce([alert]);
 
             const { req, res } = createMockReqRes('POST', {

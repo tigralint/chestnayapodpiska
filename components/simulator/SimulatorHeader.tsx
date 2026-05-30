@@ -11,36 +11,42 @@ export function SimulatorHeader({ currentLevelIdx, totalLevels, progress }: Simu
     const navigate = useNavigate();
 
     return (
-        <section className="mb-8 relative z-20 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
-            <div className="flex items-center justify-between mb-4">
+        <section className="relative z-20 mb-8 animate-slide-up opacity-0" style={{ animationDelay: '50ms' }}>
+            <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center">
                     <button
                         onClick={() => navigate('/')}
-                        className="p-2 -ml-2 text-white bg-white/10 rounded-full mr-4 hover:bg-white/20 active:scale-95 transition-all focus:ring-2 focus:ring-white/30 outline-none"
+                        className="-ml-2 mr-4 rounded-full bg-white/10 p-2 text-white outline-none transition-all hover:bg-white/20 focus:ring-2 focus:ring-white/30 active:scale-95"
                         aria-label="Назад к дашборду"
                     >
                         <ChevronLeft />
                     </button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-white md:text-3xl">
                             Тренажер самообороны
                         </h1>
                     </div>
                 </div>
-                <div className="text-sm font-bold text-accent-pink bg-accent-pink/10 px-4 py-1.5 rounded-full border border-accent-pink/20 uppercase tracking-widest hidden sm:block">
+                <div className="hidden rounded-full border border-accent-pink/20 bg-accent-pink/10 px-4 py-1.5 text-sm font-bold uppercase tracking-widest text-accent-pink sm:block">
                     Уровень {currentLevelIdx + 1} / {totalLevels}
                 </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+            <div
+                className="h-1.5 w-full overflow-hidden rounded-full border border-white/5 bg-white/5 shadow-inner"
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+            >
                 <div
-                    className="h-full bg-gradient-to-r from-accent-purple to-accent-pink transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] shadow-[0_0_10px_rgba(236,72,153,0.5)]"
+                    className="h-full bg-gradient-to-r from-accent-purple to-accent-pink shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
                     style={{ width: `${progress}%` }}
                 ></div>
             </div>
-            <div className="sm:hidden mt-2 flex items-center justify-end">
-                <span className="text-xs font-bold text-accent-pink uppercase tracking-widest">
+            <div className="mt-2 flex items-center justify-end sm:hidden">
+                <span className="text-xs font-bold uppercase tracking-widest text-accent-pink">
                     Уровень {currentLevelIdx + 1} / {totalLevels}
                 </span>
             </div>

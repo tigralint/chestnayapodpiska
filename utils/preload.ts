@@ -23,7 +23,7 @@ export const preloadRoute = (path: string) => {
     const basePath = firstSegment ? `/${firstSegment}` : '/';
 
     if (routeImports[basePath] && !preloadedPaths.has(basePath)) {
-        routeImports[basePath]().catch(() => { });
+        routeImports[basePath]().catch(() => {});
         preloadedPaths.add(basePath);
     }
 };

@@ -10,10 +10,13 @@ describe('getClientIp (VercelRequest)', () => {
     }
 
     it('prefers x-vercel-forwarded-for header', () => {
-        const req = makeReq({
-            'x-vercel-forwarded-for': '1.2.3.4, 5.6.7.8',
-            'x-forwarded-for': '9.9.9.9',
-        }, '127.0.0.1');
+        const req = makeReq(
+            {
+                'x-vercel-forwarded-for': '1.2.3.4, 5.6.7.8',
+                'x-forwarded-for': '9.9.9.9',
+            },
+            '127.0.0.1'
+        );
         expect(getClientIp(req)).toBe('1.2.3.4');
     });
 

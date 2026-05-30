@@ -1,9 +1,15 @@
 ﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock docx library – constructors need to be actual classes
-class MockParagraph { constructor(public opts: unknown) {} }
-class MockTextRun { constructor(public opts: unknown) {} }
-class MockDocument { constructor(public opts: unknown) {} }
+class MockParagraph {
+    constructor(public opts: unknown) {}
+}
+class MockTextRun {
+    constructor(public opts: unknown) {}
+}
+class MockDocument {
+    constructor(public opts: unknown) {}
+}
 
 const mockToBlob = vi.fn().mockResolvedValue(new Blob(['test']));
 
@@ -66,9 +72,9 @@ describe('downloadWordDoc', () => {
 
         const { downloadWordDoc } = await import('./downloadWord');
 
-        await expect(
-            downloadWordDoc('fail', 'T', 'N', 'S', 'H', 'Sub', 'Content')
-        ).rejects.toThrow('Произошла ошибка при создании файла');
+        await expect(downloadWordDoc('fail', 'T', 'N', 'S', 'H', 'Sub', 'Content')).rejects.toThrow(
+            'Произошла ошибка при создании файла'
+        );
     });
 
     it('handles content without subHeading', async () => {

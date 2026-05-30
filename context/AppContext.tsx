@@ -22,8 +22,8 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType>({
     toasts: [],
-    addToast: () => { },
-    removeToast: () => { },
+    addToast: () => {},
+    removeToast: () => {},
 });
 
 export function useToastContext() {
@@ -47,9 +47,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     return (
         <ScrollContext.Provider value={scrollValue}>
-            <ToastContext.Provider value={toastValue}>
-                {children}
-            </ToastContext.Provider>
+            <ToastContext.Provider value={toastValue}>{children}</ToastContext.Provider>
         </ScrollContext.Provider>
     );
 }

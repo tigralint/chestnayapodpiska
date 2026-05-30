@@ -1,6 +1,6 @@
 /**
  * Client-side type definitions.
- * 
+ *
  * NOTE: ClaimData & CourseData here represent the *form state* – turnstileToken is optional
  * because the Turnstile widget delivers it asynchronously. The server-side Zod schemas
  * in api/generateClaim.ts enforce turnstileToken as required (.min(1)) at the *wire* level.
@@ -53,51 +53,49 @@ export interface Guide {
     tags?: string[];
 }
 
-export type AlertCategory = 
-  'hidden_cancel' | 'auto_renewal' | 'dark_pattern' | 
-  'phishing' | 'refund_refused' | 'other';
+export type AlertCategory = 'hidden_cancel' | 'auto_renewal' | 'dark_pattern' | 'phishing' | 'refund_refused' | 'other';
 
 export type AlertSeverity = 'critical' | 'high' | 'medium' | 'success';
 
 /** Shape of a radar report stored in Redis (used by api/radar.ts and api/tgWebhook.ts) */
 export interface RadarStoredData {
-  id: string;
-  timestamp: number;
-  serviceName: string;
-  city: string;
-  amount?: number;
-  description: string;
-  category: AlertCategory;
+    id: string;
+    timestamp: number;
+    serviceName: string;
+    city: string;
+    amount?: number;
+    description: string;
+    category: AlertCategory;
 }
 
 export interface RadarReport {
-  serviceName: string;
-  city: string;
-  amount?: number;
-  description: string;
-  category: AlertCategory;
-  turnstileToken: string;
+    serviceName: string;
+    city: string;
+    amount?: number;
+    description: string;
+    category: AlertCategory;
+    turnstileToken: string;
 }
 
 export interface RadarAlertResponse {
-  id: string;
-  location: string;
-  time: string;           
-  text: string;
-  severity: AlertSeverity;
-  category: AlertCategory;
-  serviceName: string;
-  reportCount: number;     
+    id: string;
+    location: string;
+    time: string;
+    text: string;
+    severity: AlertSeverity;
+    category: AlertCategory;
+    serviceName: string;
+    reportCount: number;
 }
 
 export interface ClaimHistoryItem {
-  id: string;
-  type: 'subscription' | 'course';
-  serviceName: string;
-  amount: number;
-  date: string;
-  resultText: string;
-  status: 'pending' | 'refunded' | 'refused';
-  createdAt: string;
-  tone: Tone;
+    id: string;
+    type: 'subscription' | 'course';
+    serviceName: string;
+    amount: number;
+    date: string;
+    resultText: string;
+    status: 'pending' | 'refunded' | 'refused';
+    createdAt: string;
+    tone: Tone;
 }

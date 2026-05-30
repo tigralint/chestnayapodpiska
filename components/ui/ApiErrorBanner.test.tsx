@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ApiErrorBanner } from './ApiErrorBanner';
+import { APP_LINKS } from '../../constants/links';
 
 describe('ApiErrorBanner', () => {
     it('renders the error message', () => {
@@ -18,7 +19,7 @@ describe('ApiErrorBanner', () => {
         render(<ApiErrorBanner error="Test error" />);
         const link = screen.getByText('Напишите нам');
         expect(link).toBeInTheDocument();
-        expect(link).toHaveAttribute('href', 'https://vk.com/fairsubs');
+        expect(link).toHaveAttribute('href', APP_LINKS.VK_GROUP);
         expect(link).toHaveAttribute('target', '_blank');
     });
 

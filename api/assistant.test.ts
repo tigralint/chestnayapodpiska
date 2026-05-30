@@ -226,7 +226,9 @@ describe('API: assistant', () => {
             // AI model returns SSE stream
             const mockStream = new ReadableStream({
                 start(controller) {
-                    controller.enqueue(new TextEncoder().encode('data: {"candidates":[{"content":{"parts":[{"text":"Hello"}]}}]}\n'));
+                    controller.enqueue(
+                        new TextEncoder().encode('data: {"candidates":[{"content":{"parts":[{"text":"Hello"}]}}]}\n')
+                    );
                     controller.close();
                 },
             });
@@ -259,7 +261,11 @@ describe('API: assistant', () => {
             // AI model succeeds
             mockFetch.mockResolvedValueOnce({
                 ok: true,
-                body: new ReadableStream({ start(c) { c.close(); } }),
+                body: new ReadableStream({
+                    start(c) {
+                        c.close();
+                    },
+                }),
             });
 
             const { default: handler } = await import('./assistant');
@@ -291,7 +297,11 @@ describe('API: assistant', () => {
             // Second model succeeds
             mockFetch.mockResolvedValueOnce({
                 ok: true,
-                body: new ReadableStream({ start(c) { c.close(); } }),
+                body: new ReadableStream({
+                    start(c) {
+                        c.close();
+                    },
+                }),
             });
 
             const { default: handler } = await import('./assistant');
@@ -319,7 +329,11 @@ describe('API: assistant', () => {
             // AI model succeeds
             mockFetch.mockResolvedValueOnce({
                 ok: true,
-                body: new ReadableStream({ start(c) { c.close(); } }),
+                body: new ReadableStream({
+                    start(c) {
+                        c.close();
+                    },
+                }),
             });
 
             const { default: handler } = await import('./assistant');
@@ -354,7 +368,11 @@ describe('API: assistant', () => {
             // Second model succeeds
             mockFetch.mockResolvedValueOnce({
                 ok: true,
-                body: new ReadableStream({ start(c) { c.close(); } }),
+                body: new ReadableStream({
+                    start(c) {
+                        c.close();
+                    },
+                }),
             });
 
             const { default: handler } = await import('./assistant');

@@ -13,9 +13,7 @@ interface PromptParams {
 }
 
 export function buildClaimPrompt(params: PromptParams): string {
-    const paragraphList = params.specificParagraphs
-        .map(p => `   - ${p}`)
-        .join('\n');
+    const paragraphList = params.specificParagraphs.map((p) => `   - ${p}`).join('\n');
 
     return `Составь развернутый текст заявления о возврате средств.
 ДАННЫЕ:
@@ -44,9 +42,10 @@ export function buildSubscriptionPrompt(
     reason: string,
     tone: 'soft' | 'hard'
 ): string {
-    const tonePart = tone === 'hard'
-        ? 'Тон: Ультимативный. Упомяни Роспотребнадзор и суд.'
-        : 'Тон: Вежливый и лояльный. Напиши, что я ценю сервис, но прошу возврат.';
+    const tonePart =
+        tone === 'hard'
+            ? 'Тон: Ультимативный. Упомяни Роспотребнадзор и суд.'
+            : 'Тон: Вежливый и лояльный. Напиши, что я ценю сервис, но прошу возврат.';
 
     return buildClaimPrompt({
         entityName: serviceName,
@@ -100,9 +99,10 @@ export function buildCustomReasonPrompt(
     customReason: string,
     tone: 'soft' | 'hard'
 ): string {
-    const tonePart = tone === 'hard'
-        ? 'Тон: Ультимативный. Упомяни Роспотребнадзор и суд.'
-        : 'Тон: Вежливый и лояльный. Напиши, что я ценю сервис, но прошу возврат.';
+    const tonePart =
+        tone === 'hard'
+            ? 'Тон: Ультимативный. Упомяни Роспотребнадзор и суд.'
+            : 'Тон: Вежливый и лояльный. Напиши, что я ценю сервис, но прошу возврат.';
 
     return `Ты – юрист-консультант по защите прав потребителей РФ.
 

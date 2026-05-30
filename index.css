@@ -1,78 +1,86 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 /* ===== Global Styles ===== */
 
 body {
-  -webkit-tap-highlight-color: transparent;
-  background-color: #05050A;
-  margin: 0;
-  overflow-x: hidden;
-  overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    background-color: #05050a;
+    margin: 0;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
 }
 
 /* Ambient gradient background — extracted from inline style for GPU layer reuse */
 .app-ambient-bg {
-  background-color: #05050A;
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 60%),
-    radial-gradient(circle at 80% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 65%),
-    radial-gradient(circle at 30% 80%, rgba(0, 242, 254, 0.08) 0%, transparent 60%),
-    radial-gradient(circle at 70% 60%, rgba(236, 72, 153, 0.05) 0%, transparent 60%),
-    radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.04) 0%, transparent 70%);
+    background-color: #05050a;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 80% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 65%),
+        radial-gradient(circle at 30% 80%, rgba(0, 242, 254, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 70% 60%, rgba(236, 72, 153, 0.05) 0%, transparent 60%),
+        radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.04) 0%, transparent 70%);
 }
 
 /* ===== View Transitions API (Chrome 111+) ===== */
 ::view-transition-old(root) {
-  animation: vt-fade-out 150ms ease-out;
+    animation: vt-fade-out 150ms ease-out;
 }
 ::view-transition-new(root) {
-  animation: vt-fade-in 200ms ease-in;
+    animation: vt-fade-in 200ms ease-in;
 }
 @keyframes vt-fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
 }
 @keyframes vt-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* Elegant invisible scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+    width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Input autofill fix for dark mode */
@@ -80,117 +88,121 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #1a1a24 inset !important;
-  -webkit-text-fill-color: white !important;
-  transition: background-color 5000s ease-in-out 0s;
+    -webkit-box-shadow: 0 0 0 30px #1a1a24 inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
 }
 
 /* ===== Glass Utilities ===== */
 
 .real-glass {
-  background: linear-gradient(135deg, rgba(35, 35, 50, 0.8) 0%, rgba(15, 15, 25, 0.9) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-top-color: rgba(255, 255, 255, 0.15);
-  border-left-color: rgba(255, 255, 255, 0.12);
-  /* Многослойная тень для создания объема: падающая тень + внутренний блик сверху + внутреннее затемнение снизу */
-  box-shadow:
-    0 20px 40px -10px rgba(0, 0, 0, 0.5),
-    0 10px 20px -5px rgba(0, 0, 0, 0.3),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, rgba(35, 35, 50, 0.8) 0%, rgba(15, 15, 25, 0.9) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-top-color: rgba(255, 255, 255, 0.15);
+    border-left-color: rgba(255, 255, 255, 0.12);
+    /* Многослойная тень для создания объема: падающая тень + внутренний блик сверху + внутреннее затемнение снизу */
+    box-shadow:
+        0 20px 40px -10px rgba(0, 0, 0, 0.5),
+        0 10px 20px -5px rgba(0, 0, 0, 0.3),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.5);
 }
 
 .real-glass-panel {
-  background: linear-gradient(180deg, rgba(25, 25, 35, 0.95) 0%, rgba(15, 15, 20, 0.98) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-top-color: rgba(255, 255, 255, 0.12);
-  /* Мягкая падающая тень + внутренний блик + эффект "виньетки" (внутреннее размытие тени) */
-  box-shadow:
-    0 15px 35px -10px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    inset 0 0 30px 0 rgba(0, 0, 0, 0.4);
+    background: linear-gradient(180deg, rgba(25, 25, 35, 0.95) 0%, rgba(15, 15, 20, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top-color: rgba(255, 255, 255, 0.12);
+    /* Мягкая падающая тень + внутренний блик + эффект "виньетки" (внутреннее размытие тени) */
+    box-shadow:
+        0 15px 35px -10px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+        inset 0 0 30px 0 rgba(0, 0, 0, 0.4);
 }
-
 
 /* ===== View Transition ===== */
 
 .view-enter {
-  animation: viewEnter 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation: viewEnter 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @keyframes viewEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(12px);
-  }
+    0% {
+        opacity: 0;
+        transform: translateY(12px);
+    }
 
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ===== Scrollbar Utilities ===== */
 
 .no-scrollbar::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 /* ===== Shimmer Effect ===== */
 
 .shimmer {
-  position: relative;
-  overflow: hidden;
+    position: relative;
+    overflow: hidden;
 }
 
 .shimmer::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.01) 30%,
-      rgba(255, 255, 255, 0.03) 50%,
-      rgba(255, 255, 255, 0.01) 70%,
-      transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmerSlide 8s linear infinite;
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.01) 30%,
+        rgba(255, 255, 255, 0.03) 50%,
+        rgba(255, 255, 255, 0.01) 70%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmerSlide 8s linear infinite;
 }
 
 @keyframes shimmerSlide {
-  0% {
-    background-position: 200% 0;
-  }
+    0% {
+        background-position: 200% 0;
+    }
 
-  100% {
-    background-position: -200% 0;
-  }
+    100% {
+        background-position: -200% 0;
+    }
 }
 
 /* ===== Typography Styles ===== */
 .text-shadow-neon {
-  text-shadow: 0 0 10px rgba(34, 211, 238, 0.5), 0 0 20px rgba(34, 211, 238, 0.3);
+    text-shadow:
+        0 0 10px rgba(34, 211, 238, 0.5),
+        0 0 20px rgba(34, 211, 238, 0.3);
 }
 
 /* ===== Accessibility: Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 /* ===== Touch Optimization ===== */
-button, a, [role="button"] {
-  touch-action: manipulation;
+button,
+a,
+[role='button'] {
+    touch-action: manipulation;
 }

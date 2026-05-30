@@ -46,9 +46,12 @@ describe('generateSubscriptionClaim', () => {
         mockFetch.mockResolvedValue(jsonResponse({ text: '**Текст** претензии' }));
         const result = await generateSubscriptionClaim(mockClaimData);
         expect(result).toBe('Текст претензии');
-        expect(mockFetch).toHaveBeenCalledWith('/api/generateClaim', expect.objectContaining({
-            method: 'POST',
-        }));
+        expect(mockFetch).toHaveBeenCalledWith(
+            '/api/generateClaim',
+            expect.objectContaining({
+                method: 'POST',
+            })
+        );
     });
 
     it('throws fast on HTTP 403 error with server message', async () => {
@@ -67,7 +70,9 @@ describe('generateSubscriptionClaim', () => {
     it('throws network error message on fetch failure', async () => {
         // Will be retried 3 times, ending in this fallback error message
         mockFetch.mockRejectedValue(new TypeError('Failed to fetch'));
-        await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow('Удаленный сервер перегружен (ошибка 429/500).');
+        await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow(
+            'Удаленный сервер перегружен (ошибка 429/500).'
+        );
     });
 
     it('throws on non-JSON response', async () => {
@@ -77,7 +82,9 @@ describe('generateSubscriptionClaim', () => {
             headers: new Headers({ 'content-type': 'text/html' }),
             text: () => Promise.resolve('502 Bad Gateway'),
         } as Response);
-        await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow('Сервер вернул некорректный ответ (не JSON).');
+        await expect(generateSubscriptionClaim(mockClaimData)).rejects.toThrow(
+            'Сервер вернул некорректный ответ (не JSON).'
+        );
     });
 });
 
@@ -98,7 +105,9 @@ describe('generateCourseClaim', () => {
 
     it('retries on server error 500 and throws fallback message', async () => {
         mockFetch.mockResolvedValue(jsonResponse({ error: 'Внутренняя ошибка' }, 500));
-        await expect(generateCourseClaim(mockCourseData, 35000)).rejects.toThrow('Удаленный сервер перегружен (ошибка 429/500).');
+        await expect(generateCourseClaim(mockCourseData, 35000)).rejects.toThrow(
+            'Удаленный сервер перегружен (ошибка 429/500).'
+        );
         expect(mockFetch).toHaveBeenCalledTimes(3); // Expect 3 retries
     });
 });

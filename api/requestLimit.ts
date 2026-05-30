@@ -8,15 +8,16 @@ import { Redis } from '@upstash/redis';
 /** TTL for hash→IP mapping in Redis (24 hours) */
 const IP_MAPPING_TTL_SECONDS = 24 * 60 * 60;
 
-const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
-    ? Redis.fromEnv({ enableAutoPipelining: true })
-    : null;
+const redis =
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+        ? Redis.fromEnv({ enableAutoPipelining: true })
+        : null;
 
 const ratelimit = redis
     ? new Ratelimit({
-        redis,
-        limiter: Ratelimit.slidingWindow(5, '1 h'),
-    })
+          redis,
+          limiter: Ratelimit.slidingWindow(5, '1 h'),
+      })
     : null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -61,18 +62,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 text: messageText,
                 parse_mode: 'HTML',
                 reply_markup: {
-                    inline_keyboard: [[
-                        { text: "✅ Одобрить и Сбросить Лимит", callback_data: `reset_limit_${ipHash}` }
-                    ]]
-                }
+                    inline_keyboard: [
+                        [{ text: '✅ Одобрить и Сбросить Лимит', callback_data: `reset_limit_${ipHash}` }],
+                    ],
+                },
             }),
             signal: AbortSignal.timeout(10_000),
         });
 
         return res.status(200).json({ success: true });
-
     } catch (error: unknown) {
-        console.error(JSON.stringify({ event: 'requestLimit_error', error: error instanceof Error ? error.message : String(error) }));
+        console.error(
+            JSON.stringify({
+                event: 'requestLimit_error',
+                error: error instanceof Error ? error.message : String(error),
+            })
+        );
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 }

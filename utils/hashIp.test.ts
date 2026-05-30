@@ -33,4 +33,3 @@ describe('hashIp', () => {
         expect(hashIp(ip)).not.toContain(ip);
     });
 });
-

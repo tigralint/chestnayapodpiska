@@ -6,7 +6,10 @@ import { Redis } from '@upstash/redis';
  * Returns null if Redis credentials are missing (graceful local dev fallback).
  * Production endpoints MUST check for null and fail-closed.
  */
-export function createRatelimit(windowSize: number, windowDuration: Parameters<typeof Ratelimit.slidingWindow>[1]): Ratelimit | null {
+export function createRatelimit(
+    windowSize: number,
+    windowDuration: Parameters<typeof Ratelimit.slidingWindow>[1]
+): Ratelimit | null {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
         return new Ratelimit({
             redis: Redis.fromEnv({ enableAutoPipelining: true }),

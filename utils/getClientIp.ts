@@ -8,17 +8,21 @@ import type { VercelRequest } from '@vercel/node';
  * Works with both VercelRequest (Node.js runtime) and Web Request (Edge runtime).
  */
 export function getClientIp(request: VercelRequest): string {
-    return (request.headers['x-vercel-forwarded-for'] as string)?.split(',')[0]?.trim()
-        ?? (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-        ?? request.socket?.remoteAddress
-        ?? 'unknown';
+    return (
+        (request.headers['x-vercel-forwarded-for'] as string)?.split(',')[0]?.trim() ??
+        (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ??
+        request.socket?.remoteAddress ??
+        'unknown'
+    );
 }
 
 /**
  * Edge-runtime variant that works with the standard Web Request API.
  */
 export function getClientIpEdge(request: Request): string {
-    return request.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim()
-        ?? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-        ?? 'unknown';
+    return (
+        request.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() ??
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        'unknown'
+    );
 }

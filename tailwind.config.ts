@@ -17,7 +17,16 @@ const config: Config = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                sans: [
+                    '-apple-system',
+                    'BlinkMacSystemFont',
+                    '"SF Pro Display"',
+                    '"Segoe UI"',
+                    'Roboto',
+                    'Helvetica',
+                    'Arial',
+                    'sans-serif',
+                ],
                 mono: ['"SF Mono"', 'ui-monospace', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
             },
             colors: {
@@ -49,12 +58,12 @@ const config: Config = {
                 'slide-up': 'slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
                 'slide-in-right': 'slideInRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
                 'pop-in': 'popIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-                'blob': 'blob 40s infinite alternate cubic-bezier(0.4, 0, 0.6, 1)',
+                blob: 'blob 40s infinite alternate cubic-bezier(0.4, 0, 0.6, 1)',
                 'spin-slow': 'spin 8s linear infinite',
                 'spin-reverse': 'spin 3s linear infinite reverse',
-                'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                shake: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
                 'gradient-shift': 'gradientShift 5s ease infinite',
-                'float': 'float 3s ease-in-out infinite',
+                float: 'float 3s ease-in-out infinite',
                 'magic-pulse': 'magicPulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                 'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             },

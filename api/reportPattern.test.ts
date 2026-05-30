@@ -21,7 +21,14 @@ vi.stubGlobal('fetch', mockFetch);
 process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io';
 process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
 
-function mockRequest(overrides: Partial<{ method: string; body: unknown; socket: { remoteAddress: string }; headers: Record<string, string> }> = {}) {
+function mockRequest(
+    overrides: Partial<{
+        method: string;
+        body: unknown;
+        socket: { remoteAddress: string };
+        headers: Record<string, string>;
+    }> = {}
+) {
     return {
         method: overrides.method ?? 'POST',
         headers: overrides.headers ?? {},
@@ -34,8 +41,14 @@ function mockResponse() {
     const res = {
         statusCode: 200,
         _json: null as unknown,
-        status(code: number) { res.statusCode = code; return res; },
-        json(data: unknown) { res._json = data; return res; },
+        status(code: number) {
+            res.statusCode = code;
+            return res;
+        },
+        json(data: unknown) {
+            res._json = data;
+            return res;
+        },
     };
     return res;
 }

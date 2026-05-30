@@ -14,8 +14,8 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
             <div
                 ref={ref}
                 className={cn(
-                    "real-glass-panel p-6 sm:p-8 rounded-[2.5rem]",
-                    animate && "opacity-0 animate-slide-up",
+                    'real-glass-panel rounded-[2.5rem] p-6 sm:p-8',
+                    animate && 'animate-slide-up opacity-0',
                     className
                 )}
                 style={style}

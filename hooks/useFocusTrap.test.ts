@@ -5,7 +5,7 @@ import { useFocusTrap } from './useFocusTrap';
 
 function createContainer(...elements: string[]) {
     const container = document.createElement('div');
-    elements.forEach(tag => {
+    elements.forEach((tag) => {
         const el = document.createElement(tag);
         container.appendChild(el);
     });

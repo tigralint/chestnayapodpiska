@@ -36,7 +36,9 @@ describe('Dashboard integration', () => {
 
     it('should render hero subtitle', () => {
         renderDashboard();
-        expect(screen.getByText('Помогаем составить юридически грамотную претензию за 2 минуты. Бесплатно. Навсегда.')).toBeTruthy();
+        expect(
+            screen.getByText('Помогаем составить юридически грамотную претензию за 2 минуты. Бесплатно. Навсегда.')
+        ).toBeTruthy();
     });
 
     it('should render all feature cards', () => {

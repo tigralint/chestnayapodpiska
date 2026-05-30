@@ -3,12 +3,12 @@ import { claimSchema, courseSchema } from './generateClaim';
 
 // --- Module mocks for handler tests ---
 vi.mock('@upstash/redis', () => ({
-    Redis: { fromEnv: vi.fn(() => ({ zrange: vi.fn(), set: vi.fn() })) }
+    Redis: { fromEnv: vi.fn(() => ({ zrange: vi.fn(), set: vi.fn() })) },
 }));
 vi.mock('@upstash/ratelimit', () => ({
     Ratelimit: vi.fn().mockImplementation(() => ({
         limit: vi.fn().mockResolvedValue({ success: true }),
-    }))
+    })),
 }));
 vi.mock('./_shared/turnstile', () => ({
     verifyTurnstile: vi.fn().mockResolvedValue(true),
@@ -27,9 +27,18 @@ function mockResponse() {
         statusCode: 200,
         _json: null as unknown,
         _headers: new Map<string, string>(),
-        status(code: number) { res.statusCode = code; return res; },
-        json(data: unknown) { res._json = data; return res; },
-        setHeader(key: string, value: string) { res._headers.set(key, value); return res; },
+        status(code: number) {
+            res.statusCode = code;
+            return res;
+        },
+        json(data: unknown) {
+            res._json = data;
+            return res;
+        },
+        setHeader(key: string, value: string) {
+            res._headers.set(key, value);
+            return res;
+        },
     };
     return res;
 }
@@ -190,9 +199,14 @@ describe('generateClaim Handler (integration)', () => {
             body: {
                 type: 'course',
                 data: {
-                    courseName: 'Test', totalCost: 50000, percentCompleted: 30,
-                    tone: 'soft', hasPlatformAccess: true, hasConsultations: false,
-                    hasCertificate: false, turnstileToken: 'test',
+                    courseName: 'Test',
+                    totalCost: 50000,
+                    percentCompleted: 30,
+                    tone: 'soft',
+                    hasPlatformAccess: true,
+                    hasConsultations: false,
+                    hasCertificate: false,
+                    turnstileToken: 'test',
                 },
                 calculatedRefund: -100,
             },
@@ -245,12 +259,15 @@ describe('generateClaim Handler (integration)', () => {
         // AI model returns success
         mockFetch.mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({
-                candidates: [{
-                    content: { parts: [{ text: 'Претензия по подписке...' }] },
-                    finishReason: 'STOP',
-                }],
-            }),
+            json: () =>
+                Promise.resolve({
+                    candidates: [
+                        {
+                            content: { parts: [{ text: 'Претензия по подписке...' }] },
+                            finishReason: 'STOP',
+                        },
+                    ],
+                }),
         });
 
         const { default: handler } = await import('./generateClaim');
@@ -279,9 +296,10 @@ describe('generateClaim Handler (integration)', () => {
 
         mockFetch.mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({
-                candidates: [{ content: { parts: [{ text: 'Custom claim text' }] }, finishReason: 'STOP' }],
-            }),
+            json: () =>
+                Promise.resolve({
+                    candidates: [{ content: { parts: [{ text: 'Custom claim text' }] }, finishReason: 'STOP' }],
+                }),
         });
 
         const { default: handler } = await import('./generateClaim');
@@ -310,9 +328,10 @@ describe('generateClaim Handler (integration)', () => {
 
         mockFetch.mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({
-                candidates: [{ content: { parts: [{ text: 'Претензия по курсу...' }] }, finishReason: 'STOP' }],
-            }),
+            json: () =>
+                Promise.resolve({
+                    candidates: [{ content: { parts: [{ text: 'Претензия по курсу...' }] }, finishReason: 'STOP' }],
+                }),
         });
 
         const { default: handler } = await import('./generateClaim');
@@ -373,9 +392,10 @@ describe('generateClaim Handler (integration)', () => {
 
         mockFetch.mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({
-                promptFeedback: { blockReason: 'SAFETY' },
-            }),
+            json: () =>
+                Promise.resolve({
+                    promptFeedback: { blockReason: 'SAFETY' },
+                }),
         });
 
         const { default: handler } = await import('./generateClaim');
@@ -403,17 +423,17 @@ describe('generateClaim Handler (integration)', () => {
 
         mockFetch.mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({
-                candidates: [{
-                    content: {
-                        parts: [
-                            { text: 'thinking...', thought: true },
-                            { text: 'Actual claim text' },
-                        ],
-                    },
-                    finishReason: 'STOP',
-                }],
-            }),
+            json: () =>
+                Promise.resolve({
+                    candidates: [
+                        {
+                            content: {
+                                parts: [{ text: 'thinking...', thought: true }, { text: 'Actual claim text' }],
+                            },
+                            finishReason: 'STOP',
+                        },
+                    ],
+                }),
         });
 
         const { default: handler } = await import('./generateClaim');
@@ -436,4 +456,3 @@ describe('generateClaim Handler (integration)', () => {
         expect((res._json as { text: string }).text).toBe('Actual claim text');
     });
 });
-

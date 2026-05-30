@@ -21,10 +21,13 @@ describe('useChatHistory', () => {
 
     it('loads messages from localStorage on mount', () => {
         const stored: Message[] = [{ role: 'user', text: 'hello', id: '1' }];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            timestamp: Date.now(),
-            data: stored,
-        }));
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+                timestamp: Date.now(),
+                data: stored,
+            })
+        );
 
         const { result } = renderHook(() => useChatHistory());
         expect(result.current.messages).toEqual(stored);
@@ -32,10 +35,13 @@ describe('useChatHistory', () => {
 
     it('ignores expired localStorage data (>24h)', () => {
         const stored: Message[] = [{ role: 'user', text: 'old', id: '1' }];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            timestamp: Date.now() - 25 * 60 * 60 * 1000,
-            data: stored,
-        }));
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+                timestamp: Date.now() - 25 * 60 * 60 * 1000,
+                data: stored,
+            })
+        );
 
         const { result } = renderHook(() => useChatHistory());
         expect(result.current.messages).toEqual([]);
@@ -100,8 +106,10 @@ describe('useChatHistory', () => {
 
         act(() => {
             result.current.addMessage({
-                role: 'user', text: 'look at this', id: '1',
-                imagePreview: 'data:image/jpeg;base64,SENSITIVE_DATA'
+                role: 'user',
+                text: 'look at this',
+                id: '1',
+                imagePreview: 'data:image/jpeg;base64,SENSITIVE_DATA',
             });
         });
 

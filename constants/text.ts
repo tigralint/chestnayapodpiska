@@ -36,5 +36,5 @@ export const APP_CONTENT = {
         subscriptionBadge: 'Подписка',
         guideBtn: 'Инструкция',
         claimBtn: 'Претензия',
-    }
+    },
 };

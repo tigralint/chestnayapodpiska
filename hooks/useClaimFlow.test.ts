@@ -84,7 +84,9 @@ describe('useClaimFlow', () => {
 
     it('should call generateSubscriptionClaim on valid data and store result', async () => {
         vi.spyOn(router, 'useParams').mockReturnValue({});
-        const generateMock = vi.spyOn(geminiService, 'generateSubscriptionClaim').mockResolvedValue('Mocked Claim Text');
+        const generateMock = vi
+            .spyOn(geminiService, 'generateSubscriptionClaim')
+            .mockResolvedValue('Mocked Claim Text');
 
         const { result } = renderHook(() => useClaimFlow());
 
@@ -127,12 +129,12 @@ describe('useClaimFlow', () => {
         expect(downloadMock).toHaveBeenCalledTimes(1);
         expect(downloadMock).toHaveBeenCalledWith(
             'Претензия_Test_Service__',
-            "В службу поддержки / Руководству",
+            'В службу поддержки / Руководству',
             'Test Service.!',
-            "_________________________ (Email / Телефон: _________________)",
-            "ДОСУДЕБНАЯ ПРЕТЕНЗИЯ",
-            "",
-            "" // Result text empty initially
+            '_________________________ (Email / Телефон: _________________)',
+            'ДОСУДЕБНАЯ ПРЕТЕНЗИЯ',
+            '',
+            '' // Result text empty initially
         );
     });
 });

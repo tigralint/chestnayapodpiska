@@ -12,14 +12,7 @@ interface SEOProps {
 
 const SITE_URL = 'https://chestnayapodpiska.vercel.app';
 
-export function SEO({
-    title,
-    description,
-    type = 'website',
-    image = `${SITE_URL}/logo.webp`,
-    url,
-    jsonLd,
-}: SEOProps) {
+export function SEO({ title, description, type = 'website', image = `${SITE_URL}/logo.webp`, url, jsonLd }: SEOProps) {
     const { pathname } = useLocation();
     const canonicalUrl = url ?? `${SITE_URL}${pathname}`;
 
@@ -46,12 +39,7 @@ export function SEO({
             <meta name="twitter:image" content={image} />
 
             {/* Structured Data (JSON-LD) */}
-            {jsonLd && (
-                <script type="application/ld+json">
-                    {JSON.stringify(jsonLd)}
-                </script>
-            )}
+            {jsonLd && <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>}
         </Helmet>
     );
 }
-

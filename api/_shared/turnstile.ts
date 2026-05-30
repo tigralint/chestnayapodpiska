@@ -21,6 +21,6 @@ export async function verifyTurnstile(token: string): Promise<boolean> {
         signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
     });
 
-    const res = await check.json() as TurnstileVerifyResponse;
+    const res = (await check.json()) as TurnstileVerifyResponse;
     return res.success;
 }

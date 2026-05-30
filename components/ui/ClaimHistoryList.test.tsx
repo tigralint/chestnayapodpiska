@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ClaimHistoryList } from './ClaimHistoryList';
 import { ClaimHistoryItem } from '../../types';
@@ -30,7 +30,7 @@ const makeItem = (overrides: Partial<ClaimHistoryItem> = {}): ClaimHistoryItem =
     tone: 'soft',
     status: 'pending',
     createdAt: '2026-01-15T10:00:00.000Z',
-    ...overrides
+    ...overrides,
 });
 
 describe('ClaimHistoryList', () => {
@@ -58,10 +58,7 @@ describe('ClaimHistoryList', () => {
     });
 
     it('renders tone label correctly for soft and hard', () => {
-        const history = [
-            makeItem({ id: 'soft-1', tone: 'soft' }),
-            makeItem({ id: 'hard-1', tone: 'hard' }),
-        ];
+        const history = [makeItem({ id: 'soft-1', tone: 'soft' }), makeItem({ id: 'hard-1', tone: 'hard' })];
         render(<ClaimHistoryList history={history} onUpdateStatus={mockUpdateStatus} onDelete={mockDelete} />);
 
         expect(screen.getByText('Вежливый')).toBeInTheDocument();
@@ -76,10 +73,7 @@ describe('ClaimHistoryList', () => {
         fireEvent.click(deleteBtn);
 
         expect(mockDelete).toHaveBeenCalledWith('test-id-1');
-        expect(mockAddToast).toHaveBeenCalledWith(
-            expect.stringContaining('Яндекс Плюс'),
-            'info'
-        );
+        expect(mockAddToast).toHaveBeenCalledWith(expect.stringContaining('Яндекс Плюс'), 'info');
     });
 
     it('calls onUpdateStatus when status select changes', () => {
@@ -96,6 +90,7 @@ describe('ClaimHistoryList', () => {
     });
 
     it('copies text on copy button click', async () => {
+        vi.useFakeTimers();
         const history = [makeItem()];
         render(<ClaimHistoryList history={history} onUpdateStatus={mockUpdateStatus} onDelete={mockDelete} />);
 
@@ -106,6 +101,13 @@ describe('ClaimHistoryList', () => {
         await vi.waitFor(() => {
             expect(mockAddToast).toHaveBeenCalledWith('Текст претензии скопирован в буфер обмена', 'success');
         });
+
+        // Fast-forward past the setTimeout timer inside act() to flush state updates
+        act(() => {
+            vi.advanceTimersByTime(2000);
+        });
+
+        vi.useRealTimers();
     });
 
     it('downloads Word on download button click', async () => {
@@ -181,7 +183,9 @@ describe('ClaimHistoryList', () => {
 
     it('renders course icon for course type claims', () => {
         const history = [makeItem({ type: 'course' })];
-        const { container } = render(<ClaimHistoryList history={history} onUpdateStatus={mockUpdateStatus} onDelete={mockDelete} />);
+        const { container } = render(
+            <ClaimHistoryList history={history} onUpdateStatus={mockUpdateStatus} onDelete={mockDelete} />
+        );
 
         // Course claims should render GraduationCap icon (SVG)
         const svgs = container.querySelectorAll('svg');

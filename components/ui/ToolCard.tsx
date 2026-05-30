@@ -17,7 +17,7 @@ const TOOL_ACCENT_STYLES = {
     },
 } as const;
 
-export type ToolAccent = keyof typeof TOOL_ACCENT_STYLES;
+type ToolAccent = keyof typeof TOOL_ACCENT_STYLES;
 
 interface ToolCardProps {
     title: string;
@@ -35,19 +35,21 @@ export function ToolCard({ title, description, icon, path, accent, delay }: Tool
     return (
         <button
             type="button"
-            className={`group relative real-glass-panel rounded-[2rem] p-4 flex items-center gap-6 border border-white/5 ${s.hoverBorder} ${s.hoverShadow} transition-all cursor-pointer opacity-0 animate-slide-up text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-cyan/50`}
+            className={`real-glass-panel group relative flex items-center gap-6 rounded-[2rem] border border-white/5 p-4 ${s.hoverBorder} ${s.hoverShadow} w-full animate-slide-up cursor-pointer text-left opacity-0 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-cyan/50`}
             onClick={() => navigate(path)}
             onMouseEnter={() => preloadRoute(path)}
             style={{ animationDelay: delay }}
         >
-            <div className={`w-16 h-16 rounded-2xl ${s.iconBg} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-500`}>
+            <div
+                className={`h-16 w-16 rounded-2xl ${s.iconBg} flex flex-shrink-0 items-center justify-center transition-transform duration-500 group-hover:scale-110`}
+            >
                 {icon}
             </div>
             <div>
-                <h4 className="text-xl font-bold text-white mb-1">{title}</h4>
+                <h4 className="mb-1 text-xl font-bold text-white">{title}</h4>
                 <p className="text-sm text-slate-400">{description}</p>
             </div>
-            <ArrowRight className="w-5 h-5 text-slate-600 ml-auto mr-4 group-hover:text-white transition-colors" />
+            <ArrowRight className="ml-auto mr-4 h-5 w-5 text-slate-600 transition-colors group-hover:text-white" />
         </button>
     );
 }

@@ -8,25 +8,25 @@ import { AppProvider } from './context/AppContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+    throw new Error('Could not find root element to mount to');
 }
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
-  <React.StrictMode>
-    <HelmetProvider>
-      <BrowserRouter>
-        <AppProvider>
-          <App />
-        </AppProvider>
-      </BrowserRouter>
-    </HelmetProvider>
-  </React.StrictMode>
+    <React.StrictMode>
+        <HelmetProvider>
+            <BrowserRouter>
+                <AppProvider>
+                    <App />
+                </AppProvider>
+            </BrowserRouter>
+        </HelmetProvider>
+    </React.StrictMode>
 );
 
 // Register service worker for offline support (production only)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => { });
-  });
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
 }

@@ -27,14 +27,19 @@ function isValidIpLike(value: string): boolean {
     return /^[\da-fA-F.:]+$/.test(value) || value === 'unknown';
 }
 
-const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv({ enableAutoPipelining: true }) : null;
+const redis =
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+        ? Redis.fromEnv({ enableAutoPipelining: true })
+        : null;
 
 function logError(event: string, error: unknown) {
-    console.error(JSON.stringify({
-        event: `tgWebhook_${event}`,
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString(),
-    }));
+    console.error(
+        JSON.stringify({
+            event: `tgWebhook_${event}`,
+            error: error instanceof Error ? error.message : String(error),
+            timestamp: new Date().toISOString(),
+        })
+    );
 }
 
 // --- Callback Handlers (decomposed for readability and testability) ---
@@ -52,7 +57,7 @@ async function handleListCommand(chatId: number): Promise<void> {
             const alert = item as RadarStoredData;
             const text = `📌 <b>${escapeHtml(alert.serviceName)}</b> (${escapeHtml(alert.city)})\n📝 ${escapeHtml(alert.description)}`;
             await sendTelegramMessage(String(chatId), text, {
-                inline_keyboard: [[{ text: '🗑 Удалить с сайта', callback_data: `delradar_${alert.id}` }]]
+                inline_keyboard: [[{ text: '🗑 Удалить с сайта', callback_data: `delradar_${alert.id}` }]],
             });
         }
     }
@@ -78,7 +83,8 @@ async function handleRadarModeration(callbackQuery: TelegramCallbackQuery, data:
     let newText = originalText;
 
     if (isApprove) {
-        const parsedData: RadarStoredData = typeof pendingDataStr === 'string' ? JSON.parse(pendingDataStr) : pendingDataStr as RadarStoredData;
+        const parsedData: RadarStoredData =
+            typeof pendingDataStr === 'string' ? JSON.parse(pendingDataStr) : (pendingDataStr as RadarStoredData);
         await redis.zadd('radar:alerts', { score: parsedData.timestamp, member: parsedData });
         await redis.del(pendingKey);
         newText += '\n\n✅ Одобрено и опубликовано на сайте!';
@@ -87,10 +93,18 @@ async function handleRadarModeration(callbackQuery: TelegramCallbackQuery, data:
         newText += '\n\n❌ Отклонено модератором.';
     }
 
-    try { await answerCallbackQuery(callbackQuery.id, isApprove ? 'Одобрено!' : 'Отклонено!'); } catch (e: unknown) { logError('answerCallback', e); }
+    try {
+        await answerCallbackQuery(callbackQuery.id, isApprove ? 'Одобрено!' : 'Отклонено!');
+    } catch (e: unknown) {
+        logError('answerCallback', e);
+    }
 
     if (message?.chat && message.message_id) {
-        try { await editTelegramMessage(message.chat.id, message.message_id, newText); } catch (e: unknown) { logError('editMessage', e); }
+        try {
+            await editTelegramMessage(message.chat.id, message.message_id, newText);
+        } catch (e: unknown) {
+            logError('editMessage', e);
+        }
     }
 }
 
@@ -108,13 +122,22 @@ async function handleDeleteRadar(callbackQuery: TelegramCallbackQuery, data: str
         await redis.zrem('radar:alerts', itemToRemove);
     }
 
-    try { await answerCallbackQuery(callbackQuery.id, 'Удалено навсегда!'); } catch (e: unknown) { logError('answerCallback', e); }
+    try {
+        await answerCallbackQuery(callbackQuery.id, 'Удалено навсегда!');
+    } catch (e: unknown) {
+        logError('answerCallback', e);
+    }
 
     if (message?.chat && message.message_id) {
         try {
-            await editTelegramMessage(message.chat.id, message.message_id,
-                (message?.text || 'Заявка с Радара') + '\n\n🗑 Удалено с сайта.');
-        } catch (e: unknown) { logError('editMessage', e); }
+            await editTelegramMessage(
+                message.chat.id,
+                message.message_id,
+                (message?.text || 'Заявка с Радара') + '\n\n🗑 Удалено с сайта.'
+            );
+        } catch (e: unknown) {
+            logError('editMessage', e);
+        }
     }
 }
 
@@ -125,7 +148,7 @@ async function handleResetLimit(callbackQuery: TelegramCallbackQuery, data: stri
     const ipHash = data.replace('reset_limit_', '');
     const message = callbackQuery.message;
 
-    const realIp = await redis.get(`limit_request:${ipHash}`) as string | null;
+    const realIp = (await redis.get(`limit_request:${ipHash}`)) as string | null;
 
     if (realIp && isValidIpLike(realIp)) {
         let cursor = '0';
@@ -143,13 +166,21 @@ async function handleResetLimit(callbackQuery: TelegramCallbackQuery, data: stri
 
     try {
         await answerCallbackQuery(callbackQuery.id, realIp ? 'Лимиты сброшены!' : 'IP не найден (ссылка устарела).');
-    } catch (e: unknown) { logError('answerCallback', e); }
+    } catch (e: unknown) {
+        logError('answerCallback', e);
+    }
 
     if (message?.chat && message.message_id) {
         try {
-            await editTelegramMessage(message.chat.id, message.message_id,
-                (message?.text || 'Запрос лимитов') + (realIp ? '\n\n✅ Лимиты успешно сброшены модератором!' : '\n\n⚠️ IP не найден (ссылка устарела).'));
-        } catch (e: unknown) { logError('editMessage', e); }
+            await editTelegramMessage(
+                message.chat.id,
+                message.message_id,
+                (message?.text || 'Запрос лимитов') +
+                    (realIp ? '\n\n✅ Лимиты успешно сброшены модератором!' : '\n\n⚠️ IP не найден (ссылка устарела).')
+            );
+        } catch (e: unknown) {
+            logError('editMessage', e);
+        }
     }
 }
 

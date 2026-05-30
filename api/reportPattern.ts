@@ -11,24 +11,23 @@ import { sanitizeForStorage } from '../utils/sanitize.js';
 
 export const reportSchema = z.object({
     serviceName: z.string().min(1, 'Укажите название сервиса').max(100, 'Слишком длинное название'),
-    description: z.string().min(10, 'Опишите уловку подробнее (минимум 10 символов)').max(2000, 'Описание слишком длинное'),
+    description: z
+        .string()
+        .min(10, 'Опишите уловку подробнее (минимум 10 символов)')
+        .max(2000, 'Описание слишком длинное'),
     contactInfo: z.string().max(200, 'Слишком длинные контактные данные').optional(),
     turnstileToken: z.string().min(1, 'Токен капчи обязателен'),
 });
 
-export type ReportData = z.infer<typeof reportSchema>;
+const ratelimit =
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+        ? new Ratelimit({
+              redis: Redis.fromEnv({ enableAutoPipelining: true }),
+              limiter: Ratelimit.slidingWindow(30, '1 h'),
+          })
+        : null;
 
-const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
-    ? new Ratelimit({
-        redis: Redis.fromEnv({ enableAutoPipelining: true }),
-        limiter: Ratelimit.slidingWindow(30, "1 h"),
-      })
-    : null;
-
-export default async function handler(
-    request: VercelRequest,
-    response: VercelResponse,
-) {
+export default async function handler(request: VercelRequest, response: VercelResponse) {
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -53,7 +52,9 @@ export default async function handler(
         return response.status(500).json({ error: 'Сервер конфигурации: отсутствует ключ капчи.' });
     }
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-        return response.status(500).json({ error: 'Сервер конфигурации: отсутствует настройка Telegram. Добавьте TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID в .env.' });
+        return response.status(500).json({
+            error: 'Сервер конфигурации: отсутствует настройка Telegram. Добавьте TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID в .env.',
+        });
     }
 
     try {
@@ -75,7 +76,7 @@ export default async function handler(
             signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
         });
 
-        const turnstileRes = await turnstileCheck.json() as TurnstileVerifyResponse;
+        const turnstileRes = (await turnstileCheck.json()) as TurnstileVerifyResponse;
         if (!turnstileRes.success) {
             return response.status(403).json({ error: 'Ошибка капчи.' });
         }
@@ -108,20 +109,25 @@ export default async function handler(
 
         if (!tgResponse.ok) {
             const tgErrText = await tgResponse.text().catch(() => 'Unknown');
-            console.error(JSON.stringify({ event: 'reportPattern_tg_error', status: tgResponse.status, body: tgErrText }));
+            console.error(
+                JSON.stringify({ event: 'reportPattern_tg_error', status: tgResponse.status, body: tgErrText })
+            );
             return response.status(500).json({ error: 'Не удалось отправить сообщение в Telegram. Попробуйте позже.' });
         }
 
         return response.status(200).json({ success: true, message: 'Успешно отправлено!' });
-
     } catch (error: unknown) {
-        console.error(JSON.stringify({
-            event: 'reportPattern_error',
-            ip: clientIp,
-            error: error instanceof Error ? error.message : String(error),
-            ...(process.env.VERCEL_ENV !== 'production' && { stack: error instanceof Error ? error.stack : undefined }),
-            timestamp: new Date().toISOString(),
-        }));
+        console.error(
+            JSON.stringify({
+                event: 'reportPattern_error',
+                ip: clientIp,
+                error: error instanceof Error ? error.message : String(error),
+                ...(process.env.VERCEL_ENV !== 'production' && {
+                    stack: error instanceof Error ? error.stack : undefined,
+                }),
+                timestamp: new Date().toISOString(),
+            })
+        );
         return response.status(500).json({ error: 'Внутренняя ошибка сервера. Попробуйте позже.' });
     }
 }

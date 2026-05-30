@@ -5,26 +5,14 @@ import { GeneratingState } from './GeneratingState';
 
 describe('GeneratingState', () => {
     it('renders with provided titles', () => {
-        render(
-            <GeneratingState
-                theme="cyan"
-                loadingTitle="Test Title"
-                loadingSubtitle="Test Subtitle"
-            />
-        );
+        render(<GeneratingState theme="cyan" loadingTitle="Test Title" loadingSubtitle="Test Subtitle" />);
 
         expect(screen.getByText('Test Title')).toBeInTheDocument();
         expect(screen.getByText('Test Subtitle')).toBeInTheDocument();
     });
 
     it('applies theme correctly', () => {
-        const { container } = render(
-            <GeneratingState
-                theme="cyan"
-                loadingTitle="Test"
-                loadingSubtitle="Load"
-            />
-        );
+        const { container } = render(<GeneratingState theme="cyan" loadingTitle="Test" loadingSubtitle="Load" />);
 
         // Cyan theme uses accent-cyan styles
         const textElement = container.querySelector('.text-accent-cyan') as HTMLElement;

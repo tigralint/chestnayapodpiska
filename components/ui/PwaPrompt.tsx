@@ -45,24 +45,28 @@ export function PwaPrompt() {
         <div
             onTransitionEnd={handleTransitionEnd}
             className={cn(
-                "fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-[100] max-w-sm real-glass-panel border-accent-cyan/30 shadow-[0_0_40px_rgba(0,242,254,0.15)] p-5 rounded-2xl transition-all duration-300 transform",
-                isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+                'real-glass-panel fixed bottom-24 right-4 z-[100] max-w-sm transform rounded-2xl border-accent-cyan/30 p-5 shadow-[0_0_40px_rgba(0,242,254,0.15)] transition-all duration-300 sm:bottom-6 sm:right-6',
+                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             )}
         >
             <div className="mb-4">
-                <h3 className="flex items-center text-white font-bold text-lg mb-1">Доступно обновление <Rocket className="w-5 h-5 ml-2 text-accent-cyan" /></h3>
-                <p className="text-slate-300 text-sm">Мы выкатили новую версию платформы. Обновите страницу, чтобы получить последние фичи.</p>
+                <h3 className="mb-1 flex items-center text-lg font-bold text-white">
+                    Доступно обновление <Rocket className="ml-2 h-5 w-5 text-accent-cyan" />
+                </h3>
+                <p className="text-sm text-slate-300">
+                    Мы выкатили новую версию платформы. Обновите страницу, чтобы получить последние фичи.
+                </p>
             </div>
-            <div className="flex gap-3 justify-end">
+            <div className="flex justify-end gap-3">
                 <button
                     onClick={closePrompt}
-                    className="px-4 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-colors text-sm font-semibold"
+                    className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                 >
                     Позже
                 </button>
                 <button
                     onClick={() => updateServiceWorker(true)}
-                    className="px-5 py-2 bg-button-glow text-app-bg rounded-xl font-bold shadow-[0_0_20px_rgba(0,242,254,0.3)] hover:shadow-[0_0_30px_rgba(0,242,254,0.5)] transition-shadow text-sm"
+                    className="rounded-xl bg-button-glow px-5 py-2 text-sm font-bold text-app-bg shadow-[0_0_20px_rgba(0,242,254,0.3)] transition-shadow hover:shadow-[0_0_30px_rgba(0,242,254,0.5)]"
                 >
                     Обновить сейчас
                 </button>

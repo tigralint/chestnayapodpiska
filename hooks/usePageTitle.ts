@@ -19,8 +19,8 @@ const ROUTE_TITLES: Record<string, string> = {
 export function usePageTitle(pathname: string) {
     useEffect(() => {
         // Match exact or prefix (e.g. /claim/service)
-        const matchedKey = Object.keys(ROUTE_TITLES).find(
-            key => key === '/' ? pathname === '/' : pathname.startsWith(key)
+        const matchedKey = Object.keys(ROUTE_TITLES).find((key) =>
+            key === '/' ? pathname === '/' : pathname.startsWith(key)
         );
 
         const pageTitle = matchedKey ? ROUTE_TITLES[matchedKey] : null;

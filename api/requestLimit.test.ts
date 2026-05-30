@@ -87,7 +87,7 @@ describe('API: requestLimit', () => {
         const { req, res } = createMockReqRes('POST');
         await handler(req, res);
         const fetchBody = JSON.parse(mockFetch.mock.calls[0]?.[1]?.body as string) as {
-            reply_markup: { inline_keyboard: Array<Array<{ callback_data: string }>> }
+            reply_markup: { inline_keyboard: Array<Array<{ callback_data: string }>> };
         };
         expect(fetchBody.reply_markup.inline_keyboard[0]?.[0]?.callback_data).toBe('reset_limit_abc123def456');
     });

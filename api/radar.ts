@@ -29,7 +29,7 @@ function getCategoryName(category: AlertCategory): string {
         dark_pattern: 'Дарк-паттерн',
         phishing: 'Фишинг',
         refund_refused: 'Отказ в возврате',
-        other: 'Другое'
+        other: 'Другое',
     };
     return map[category];
 }
@@ -44,11 +44,16 @@ function getSeverity(category: AlertCategory): AlertSeverity {
     return SEVERITY_MAP[category] ?? 'medium';
 }
 
-const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ? Redis.fromEnv({ enableAutoPipelining: true }) : null;
-const ratelimit = redis ? new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(20, "1 h"),
-}) : null;
+const redis =
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+        ? Redis.fromEnv({ enableAutoPipelining: true })
+        : null;
+const ratelimit = redis
+    ? new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(20, '1 h'),
+      })
+    : null;
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
     if (request.method === 'GET') {
@@ -68,16 +73,16 @@ export default async function handler(request: VercelRequest, response: VercelRe
             const MAX_LIMIT = 50;
             const limit = Math.min(parseInt(request.query.limit as string) || 20, MAX_LIMIT);
             const category = request.query.category as string;
-            
-            let items = await redis.zrange('radar:alerts', 0, 100, { rev: true }) as RadarStoredData[];
-            
+
+            let items = (await redis.zrange('radar:alerts', 0, 100, { rev: true })) as RadarStoredData[];
+
             if (category && category !== 'all') {
                 items = items.filter((item) => item.category === category);
             }
-            
+
             const results = items.slice(0, limit).map((data) => {
                 const ageMinutes = Math.floor((Date.now() - data.timestamp) / 60000);
-                let timeStr = ageMinutes < 60 ? `${ageMinutes} мин назад` : `${Math.floor(ageMinutes/60)} ч назад`;
+                let timeStr = ageMinutes < 60 ? `${ageMinutes} мин назад` : `${Math.floor(ageMinutes / 60)} ч назад`;
                 if (ageMinutes === 0) timeStr = 'только что';
 
                 return {
@@ -88,13 +93,15 @@ export default async function handler(request: VercelRequest, response: VercelRe
                     severity: getSeverity(data.category),
                     category: data.category,
                     serviceName: data.serviceName,
-                    reportCount: 1
+                    reportCount: 1,
                 } as RadarAlertResponse;
             });
-            
+
             return response.status(200).json(results);
         } catch (e: unknown) {
-            console.error(JSON.stringify({ event: 'radar_get_error', error: e instanceof Error ? e.message : String(e) }));
+            console.error(
+                JSON.stringify({ event: 'radar_get_error', error: e instanceof Error ? e.message : String(e) })
+            );
             return response.status(500).json({ error: 'DB read error' });
         }
     }
@@ -124,7 +131,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 const firstError = parsed.error.issues[0]?.message || 'Invalid data';
                 return response.status(400).json({ error: firstError });
             }
-            
+
             const data = parsed.data;
 
             // Check Turnstile
@@ -132,14 +139,19 @@ export default async function handler(request: VercelRequest, response: VercelRe
             formData.append('secret', TURNSTILE_SECRET_KEY);
             formData.append('response', data.turnstileToken);
             const turnstileCheck = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-                method: 'POST', body: formData, signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS)
+                method: 'POST',
+                body: formData,
+                signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
             });
-            const turnstileRes = await turnstileCheck.json() as TurnstileVerifyResponse;
+            const turnstileRes = (await turnstileCheck.json()) as TurnstileVerifyResponse;
             if (!turnstileRes.success) return response.status(403).json({ error: 'Captcha failed.' });
 
-            const reportId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7);
+            const reportId =
+                typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : Math.random().toString(36).substring(7);
             const ts = Date.now();
-            
+
             const sanitizedData = {
                 id: reportId,
                 timestamp: ts,
@@ -147,10 +159,12 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 city: sanitizeForStorage(data.city, 100),
                 amount: data.amount,
                 description: sanitizeForStorage(data.description),
-                category: data.category
+                category: data.category,
             };
 
-            const redisWritePromise = redis.set(`radar:pending:${reportId}`, JSON.stringify(sanitizedData), { ex: PENDING_TTL_SECONDS });
+            const redisWritePromise = redis.set(`radar:pending:${reportId}`, JSON.stringify(sanitizedData), {
+                ex: PENDING_TTL_SECONDS,
+            });
 
             // Telegram Notification (fire in parallel with Redis write)
             let telegramPromise: Promise<void> = Promise.resolve();
@@ -167,23 +181,37 @@ export default async function handler(request: VercelRequest, response: VercelRe
                         reply_markup: {
                             inline_keyboard: [
                                 [
-                                    { text: "✅ Опубликовать", callback_data: `approve_radar_${reportId}` },
-                                    { text: "❌ Отклонить", callback_data: `reject_radar_${reportId}` }
-                                ]
-                            ]
-                        }
+                                    { text: '✅ Опубликовать', callback_data: `approve_radar_${reportId}` },
+                                    { text: '❌ Отклонить', callback_data: `reject_radar_${reportId}` },
+                                ],
+                            ],
+                        },
                     }),
                     signal: AbortSignal.timeout(10000),
-                }).then(() => {}).catch((e: unknown) => console.error(JSON.stringify({ event: 'radar_tg_error', error: e instanceof Error ? e.message : String(e) })));
+                })
+                    .then(() => {})
+                    .catch((e: unknown) =>
+                        console.error(
+                            JSON.stringify({
+                                event: 'radar_tg_error',
+                                error: e instanceof Error ? e.message : String(e),
+                            })
+                        )
+                    );
             }
 
             // Wait for both operations to complete in parallel
             await Promise.all([redisWritePromise, telegramPromise]);
 
             return response.status(200).json({ success: true, id: reportId });
-
         } catch (e: unknown) {
-            console.error(JSON.stringify({ event: 'radar_post_error', error: e instanceof Error ? e.message : String(e), timestamp: new Date().toISOString() }));
+            console.error(
+                JSON.stringify({
+                    event: 'radar_post_error',
+                    error: e instanceof Error ? e.message : String(e),
+                    timestamp: new Date().toISOString(),
+                })
+            );
             return response.status(500).json({ error: 'Server error' });
         }
     }

@@ -26,6 +26,6 @@ describe('cn – class name merger', () => {
     });
 
     it('should handle object syntax from clsx', () => {
-        expect(cn({ 'font-bold': true, 'italic': false })).toBe('font-bold');
+        expect(cn({ 'font-bold': true, italic: false })).toBe('font-bold');
     });
 });

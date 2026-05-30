@@ -15,15 +15,15 @@ export function ChatMessage({ message, isLoading, cleanText }: ChatMessageProps)
     // While generating, show bouncing dots
     if (!isUser && !cleanTextValue && isLoading) {
         return (
-            <div className="flex gap-2 isolate">
-                <div className="w-8 h-8 shrink-0 rounded-full bg-accent-cyan/10 flex items-center justify-center text-accent-cyan shadow-[0_0_10px_rgba(34,211,238,0.1)]">
+            <div className="isolate flex gap-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-cyan/10 text-accent-cyan shadow-[0_0_10px_rgba(34,211,238,0.1)]">
                     <BotIcon />
                 </div>
-                <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/5 rounded-2xl rounded-tl-sm p-3.5 text-[13px] text-slate-200 shadow-md">
-                    <div className="flex gap-1 items-center h-4">
-                        <span className="w-1.5 h-1.5 bg-accent-cyan/60 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                        <span className="w-1.5 h-1.5 bg-accent-cyan/60 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                        <span className="w-1.5 h-1.5 bg-accent-cyan/60 rounded-full animate-bounce"></span>
+                <div className="rounded-2xl rounded-tl-sm border border-white/5 bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-3.5 text-[13px] text-slate-200 shadow-md">
+                    <div className="flex h-4 items-center gap-1">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent-cyan/60 [animation-delay:-0.3s]"></span>
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent-cyan/60 [animation-delay:-0.15s]"></span>
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent-cyan/60"></span>
                     </div>
                 </div>
             </div>
@@ -36,24 +36,28 @@ export function ChatMessage({ message, isLoading, cleanText }: ChatMessageProps)
     return (
         <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
             {!isUser && (
-                <div className="w-8 h-8 shrink-0 rounded-full bg-accent-cyan/10 flex items-center justify-center text-accent-cyan mt-1 shadow-[0_0_10px_rgba(34,211,238,0.1)]">
+                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-cyan/10 text-accent-cyan shadow-[0_0_10px_rgba(34,211,238,0.1)]">
                     <BotIcon />
                 </div>
             )}
-            <div className={`max-w-[85%] rounded-2xl p-3.5 text-[13px] sm:text-sm shadow-md ${
-                isUser
-                    ? 'bg-gradient-to-br from-accent-cyan to-cyan-400 text-slate-900 rounded-tr-sm shadow-cyan-500/20'
-                    : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/5 text-slate-200 rounded-tl-sm shadow-black/20 prose prose-invert prose-sm prose-p:leading-relaxed prose-a:text-accent-cyan'
-            }`}>
+            <div
+                className={`max-w-[85%] rounded-2xl p-3.5 text-[13px] shadow-md sm:text-sm ${
+                    isUser
+                        ? 'rounded-tr-sm bg-gradient-to-br from-accent-cyan to-cyan-400 text-slate-900 shadow-cyan-500/20'
+                        : 'prose prose-invert prose-sm prose-p:leading-relaxed prose-a:text-accent-cyan rounded-tl-sm border border-white/5 bg-gradient-to-br from-slate-800/80 to-slate-900/80 text-slate-200 shadow-black/20'
+                }`}
+            >
                 {isUser && message.imagePreview && (
-                    <img src={message.imagePreview} alt="Прикреплённое изображение" className="rounded-lg mb-2 max-h-32 w-auto" />
+                    <img
+                        src={message.imagePreview}
+                        alt="Прикреплённое изображение"
+                        className="mb-2 max-h-32 w-auto rounded-lg"
+                    />
                 )}
                 {isUser ? (
                     <span className="whitespace-pre-wrap">{cleanTextValue}</span>
                 ) : (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {cleanTextValue}
-                    </ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleanTextValue}</ReactMarkdown>
                 )}
             </div>
         </div>

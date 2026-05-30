@@ -37,15 +37,13 @@ export const courseSchema = z.object({
     turnstileToken: z.string().min(1, 'Токен капчи обязателен'),
 });
 
-export type ValidatedClaimPayload = z.infer<typeof claimSchema>;
-export type ValidatedCoursePayload = z.infer<typeof courseSchema>;
-
-const ratelimit = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
-    ? new Ratelimit({
-        redis: Redis.fromEnv({ enableAutoPipelining: true }),
-        limiter: Ratelimit.slidingWindow(60, "1 h"),
-    })
-    : null;
+const ratelimit =
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+        ? new Ratelimit({
+              redis: Redis.fromEnv({ enableAutoPipelining: true }),
+              limiter: Ratelimit.slidingWindow(60, '1 h'),
+          })
+        : null;
 
 // --- Gemini API Helper ---
 // Calls a Gemini-compatible model and returns extracted text, or an error/quota signal.
@@ -60,11 +58,7 @@ interface GeminiSafetySetting {
     threshold: string;
 }
 
-async function callGeminiModel(
-    modelId: string,
-    prompt: string,
-    apiKey: string,
-): Promise<GeminiCallResult> {
+async function callGeminiModel(modelId: string, prompt: string, apiKey: string): Promise<GeminiCallResult> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
 
     /**
@@ -74,17 +68,17 @@ async function callGeminiModel(
      * Defense-in-depth is provided by: sanitizeForPrompt() + prompt structure (<user_input> tags).
      */
     const safetySettings: GeminiSafetySetting[] = [
-        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
     ];
 
     const aiResponse = await fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey,
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
         },
         body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
@@ -94,7 +88,7 @@ async function callGeminiModel(
         signal: AbortSignal.timeout(60_000),
     });
 
-    const aiJson = await aiResponse.json() as GeminiResponse;
+    const aiJson = (await aiResponse.json()) as GeminiResponse;
 
     // Detect quota exhaustion (429 RESOURCE_EXHAUSTED) → signal to try fallback model
     if (aiJson.error) {
@@ -117,8 +111,8 @@ async function callGeminiModel(
     // Extract answer text, filtering out thinking parts (thought=true)
     // Both Gemini 3 and Gemma 4 models may return thinking parts
     const parts = candidate?.content?.parts ?? [];
-    const answerParts = parts.filter(p => !p.thought && p.text);
-    let text = answerParts.map(p => p.text).join('') || undefined;
+    const answerParts = parts.filter((p) => !p.thought && p.text);
+    let text = answerParts.map((p) => p.text).join('') || undefined;
 
     // Gemma 4 (31B) may emit empty or non-empty <|channel>thought ... <channel|> tags
     // even with thinking disabled. Strip them as a safety fallback.
@@ -133,10 +127,7 @@ async function callGeminiModel(
     return { text };
 }
 
-export default async function handler(
-    request: VercelRequest,
-    response: VercelResponse,
-) {
+export default async function handler(request: VercelRequest, response: VercelResponse) {
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -184,7 +175,9 @@ export default async function handler(
         if (type === 'subscription') {
             const parsed = claimSchema.safeParse(data);
             if (!parsed.success) {
-                return response.status(400).json({ error: 'Некорректные данные подписки. Проверьте заполнение всех полей.' });
+                return response
+                    .status(400)
+                    .json({ error: 'Некорректные данные подписки. Проверьте заполнение всех полей.' });
             }
             const validData = parsed.data;
 
@@ -206,7 +199,9 @@ export default async function handler(
         } else {
             const parsed = courseSchema.safeParse(data);
             if (!parsed.success) {
-                return response.status(400).json({ error: 'Некорректные данные курса. Проверьте заполнение всех полей.' });
+                return response
+                    .status(400)
+                    .json({ error: 'Некорректные данные курса. Проверьте заполнение всех полей.' });
             }
             const validData = parsed.data;
             if (typeof calculatedRefund !== 'number' || calculatedRefund < 0) {
@@ -231,7 +226,7 @@ export default async function handler(
             'gemma-4-31b-it',
             'gemini-3.5-flash',
             'gemini-3-flash',
-            'gemini-2.5-flash'
+            'gemini-2.5-flash',
         ];
 
         let finalResultText = null;
@@ -261,7 +256,9 @@ export default async function handler(
         }
 
         if (!finalResultText) {
-            return response.status(422).json({ error: 'Все нейросети временно перегружены. Пожалуйста, повторите попытку позже.' });
+            return response
+                .status(422)
+                .json({ error: 'Все нейросети временно перегружены. Пожалуйста, повторите попытку позже.' });
         }
 
         // Attach X-AI-Model header to the response
@@ -270,16 +267,19 @@ export default async function handler(
             response.setHeader('X-AI-Skip-Reasons', skipReasons.join(', '));
         }
         return response.status(200).json({ text: finalResultText, _modelId: finalModelId, _skipReasons: skipReasons });
-
     } catch (error: unknown) {
-        console.error(JSON.stringify({
-            event: 'generateClaim_error',
-            type: request.body?.type,
-            ip: clientIp,
-            error: error instanceof Error ? error.message : String(error),
-            ...(process.env.VERCEL_ENV !== 'production' && { stack: error instanceof Error ? error.stack : undefined }),
-            timestamp: new Date().toISOString(),
-        }));
+        console.error(
+            JSON.stringify({
+                event: 'generateClaim_error',
+                type: request.body?.type,
+                ip: clientIp,
+                error: error instanceof Error ? error.message : String(error),
+                ...(process.env.VERCEL_ENV !== 'production' && {
+                    stack: error instanceof Error ? error.stack : undefined,
+                }),
+                timestamp: new Date().toISOString(),
+            })
+        );
         return response.status(500).json({ error: 'Внутренняя ошибка сервера. Попробуйте позже.' });
     }
 }

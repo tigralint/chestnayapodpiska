@@ -5,11 +5,7 @@ import { useEffect, useRef, RefObject } from 'react';
  * Cycles Tab/Shift+Tab through focusable children.
  * Calls onEscape when Escape is pressed.
  */
-export function useFocusTrap(
-    containerRef: RefObject<HTMLElement | null>,
-    isActive: boolean,
-    onEscape?: () => void
-) {
+export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, isActive: boolean, onEscape?: () => void) {
     const previouslyFocused = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
@@ -19,7 +15,8 @@ export function useFocusTrap(
         previouslyFocused.current = document.activeElement as HTMLElement;
 
         const container = containerRef.current;
-        const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        const focusableSelector =
+            'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
         const getFocusable = () => Array.from(container.querySelectorAll<HTMLElement>(focusableSelector));
 

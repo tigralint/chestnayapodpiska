@@ -34,13 +34,16 @@ export function useClaimHistory() {
 
         const newItem: ClaimHistoryItem = {
             ...claim,
-            id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
+            id:
+                typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : Math.random().toString(36).substring(2, 9),
             status: 'pending',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
         };
 
-        setHistory(prev => {
-            // Deduplicate: remove any claim for the same service with identical parameters if needed, 
+        setHistory((prev) => {
+            // Deduplicate: remove any claim for the same service with identical parameters if needed,
             // but normally we just prepend the new claim.
             const updated = [newItem, ...prev];
             saveToLocalStorage(updated);
@@ -49,16 +52,16 @@ export function useClaimHistory() {
     }, []);
 
     const updateClaimStatus = useCallback((id: string, status: ClaimHistoryItem['status']) => {
-        setHistory(prev => {
-            const updated = prev.map(item => item.id === id ? { ...item, status } : item);
+        setHistory((prev) => {
+            const updated = prev.map((item) => (item.id === id ? { ...item, status } : item));
             saveToLocalStorage(updated);
             return updated;
         });
     }, []);
 
     const deleteClaim = useCallback((id: string) => {
-        setHistory(prev => {
-            const updated = prev.filter(item => item.id !== id);
+        setHistory((prev) => {
+            const updated = prev.filter((item) => item.id !== id);
             saveToLocalStorage(updated);
             return updated;
         });
@@ -78,6 +81,6 @@ export function useClaimHistory() {
         addClaim,
         updateClaimStatus,
         deleteClaim,
-        clearHistory
+        clearHistory,
     };
 }

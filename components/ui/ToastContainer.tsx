@@ -16,19 +16,23 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
     if (toasts.length === 0) return null;
 
     return (
-        <div className="fixed bottom-20 md:bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm" role="status" aria-live="polite">
+        <div
+            className="fixed bottom-20 right-6 z-[200] flex max-w-sm flex-col gap-3 md:bottom-6"
+            role="status"
+            aria-live="polite"
+        >
             {toasts.map((toast) => (
                 <div
                     key={toast.id}
-                    className={`real-glass-panel rounded-2xl px-5 py-4 border shadow-xl animate-slide-in-right flex items-start gap-3 ${TYPE_STYLES[toast.type]}`}
+                    className={`real-glass-panel flex animate-slide-in-right items-start gap-3 rounded-2xl border px-5 py-4 shadow-xl ${TYPE_STYLES[toast.type]}`}
                 >
-                    <p className="text-sm font-medium flex-1">{toast.message}</p>
+                    <p className="flex-1 text-sm font-medium">{toast.message}</p>
                     <button
                         onClick={() => onRemove(toast.id)}
-                        className="shrink-0 p-0.5 rounded-full hover:bg-white/10 transition-colors"
+                        className="shrink-0 rounded-full p-0.5 transition-colors hover:bg-white/10"
                         aria-label="Закрыть уведомление"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="h-4 w-4" />
                     </button>
                 </div>
             ))}
