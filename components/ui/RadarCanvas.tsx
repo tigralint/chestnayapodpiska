@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-export function RadarCanvas() {
+export const RadarCanvas = React.memo(function RadarCanvas() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -156,4 +156,4 @@ export function RadarCanvas() {
             className="absolute inset-0 pointer-events-none"
         />
     );
-}
+});

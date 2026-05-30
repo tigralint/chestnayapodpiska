@@ -28,7 +28,7 @@ export function AppFooter() {
                     <span className="text-white/20" aria-hidden="true">·</span>
                     <Link
                         to="/terms"
-                        className="text-white/40 hover:text-white/80 transition-colors duration-200"
+                        className="text-white/60 hover:text-white/80 transition-colors duration-200"
                     >
                         Соглашение
                     </Link>

@@ -90,7 +90,7 @@ export function DatePicker({ value, onChange, id, label }: DatePickerProps) {
     if (isMobile) {
         return (
             <div className="flex-1 group">
-                {label && <label htmlFor={id} className="block text-sm font-semibold text-slate-300 mb-3 ml-1 group-focus-within:text-accent-cyan transition-colors">{label}</label>}
+                {label ? <label htmlFor={id} className="block text-sm font-semibold text-slate-300 mb-3 ml-1 group-focus-within:text-accent-cyan transition-colors">{label}</label> : null}
                 <div className="relative w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-[17px] text-white shadow-inner flex justify-between items-center transition-all focus-within:ring-2 focus-within:ring-accent-cyan/50 focus-within:border-accent-cyan/50 focus-within:bg-white/10 focus-within:scale-[1.01] overflow-hidden">
                     <span>{displayValue || 'Выберите дату'}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
@@ -122,7 +122,7 @@ export function DatePicker({ value, onChange, id, label }: DatePickerProps) {
 
     return (
         <div className="flex-1 group relative" ref={containerRef}>
-            {label && <label htmlFor={id} className="block text-sm font-semibold text-slate-300 mb-3 ml-1 group-focus-within:text-accent-cyan transition-colors">{label}</label>}
+            {label ? <label htmlFor={id} className="block text-sm font-semibold text-slate-300 mb-3 ml-1 group-focus-within:text-accent-cyan transition-colors">{label}</label> : null}
             
             {/* Trigger button */}
             <button

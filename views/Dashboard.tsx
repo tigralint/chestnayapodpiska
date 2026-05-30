@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, GraduationCap, ArrowRight, BookOpen, Gamepad, Radio } from '../components/icons';
+import { CreditCard, GraduationCap, ArrowRight, BookOpen, Gamepad, Radio, Folder } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
 import { fuzzyMatch } from '../utils/fuzzyMatch';
 import { SearchInput } from '../components/ui/SearchInput';
@@ -156,18 +156,16 @@ export default function Dashboard() {
 
           {/* Quick jump to history if exists */}
           {history.length > 0 && (
-            <div className="mt-6 flex justify-center md:justify-start">
-              <a
-                href="#history"
-                onClick={(e) => {
-                  e.preventDefault();
+            <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-2xl animate-fade-in mt-6 mb-8 w-full max-w-fit">
+              <span className="flex items-center text-slate-300"><Folder className="w-4 h-4 mr-2" /> У вас есть сохраненные претензии: {history.length}</span>
+              <button 
+                onClick={() => {
                   document.getElementById('history')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all hover:scale-[1.02] shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
+                }} 
+                className="text-accent-cyan font-semibold hover:underline bg-white/5 px-3 py-1.5 rounded-xl ml-auto border border-white/10 shadow-sm transition-transform active:scale-95 text-sm"
               >
-                <span>📂 У вас есть сохраненные претензии: {history.length}</span>
-                <span className="text-accent-cyan animate-bounce">↓</span>
-              </a>
+                Посмотреть
+              </button>
             </div>
           )}
         </div>

@@ -150,13 +150,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 category: data.category
             };
 
-            await redis.set(`radar:pending:${reportId}`, JSON.stringify(sanitizedData), { ex: PENDING_TTL_SECONDS });
+            const redisWritePromise = redis.set(`radar:pending:${reportId}`, JSON.stringify(sanitizedData), { ex: PENDING_TTL_SECONDS });
 
-            // Telegram Notification
+            // Telegram Notification (fire in parallel with Redis write)
+            let telegramPromise: Promise<void> = Promise.resolve();
             if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
                 const messageText = `📡 <b>Радар: Новый сигнал! (Ожидает модерации)</b>\n\n📌 <b>Сервис:</b> ${escapeHtml(sanitizedData.serviceName)}\n🏙 <b>Город:</b> ${escapeHtml(sanitizedData.city)}\n💸 <b>Сумма:</b> ${sanitizedData.amount ? sanitizedData.amount + ' ₽' : 'Не указана'}\n🏷 <b>Категория:</b> ${getCategoryName(sanitizedData.category)}\n\n📝 <b>Сюжет:</b> ${escapeHtml(sanitizedData.description)}\n\n🌐 <b>IP Hash:</b> <code>${hashIp(clientIp)}</code>`;
 
-                await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                telegramPromise = fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -173,8 +174,11 @@ export default async function handler(request: VercelRequest, response: VercelRe
                         }
                     }),
                     signal: AbortSignal.timeout(10000),
-                }).catch((e: unknown) => console.error(JSON.stringify({ event: 'radar_tg_error', error: e instanceof Error ? e.message : String(e) })));
+                }).then(() => {}).catch((e: unknown) => console.error(JSON.stringify({ event: 'radar_tg_error', error: e instanceof Error ? e.message : String(e) })));
             }
+
+            // Wait for both operations to complete in parallel
+            await Promise.all([redisWritePromise, telegramPromise]);
 
             return response.status(200).json({ success: true, id: reportId });
 

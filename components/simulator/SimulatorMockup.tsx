@@ -34,7 +34,7 @@ export function SimulatorMockup({ currentLevel, currentStepIdx, feedback, handle
                 </div>
 
                 {/* Click Shield while animating */}
-                {feedback !== 'idle' && <div className="absolute inset-0 z-50 cursor-not-allowed rounded-[3rem]"></div>}
+                {feedback !== 'idle' ? <div className="absolute inset-0 z-50 cursor-not-allowed rounded-[3rem]"></div> : null}
             </div>
         </section>
     );

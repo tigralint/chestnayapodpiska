@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { cn } from '../../utils/cn';
+import { Rocket } from '../icons';
 
 export function PwaPrompt() {
     const {
@@ -49,7 +50,7 @@ export function PwaPrompt() {
             )}
         >
             <div className="mb-4">
-                <h3 className="text-white font-bold text-lg mb-1">Доступно обновление 🚀</h3>
+                <h3 className="flex items-center text-white font-bold text-lg mb-1">Доступно обновление <Rocket className="w-5 h-5 ml-2 text-accent-cyan" /></h3>
                 <p className="text-slate-300 text-sm">Мы выкатили новую версию платформы. Обновите страницу, чтобы получить последние фичи.</p>
             </div>
             <div className="flex gap-3 justify-end">
