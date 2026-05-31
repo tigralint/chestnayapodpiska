@@ -10,6 +10,7 @@ import type { Guide } from '../types';
 import { getClientIpEdge } from '../utils/getClientIp.js';
 import type { TurnstileVerifyResponse } from '../utils/turnstile.js';
 import { APP_LINKS } from '../constants/links.js';
+import { sanitizeForChat } from '../utils/sanitize.js';
 
 /** Runtime validation for incoming chat requests */
 export const assistantSchema = z.object({
@@ -146,7 +147,7 @@ export default async function handler(req: Request) {
 
         // 4. Format messages for Gemini API (supports text + inline images for Gemma 4 vision)
         const formattedMessages: GeminiContent[] = messages.map((msg) => {
-            const parts: GeminiPart[] = [{ text: msg.text }];
+            const parts: GeminiPart[] = [{ text: msg.role === 'user' ? sanitizeForChat(msg.text) : msg.text }];
             // If the message includes a base64 image, add it as inlineData for Gemma 4 vision
             if (msg.image) {
                 parts.unshift({

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export type Message = {
     role: 'user' | 'model';
@@ -34,18 +34,30 @@ export function useChatHistory() {
         }
     }, []);
 
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Persist to localStorage whenever messages change (strip images for PII safety)
     useEffect(() => {
         if (messages.length > 0) {
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify({
-                    timestamp: Date.now(),
-                    data: messages.map((m) => ({ ...m, imagePreview: undefined })),
-                })
-            );
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+            saveTimerRef.current = setTimeout(() => {
+                localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify({
+                        timestamp: Date.now(),
+                        data: messages.map((m) => ({ ...m, imagePreview: undefined })),
+                    })
+                );
+            }, 500);
         }
     }, [messages]);
+
+    // Cleanup timer on unmount
+    useEffect(() => {
+        return () => {
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        };
+    }, []);
 
     const clearHistory = useCallback(() => {
         setMessages([]);

@@ -18,7 +18,7 @@ interface GeminiResponse {
 
 export const claimSchema = z.object({
     serviceName: z.string().min(1, 'Укажите название сервиса').max(100, 'Название сервиса слишком длинное'),
-    amount: z.string().max(50, 'Сумма слишком длинная'),
+    amount: z.string().min(1, 'Укажите сумму').max(50, 'Сумма слишком длинная'),
     date: z.string().max(50, 'Дата слишком длинная'),
     reason: z.string().max(1000, 'Причина слишком длинная'),
     customReason: z.string().max(500, 'Причина слишком длинная').optional(),

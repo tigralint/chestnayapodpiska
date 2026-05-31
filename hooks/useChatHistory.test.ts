@@ -113,6 +113,10 @@ describe('useChatHistory', () => {
             });
         });
 
+        act(() => {
+            vi.runAllTimers();
+        });
+
         const raw = localStorage.getItem(STORAGE_KEY);
         expect(raw).not.toBeNull();
         const stored = JSON.parse(raw as string);

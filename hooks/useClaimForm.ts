@@ -19,55 +19,58 @@ export function useClaimForm<T extends { turnstileToken?: string }, A extends un
     const [apiError, setApiError] = useState('');
     const abortRef = useRef<AbortController | null>(null);
 
-    const handleGenerate = async (onAfterGenerate?: () => void, ...args: A) => {
-        setApiError('');
-        const errors = validateFn(data);
-        setFieldErrors(errors);
+    const handleGenerate = useCallback(
+        async (onAfterGenerate?: () => void, ...args: A) => {
+            setApiError('');
+            const errors = validateFn(data);
+            setFieldErrors(errors);
 
-        if (Object.keys(errors).length > 0) {
-            return;
-        }
+            if (Object.keys(errors).length > 0) {
+                return;
+            }
 
-        // Abort any previous in-flight request
-        abortRef.current?.abort();
-        abortRef.current = new AbortController();
-        const { signal } = abortRef.current;
+            // Abort any previous in-flight request
+            abortRef.current?.abort();
+            abortRef.current = new AbortController();
+            const { signal } = abortRef.current;
 
-        setIsGenerating(true);
-        setResult('');
-
-        if (window.innerWidth < 1024) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        try {
-            const text = await generateFn(data, signal, ...args);
-            setResult(text);
-            onSuccess?.(text, data);
-        } catch (e: unknown) {
-            // Silently ignore aborted requests (instanceof DOMException is unreliable in some runtimes)
-            if (e instanceof Error && e.name === 'AbortError') return;
-
-            const message =
-                e instanceof Error
-                    ? e.message
-                    : 'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.';
-            setApiError(message);
+            setIsGenerating(true);
+            setResult('');
 
             if (window.innerWidth < 1024) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-        } finally {
-            setIsGenerating(false);
 
-            // Always clear the consumed turnstile token (use functional setter to avoid stale closure)
-            setData((prev) => ({ ...prev, turnstileToken: undefined }));
+            try {
+                const text = await generateFn(data, signal, ...args);
+                setResult(text);
+                onSuccess?.(text, data);
+            } catch (e: unknown) {
+                // Silently ignore aborted requests (instanceof DOMException is unreliable in some runtimes)
+                if (e instanceof Error && e.name === 'AbortError') return;
 
-            if (onAfterGenerate) {
-                onAfterGenerate();
+                const message =
+                    e instanceof Error
+                        ? e.message
+                        : 'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.';
+                setApiError(message);
+
+                if (window.innerWidth < 1024) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            } finally {
+                setIsGenerating(false);
+
+                // Always clear the consumed turnstile token (use functional setter to avoid stale closure)
+                setData((prev) => ({ ...prev, turnstileToken: undefined }));
+
+                if (onAfterGenerate) {
+                    onAfterGenerate();
+                }
             }
-        }
-    };
+        },
+        [data, validateFn, generateFn, onSuccess]
+    );
 
     const clearFieldError = (field: keyof T | string) => {
         if (fieldErrors[field as string]) {

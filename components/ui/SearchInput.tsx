@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, X } from '../icons';
 
 interface SearchInputProps {
@@ -9,19 +9,21 @@ interface SearchInputProps {
 
 export function SearchInput({ value, onChange, placeholder }: SearchInputProps) {
     const [localValue, setLocalValue] = useState(value);
+    const onChangeRef = useRef(onChange);
+    onChangeRef.current = onChange;
 
     // Sync external value updates to local
     useEffect(() => {
         setLocalValue(value);
     }, [value]);
 
-    // Debounce logic
+    // Debounce logic — uses ref to avoid re-triggering when caller passes inline arrow
     useEffect(() => {
         const handler = setTimeout(() => {
-            onChange(localValue);
+            onChangeRef.current(localValue);
         }, 300);
         return () => clearTimeout(handler);
-    }, [localValue, onChange]);
+    }, [localValue]);
 
     return (
         <div className="relative z-30 mb-16 w-full animate-slide-up opacity-0" style={{ animationDelay: '150ms' }}>

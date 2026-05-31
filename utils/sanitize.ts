@@ -38,3 +38,17 @@ export function sanitizeForStorage(input: string, maxLength = 2000): string {
         .replace(/<\/?[a-z_][a-z0-9_]*>/gi, '') // Strip XML/HTML tags
         .trim();
 }
+
+/**
+ * Sanitization for Chat messages.
+ * Less aggressive than sanitizeForPrompt: preserves newlines, punctuation, and brackets
+ * for natural chat interaction, while blocking XML tags and system keywords.
+ */
+export function sanitizeForChat(input: string, maxLength = 2000): string {
+    return input
+        .slice(0, maxLength)
+        .replace(/<\/?[a-z_][a-z0-9_]*>/gi, '') // Strip XML/HTML tags
+        .replace(/\b(SYSTEM|ASSISTANT|INSTRUCTION|IGNORE|PROMPT)\b/gi, '') // Strip instruction keywords
+        .replace(/[\uFF00-\uFFEF]/g, '') // Strip fullwidth Unicode characters
+        .trim();
+}

@@ -3,6 +3,14 @@ import { ClaimHistoryItem } from '../types';
 
 const STORAGE_KEY = 'chestnaya_podpiska_claims_history';
 
+const saveToLocalStorage = (items: ClaimHistoryItem[]) => {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch (e) {
+        console.error('Failed to save claim history to localStorage:', e);
+    }
+};
+
 export function useClaimHistory() {
     const [history, setHistory] = useState<ClaimHistoryItem[]>([]);
 
@@ -17,14 +25,6 @@ export function useClaimHistory() {
             console.error('Failed to load claim history from localStorage:', e);
         }
     }, []);
-
-    const saveToLocalStorage = (items: ClaimHistoryItem[]) => {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        } catch (e) {
-            console.error('Failed to save claim history to localStorage:', e);
-        }
-    };
 
     const addClaim = useCallback((claim: Omit<ClaimHistoryItem, 'id' | 'createdAt' | 'status'>) => {
         // Skip saving if the generated text is an AI refusal explanation

@@ -54,6 +54,14 @@ async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promi
         throw new ApiError(response.status, 'Сервер вернул некорректный ответ (не JSON).');
     }
 
+    if (!response.ok) {
+        // Read the body for error message but don't throw parsing errors if it's malformed
+        const errResult = await response.json().catch(() => ({}));
+        const errObj = errResult as Record<string, unknown>;
+        // 400 errors shouldn't be retried and are handled here
+        throw new ApiError(response.status, (errObj?.error as string) || 'Произошла ошибка при генерации.');
+    }
+
     let result: GenerateClaimResponse;
     try {
         const rawResult = await response.json();
@@ -66,11 +74,6 @@ async function generateClaim(payload: ClaimPayload, signal?: AbortSignal): Promi
             throw parseError; // do not mask abort errors
         }
         throw new ApiError(500, 'Ошибка парсинга ответа от сервера.');
-    }
-
-    if (!response.ok) {
-        // 400 errors shouldn't be retried and are handled here
-        throw new ApiError(response.status, result.error || 'Произошла ошибка при генерации.');
     }
 
     if (!result.text) {

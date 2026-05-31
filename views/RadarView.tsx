@@ -5,6 +5,7 @@ import { ALERTS_SEED } from '../data/radar-seed';
 import { SEO } from '../components/ui/SEO';
 import { RadarCanvas } from '../components/ui/RadarCanvas';
 import { ViewHeader } from '../components/layout/ViewHeader';
+import { ConsentCheckbox } from '../components/ui/ConsentCheckbox';
 import { useRadar } from '../hooks/useRadar';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import { AlertCategory, RadarReport } from '../types';
@@ -369,42 +370,19 @@ export default function RadarView() {
                                         />
                                     </div>
 
-                                    <label className="group mt-1 flex cursor-pointer items-start gap-3 px-1">
-                                        <div className="relative mt-0.5 flex items-center justify-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={isConsentGiven}
-                                                onChange={(e) => setIsConsentGiven(e.target.checked)}
-                                                className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-white/20 bg-white/5 outline-none transition-all checked:border-accent-purple checked:bg-accent-purple focus-visible:ring-2 focus-visible:ring-accent-purple/50"
-                                            />
-                                            <svg
-                                                className="pointer-events-none absolute h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100"
-                                                viewBox="0 0 14 10"
-                                                fill="none"
-                                            >
-                                                <path
-                                                    d="M1 5L4.5 8.5L13 1"
-                                                    stroke="currentColor"
-                                                    strokeWidth="2"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                />
-                                            </svg>
-                                        </div>
-                                        <span className="text-xs font-medium leading-relaxed text-slate-400 transition-colors group-hover:text-slate-300">
-                                            Я подтверждаю достоверность информации и осознаю ответственность за клевету.
-                                            Согласен(на) с{' '}
-                                            <a
-                                                href="/privacy"
-                                                target="_blank"
-                                                className="text-accent-purple hover:underline"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                Политикой
-                                            </a>
-                                            .
-                                        </span>
-                                    </label>
+                                    <ConsentCheckbox checked={isConsentGiven} onChange={setIsConsentGiven}>
+                                        Я подтверждаю достоверность информации и осознаю ответственность за клевету.
+                                        Согласен(на) с{' '}
+                                        <a
+                                            href="/privacy"
+                                            target="_blank"
+                                            className="text-accent-purple hover:underline"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            Политикой
+                                        </a>
+                                        .
+                                    </ConsentCheckbox>
 
                                     <button
                                         disabled={isSubmitting || !formInput.turnstileToken || !isConsentGiven}

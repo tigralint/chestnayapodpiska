@@ -36,13 +36,11 @@ export const RadarService = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
+        const result: unknown = await res.json().catch(() => ({}));
         if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error || 'Server error');
+            const errObj = result as Record<string, unknown>;
+            throw new Error((errObj?.error as string) || 'Server error');
         }
-        const result: unknown = await res.json().catch(() => {
-            throw new Error('Сервер вернул некорректный ответ');
-        });
         if (!isSubmitResponse(result)) throw new Error('Некорректный формат ответа');
         return result;
     },
