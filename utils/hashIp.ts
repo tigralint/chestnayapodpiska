@@ -8,6 +8,9 @@ import { createHmac } from 'node:crypto';
  * The real IP is still used for rate limiting (Redis keys) but never exposed externally.
  */
 export function hashIp(ip: string): string {
-    const secret = process.env.IP_HASH_SECRET || 'chestnaya-podpiska-dev-fallback';
+    const secret = process.env.IP_HASH_SECRET;
+    if (!secret) {
+        throw new Error('IP_HASH_SECRET environment variable is not defined');
+    }
     return createHmac('sha256', secret).update(ip).digest('hex').slice(0, 16);
 }

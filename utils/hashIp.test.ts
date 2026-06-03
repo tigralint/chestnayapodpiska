@@ -1,7 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { hashIp } from './hashIp';
 
 describe('hashIp', () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+        process.env = { ...originalEnv };
+        process.env.IP_HASH_SECRET = 'test-secret';
+    });
+
+    afterEach(() => {
+        process.env = originalEnv;
+    });
+
     it('returns a 16-character hex string', () => {
         const result = hashIp('192.168.1.1');
         expect(result).toHaveLength(16);
@@ -31,5 +42,10 @@ describe('hashIp', () => {
     it('does not return the original IP', () => {
         const ip = '192.168.1.1';
         expect(hashIp(ip)).not.toContain(ip);
+    });
+
+    it('throws an error if IP_HASH_SECRET is not defined', () => {
+        delete process.env.IP_HASH_SECRET;
+        expect(() => hashIp('192.168.1.1')).toThrow('IP_HASH_SECRET environment variable is not defined');
     });
 });
