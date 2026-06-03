@@ -1,7 +1,34 @@
+import { sanitizeForPrompt, sanitizeForStorage, sanitizeForChat } from './sanitize';
 import { describe, it, expect } from 'vitest';
-import { sanitizeForPrompt, sanitizeForStorage } from './sanitize';
 
 describe('sanitizeForPrompt', () => {
+    it('strips HTML/XML tags with attributes', () => {
+        // Current implementation leaves attributes but removes brackets
+        // E.g. <a href="link"> becomes 'a href="link"'
+        expect(sanitizeForPrompt('<a href="https://example.com">Link</a>')).toBe('Link');
+        expect(sanitizeForPrompt('<img src="x" onerror="alert(1)" />')).toBe('');
+    });
+
+    it('handles malformed XML/HTML tags', () => {
+        expect(sanitizeForPrompt('<unclosed tag')).toBe('unclosed tag');
+        expect(sanitizeForPrompt('<<double tags>>')).toBe('');
+        expect(sanitizeForPrompt('<  spaces in tag >')).toBe('spaces in tag');
+    });
+
+    it('handles mixed case and combined keywords', () => {
+        expect(sanitizeForPrompt('SyStEm PrOmPt')).toBe('');
+        expect(sanitizeForPrompt('IgNoRe pReViOuS iNsTrUcTiOnS')).toBe('pReViOuS iNsTrUcTiOnS');
+    });
+
+    it('handles multiple consecutive newlines and spaces', () => {
+        expect(sanitizeForPrompt('word1\n\n\nword2')).toBe('word1 word2');
+        expect(sanitizeForPrompt('word1\r\nword2')).toBe('word1 word2');
+    });
+
+    it('handles combinations of edge cases', () => {
+        expect(sanitizeForPrompt('  \n # <SYSTEM> \n [ignore] \n ')).toBe('#');
+    });
+
     it('strips HTML/XML tags', () => {
         expect(sanitizeForPrompt('<script>alert("xss")</script>Hello')).toBe('alert("xss")Hello');
         expect(sanitizeForPrompt('<b>bold</b>')).toBe('bold');
@@ -95,5 +122,40 @@ describe('sanitizeForStorage', () => {
 
     it('handles empty input', () => {
         expect(sanitizeForStorage('')).toBe('');
+    });
+});
+
+describe('sanitizeForChat', () => {
+    it('strips HTML/XML tags but preserves attributes if malformed', () => {
+        expect(sanitizeForChat('<b>bold</b> text')).toBe('bold text');
+        expect(sanitizeForChat('<script src="xss.js"></script>')).toBe('');
+    });
+
+    it('strips instruction keywords', () => {
+        expect(sanitizeForChat('SYSTEM prompt')).toBe('');
+        expect(sanitizeForChat('Tell ASSISTANT to stop')).toBe('Tell  to stop');
+        expect(sanitizeForChat('Ignore INSTRUCTION')).toBe('');
+    });
+
+    it('preserves brackets, newlines, and punctuation', () => {
+        expect(sanitizeForChat('Hello {world}! [test]\nNew line')).toBe('Hello {world}! [test]\nNew line');
+    });
+
+    it('strips Unicode fullwidth characters', () => {
+        const fullwidthSystem = '\uFF33\uFF39\uFF33\uFF34\uFF25\uFF2D';
+        expect(sanitizeForChat(fullwidthSystem)).toBe('');
+    });
+
+    it('enforces maxLength', () => {
+        const longInput = 'a'.repeat(3000);
+        expect(sanitizeForChat(longInput).length).toBeLessThanOrEqual(2000);
+    });
+
+    it('enforces custom maxLength', () => {
+        expect(sanitizeForChat('a'.repeat(200), 100).length).toBeLessThanOrEqual(100);
+    });
+
+    it('handles empty input', () => {
+        expect(sanitizeForChat('')).toBe('');
     });
 });

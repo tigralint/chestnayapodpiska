@@ -18,7 +18,7 @@ export function sanitizeForPrompt(input: string, maxLength = 200): string {
     return input
         .slice(0, maxLength)
         .replace(/\n/g, ' ') // Flatten newlines
-        .replace(/<\/?[a-z_][a-z0-9_]*>/gi, '') // Strip XML/HTML tags
+        .replace(/<\/?[a-z_][a-z0-9_]*[^>]*>/gi, '') // Strip XML/HTML tags
         .replace(/\b(SYSTEM|ASSISTANT|INSTRUCTION|IGNORE|PROMPT|USER|HUMAN)\b/gi, '') // Strip instruction keywords
         .replace(/[\uFF00-\uFFEF]/g, '') // Strip fullwidth Unicode characters (bypass attempts)
         .replace(/^#{1,6}\s/gm, '') // Strip markdown headings (injection via # NEW INSTRUCTIONS)
@@ -35,7 +35,7 @@ export function sanitizeForPrompt(input: string, maxLength = 200): string {
 export function sanitizeForStorage(input: string, maxLength = 2000): string {
     return input
         .slice(0, maxLength)
-        .replace(/<\/?[a-z_][a-z0-9_]*>/gi, '') // Strip XML/HTML tags
+        .replace(/<\/?[a-z_][a-z0-9_]*[^>]*>/gi, '') // Strip XML/HTML tags
         .trim();
 }
 
@@ -47,7 +47,7 @@ export function sanitizeForStorage(input: string, maxLength = 2000): string {
 export function sanitizeForChat(input: string, maxLength = 2000): string {
     return input
         .slice(0, maxLength)
-        .replace(/<\/?[a-z_][a-z0-9_]*>/gi, '') // Strip XML/HTML tags
+        .replace(/<\/?[a-z_][a-z0-9_]*[^>]*>/gi, '') // Strip XML/HTML tags
         .replace(/\b(SYSTEM|ASSISTANT|INSTRUCTION|IGNORE|PROMPT)\b/gi, '') // Strip instruction keywords
         .replace(/[\uFF00-\uFFEF]/g, '') // Strip fullwidth Unicode characters
         .trim();
