@@ -217,8 +217,8 @@ describe('API: tgWebhook', () => {
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(consoleSpy).toHaveBeenCalledTimes(2);
-            expect(consoleSpy.mock.calls[0][0]).toContain('tgWebhook_answerCallback');
-            expect(consoleSpy.mock.calls[1][0]).toContain('tgWebhook_editMessage');
+            expect(consoleSpy.mock.calls[0]![0]).toContain('tgWebhook_answerCallback');
+            expect(consoleSpy.mock.calls[1]![0]).toContain('tgWebhook_editMessage');
 
             consoleSpy.mockRestore();
         });
