@@ -197,6 +197,18 @@ describe('API: radar', () => {
         });
 
         describe('GET /radar', () => {
+            it('should return 500 when DB read fails', async () => {
+                mockZrange.mockRejectedValueOnce(new Error('Redis connection lost'));
+
+                const { default: handler } = await import('./radar');
+                const req = mockRequest({ method: 'GET' });
+                const res = mockResponse();
+                await handler(req as never, res as never);
+
+                expect(res.statusCode).toBe(500);
+                expect(res._json).toEqual({ error: 'DB read error' });
+            });
+
             it('should return 200 with empty array when no alerts exist', async () => {
                 mockZrange.mockResolvedValueOnce([]);
                 const { default: handler } = await import('./radar');
