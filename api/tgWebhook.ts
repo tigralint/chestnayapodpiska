@@ -53,13 +53,14 @@ async function handleListCommand(chatId: number): Promise<void> {
     if (!items || items.length === 0) {
         await sendTelegramMessage(String(chatId), 'На радаре пока пусто.');
     } else {
-        for (const item of items) {
+        const promises = items.map((item) => {
             const alert = item as RadarStoredData;
             const text = `📌 <b>${escapeHtml(alert.serviceName)}</b> (${escapeHtml(alert.city)})\n📝 ${escapeHtml(alert.description)}`;
-            await sendTelegramMessage(String(chatId), text, {
+            return sendTelegramMessage(String(chatId), text, {
                 inline_keyboard: [[{ text: '🗑 Удалить с сайта', callback_data: `delradar_${alert.id}` }]],
             });
-        }
+        });
+        await Promise.all(promises);
     }
 }
 
