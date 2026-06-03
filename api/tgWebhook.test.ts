@@ -190,6 +190,39 @@ describe('API: tgWebhook', () => {
             expect(mockZadd).not.toHaveBeenCalled();
         });
 
+        it('logs errors when telegram API calls fail during moderation', async () => {
+            const pendingData = JSON.stringify({
+                id: 'report-err',
+                timestamp: Date.now(),
+                serviceName: 'Test',
+                city: 'Москва',
+                description: 'Test description',
+                category: 'other',
+            });
+            mockGet.mockResolvedValueOnce(pendingData);
+
+            mockFetch.mockRejectedValueOnce(new Error('answer error'));
+            mockFetch.mockRejectedValueOnce(new Error('edit error'));
+
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            const { req, res } = createMockReqRes('POST', {
+                callback_query: {
+                    id: 'cbq-err',
+                    data: 'approve_radar_report-err',
+                    message: { chat: { id: 456 }, message_id: 10, text: 'Original message' },
+                },
+            });
+            await handler(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(consoleSpy).toHaveBeenCalledTimes(2);
+            expect(consoleSpy.mock.calls[0][0]).toContain('tgWebhook_answerCallback');
+            expect(consoleSpy.mock.calls[1][0]).toContain('tgWebhook_editMessage');
+
+            consoleSpy.mockRestore();
+        });
+
         it('handles already-processed report gracefully', async () => {
             mockGet.mockResolvedValueOnce(null);
 
