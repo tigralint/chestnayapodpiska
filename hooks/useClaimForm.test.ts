@@ -89,6 +89,44 @@ describe('useClaimForm', () => {
         expect(result.current.result).toBe('');
     });
 
+    it('sets default apiError on generate failure with non-Error object', async () => {
+        const failGenerateNonError = vi.fn((_data: TestData) => Promise.reject('String Error'));
+        const { result } = renderHook(() => useClaimForm(initialData, failGenerateNonError, noErrors));
+        await act(async () => {
+            await result.current.handleGenerate();
+        });
+        expect(result.current.apiError).toBe(
+            'Произошла ошибка при генерации документа. Пожалуйста, попробуйте еще раз.'
+        );
+        expect(result.current.result).toBe('');
+    });
+
+    it('silently ignores AbortError and does not set apiError', async () => {
+        const abortError = new Error('Aborted');
+        abortError.name = 'AbortError';
+        const failGenerateAbort = vi.fn((_data: TestData) => Promise.reject(abortError));
+        const { result } = renderHook(() => useClaimForm(initialData, failGenerateAbort, noErrors));
+        await act(async () => {
+            await result.current.handleGenerate();
+        });
+        expect(result.current.apiError).toBe('');
+    });
+
+    it('scrolls to top on mobile during generate failure', async () => {
+        const originalInnerWidth = window.innerWidth;
+        Object.defineProperty(window, 'innerWidth', { value: 375, writable: true });
+        const { result } = renderHook(() => useClaimForm(initialData, failGenerate, noErrors));
+        await act(async () => {
+            await result.current.handleGenerate();
+        });
+        // One call for starting generation, one for catching error
+        expect(window.scrollTo).toHaveBeenCalledTimes(2);
+        expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+
+        // Restore
+        Object.defineProperty(window, 'innerWidth', { value: originalInnerWidth, writable: true });
+    });
+
     it('resets turnstileToken after generation', async () => {
         const dataWithToken: TestData = { name: 'Test', turnstileToken: 'token123' };
         const { result } = renderHook(() => useClaimForm(dataWithToken, successGenerate, noErrors));
