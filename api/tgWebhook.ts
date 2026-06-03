@@ -152,14 +152,19 @@ async function handleResetLimit(callbackQuery: TelegramCallbackQuery, data: stri
 
     if (realIp && isValidIpLike(realIp)) {
         let cursor = '0';
+        const allKeys: string[] = [];
         do {
             const scanRes = await redis.scan(cursor, { match: `*chat_${realIp}*`, count: 100 });
             cursor = scanRes[0];
             const keys = scanRes[1];
             if (keys.length > 0) {
-                await redis.del(...keys);
+                allKeys.push(...keys);
             }
         } while (cursor !== '0');
+
+        if (allKeys.length > 0) {
+            await redis.del(...allKeys);
+        }
 
         await redis.del(`limit_request:${ipHash}`);
     }
