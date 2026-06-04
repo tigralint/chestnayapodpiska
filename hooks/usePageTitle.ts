@@ -16,14 +16,16 @@ const ROUTE_TITLES: Record<string, string> = {
  * Sets document.title based on the current route.
  * Falls back to base title for unknown routes.
  */
+const ROUTE_ENTRIES = Object.entries(ROUTE_TITLES);
+
 export function usePageTitle(pathname: string) {
     useEffect(() => {
         // Match exact or prefix (e.g. /claim/service)
-        const matchedKey = Object.keys(ROUTE_TITLES).find((key) =>
+        const matchedEntry = ROUTE_ENTRIES.find(([key]) =>
             key === '/' ? pathname === '/' : pathname.startsWith(key)
         );
 
-        const pageTitle = matchedKey ? ROUTE_TITLES[matchedKey] : null;
+        const pageTitle = matchedEntry ? matchedEntry[1] : null;
         document.title = pageTitle ? `${pageTitle} – ${BASE_TITLE}` : BASE_TITLE;
     }, [pathname]);
 }

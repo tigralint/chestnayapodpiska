@@ -53,13 +53,14 @@ async function handleListCommand(chatId: number): Promise<void> {
     if (!items || items.length === 0) {
         await sendTelegramMessage(String(chatId), 'На радаре пока пусто.');
     } else {
-        for (const item of items) {
+        const promises = items.map((item) => {
             const alert = item as RadarStoredData;
             const text = `📌 <b>${escapeHtml(alert.serviceName)}</b> (${escapeHtml(alert.city)})\n📝 ${escapeHtml(alert.description)}`;
-            await sendTelegramMessage(String(chatId), text, {
+            return sendTelegramMessage(String(chatId), text, {
                 inline_keyboard: [[{ text: '🗑 Удалить с сайта', callback_data: `delradar_${alert.id}` }]],
             });
-        }
+        });
+        await Promise.all(promises);
     }
 }
 
@@ -152,14 +153,19 @@ async function handleResetLimit(callbackQuery: TelegramCallbackQuery, data: stri
 
     if (realIp && isValidIpLike(realIp)) {
         let cursor = '0';
+        const allKeys: string[] = [];
         do {
             const scanRes = await redis.scan(cursor, { match: `*chat_${realIp}*`, count: 100 });
             cursor = scanRes[0];
             const keys = scanRes[1];
             if (keys.length > 0) {
-                await redis.del(...keys);
+                allKeys.push(...keys);
             }
         } while (cursor !== '0');
+
+        if (allKeys.length > 0) {
+            await redis.del(...allKeys);
+        }
 
         await redis.del(`limit_request:${ipHash}`);
     }
