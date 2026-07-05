@@ -202,7 +202,6 @@
 
 <p align="left">
   <a href="https://t.me/tigralint"><img src="https://img.shields.io/badge/Telegram-@tigralint-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram" /></a>
-  <a href="https://vk.com/fairsubs"><img src="https://img.shields.io/badge/ВКонтакте-vk.com%2Ffairsubs-0077FF?style=for-the-badge&logo=vk&logoColor=white" alt="VK" /></a>
 </p>
 
 ---
